@@ -28,7 +28,7 @@ namespace ContainerNinja.Core
                 options.AddConsole();
             });
 
-            //services.AddMemoryCache();
+            services.AddMemoryCache();
             services.AddHttpContextAccessor();
 
             // register services

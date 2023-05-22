@@ -12,12 +12,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebuggerFlavor>LaunchJsonDebugger</DebuggerFlavor>
-    <LaunchJsonTarget>{
-  "name": "localhost (Chrome)",
-  "type": "chrome",
-  "request": "launch",
-  "url": "http://localhost:4200",
-  "webRoot": "C:\\Projects\\WeekOfFood\\Client"
-}</LaunchJsonTarget>
+    <LaunchJsonTarget>
+    </LaunchJsonTarget>
   </PropertyGroup>
 </Project>

@@ -4,3 +4,5 @@ C:\Projects\Examples\ContainerNinja.CleanArchitecture\Client\obj\Debug\Client.es
 C:\Projects\Examples\ContainerNinja.CleanArchitecture\Client\obj\Debug\Client.esproj.CoreCompileInputs.cache
 C:\Projects\WeekOfFood\Client\obj\Debug\Client.esproj.SuggestedBindingRedirects.cache
 C:\Projects\WeekOfFood\Client\obj\Debug\Client.esproj.CoreCompileInputs.cache
+C:\temp\WeekOfFood\Client\obj\Debug\Client.esproj.SuggestedBindingRedirects.cache
+C:\temp\WeekOfFood\Client\obj\Debug\Client.esproj.CoreCompileInputs.cache
