@@ -1,0 +1,2 @@
+C:\Projects\Examples\ContainerNinja.CleanArchitecture\Client\obj\Release\Client.esproj.SuggestedBindingRedirects.cache
+C:\Projects\Examples\ContainerNinja.CleanArchitecture\Client\obj\Release\Client.esproj.CoreCompileInputs.cache
