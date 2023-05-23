@@ -29,8 +29,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "solution items", "solution 
 		..\deploy-client.bat = ..\deploy-client.bat
 		deploy-local-docker.bat = deploy-local-docker.bat
 		..\deploy-proxy.bat = ..\deploy-proxy.bat
-		..\docker-compose.yaml = ..\docker-compose.yaml
+		..\docker-compose-production.yaml = ..\docker-compose-production.yaml
 		Dockerfile = Dockerfile
+		..\docker-compose-development.yaml = ..\docker-compose-development.yaml
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject

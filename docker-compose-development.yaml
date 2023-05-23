@@ -53,6 +53,9 @@ services:
             - 5000:5000
         expose:
             - 5000
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Development
+        env_file: wof-development-secrets.env
 
 networks:
     wof:

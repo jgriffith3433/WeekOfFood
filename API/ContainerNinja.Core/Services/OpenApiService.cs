@@ -4,17 +4,30 @@ using OpenAI.GPT3.ObjectModels.RequestModels;
 using OpenAI.GPT3.ObjectModels;
 using OpenAI.GPT3.Interfaces;
 using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyInjection;
+using System.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using OpenAI.GPT3.Managers;
+using OpenAI.GPT3;
 
 namespace ContainerNinja.Core.Services
 {
     public class OpenApiService : IOpenApiService
     {
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IOpenAIService _openAIService;
 
-        public OpenApiService(IOpenAIService openAIService)
+        public OpenApiService(IWebHostEnvironment webHostEnvironment)
         {
-            _openAIService = openAIService;
+            _webHostEnvironment = webHostEnvironment;
+            _openAIService = new OpenAIService(new OpenAiOptions()
+            {
+                Organization = Environment.GetEnvironmentVariable("OpenAIServiceOrganization"),
+                ApiKey = Environment.GetEnvironmentVariable("OpenAIServiceApiKey"),
+            });
         }
+
 
         public async Task<string> GetChatResponse(string message, List<ChatMessageVm> previousMessages, string currentUrl)
         {

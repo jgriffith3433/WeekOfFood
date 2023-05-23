@@ -2,42 +2,42 @@
 echo ------------------------------------------------------------
 echo ----------------------PUSHING-------------------------------
 echo ------------------------------------------------------------
-echo Pushing client image
-docker compose --verbose push client
+echo Pushing api image
+docker compose -f docker-compose-production.yaml --verbose push api
 
 echo ------------------------------------------------------------
 echo ----------------------STOPPING------------------------------
 echo ------------------------------------------------------------
-set clientRunning=docker ps -q -f name=client
+set apiRunning=docker ps -q -f name=api
 
-IF NOT "%clientRunning%"=="" (
-	echo Stopping client
-    docker stop client
+IF NOT "%apiRunning%"=="" (
+	echo Stopping api
+    docker stop api
 )
 
 echo ------------------------------------------------------------
 echo ----------------------REMOVING------------------------------
 echo ------------------------------------------------------------
-set clientExists=docker ps -a -q -f name=client
+set apiExists=docker ps -a -q -f name=api
 
-IF NOT "%clientExists%"=="" (
-	echo Removing client
-	docker rm client
+IF NOT "%apiExists%"=="" (
+	echo Removing api
+	docker rm api
 )
 
 echo ------------------------------------------------------------
 echo ----------------------PULLING-------------------------------
 echo ------------------------------------------------------------
 
-echo Pulling client
-docker image pull urvaius/wof-client:latest
+echo Pulling api
+docker image pull urvaius/wof-api:latest
 
 echo ------------------------------------------------------------
 echo ----------------------STARTING------------------------------
 echo ------------------------------------------------------------
 
-echo Starting client
-docker run --name=client --hostname=client.jaycee.margravesenclave.com --env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --env=NGINX_VERSION=1.23.3 --env=NJS_VERSION=0.7.9 --env=PKG_RELEASE=1~bullseye --network=wof -p 9000:9000 --runtime=runc -d urvaius/wof-client:latest
+echo Starting api
+docker run --name=api --env=ASPNETCORE_ENVIRONMENT=Production --env-file wof-production-secrets.env --hostname=api.jaycee.margravesenclave.com --env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin --env=ASPNETCORE_URLS=http://+:80 --env=DOTNET_RUNNING_IN_CONTAINER=true --env=DOTNET_VERSION=6.0.16 --env=ASPNET_VERSION=6.0.16 --network=wof --workdir=/app -p 5000:5000 --runtime=runc -d urvaius/wof-api:latest
 
 
 echo Done

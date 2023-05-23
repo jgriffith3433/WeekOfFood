@@ -2,8 +2,8 @@
 echo ------------------------------------------------------------
 echo ----------------------BUILDING------------------------------
 echo ------------------------------------------------------------
-echo Building client proxy
-docker compose --verbose build --force-rm --no-cache proxy
+echo Building api image
+docker compose -f docker-compose-development.yaml --verbose build --force-rm --no-cache api
 
 echo Done
 exit 0

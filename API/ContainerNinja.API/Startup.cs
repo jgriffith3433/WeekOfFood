@@ -24,7 +24,6 @@ namespace ContainerNinja
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
-            services.AddOpenAIService();
 
             services.AddPersistence(Configuration);
             services.AddCore(Configuration);
