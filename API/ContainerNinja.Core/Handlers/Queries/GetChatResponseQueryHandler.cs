@@ -45,7 +45,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                 Message = chatResponseMessage
             });
             ChatConversation chatConversationEntity;
-            if (request.ChatConversationId.HasValue)
+            if (request.ChatConversationId.HasValue && request.ChatConversationId.Value != -1)
             {
                 chatConversationEntity = _repository.ChatConversations.GetAll().Where(cc => cc.Id == request.ChatConversationId.Value).FirstOrDefault();
                 if (chatConversationEntity == null)
@@ -53,6 +53,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     throw new Exception("Not Found");
                 }
                 chatConversationEntity.Content = JsonConvert.SerializeObject(request);
+                _repository.ChatConversations.Update(chatConversationEntity);
             }
             else
             {

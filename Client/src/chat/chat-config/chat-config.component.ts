@@ -36,7 +36,7 @@ export class ChatConfigComponent {
   @Output() public themeChange: EventEmitter<any> = new EventEmitter()
 
   public themes = ['blue', 'grey', 'red']
-  public setTheme(theme) {
+  public setTheme(theme: any) {
     this.theme = theme
     this.themeChange.emit(this.theme)
   }

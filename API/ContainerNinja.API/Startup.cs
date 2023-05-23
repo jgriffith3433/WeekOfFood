@@ -8,6 +8,7 @@ using ContainerNinja.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using ContainerNinja.API.Filters;
+using OpenAI.GPT3.Extensions;
 
 namespace ContainerNinja
 {
@@ -23,6 +24,7 @@ namespace ContainerNinja
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors();
+            services.AddOpenAIService();
 
             services.AddPersistence(Configuration);
             services.AddCore(Configuration);

@@ -15,6 +15,7 @@ import { TodoListComponent } from './components/pages/todo-list/todo-list.compon
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './providers/token.interceptor';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ChatModule } from 'src/chat/chat.module';
 
 @NgModule({
@@ -35,6 +36,7 @@ import { ChatModule } from 'src/chat/chat.module';
     HttpClientModule,
     FormsModule,
     CommonModule,
+    BrowserAnimationsModule,
     ChatModule,
   ],
   providers: [

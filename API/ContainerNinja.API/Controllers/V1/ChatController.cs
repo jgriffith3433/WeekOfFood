@@ -22,9 +22,10 @@ namespace ContainerNinja.Controllers.V1
         private readonly IMediator _mediator;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ChatController(IMediator mediator, IWebHostEnvironment env)
+        public ChatController(IMediator mediator, IWebHostEnvironment webHostEnvironment)
         {
             _mediator = mediator;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         [MapToApiVersion("1.0")]
