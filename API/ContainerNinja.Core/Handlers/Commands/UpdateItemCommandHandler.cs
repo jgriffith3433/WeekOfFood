@@ -77,9 +77,10 @@ namespace ContainerNinja.Core.Handlers.Commands
             // replace Cached Item with the Updated Item
             if (_cache.GetItem<ItemDTO>($"item_{itemId}") != null)
             {
-                _logger.LogInformation($"Item Exists in Cache. Set new Item for the same Key.");
+                _logger.LogInformation($"Item Exists in Cache. Setting new Item for the same Key.");
                 _cache.SetItem($"item_{itemId}", updatedItem);
             }
+            _cache.RemoveItem("items");
             
             return updatedItem;
         }

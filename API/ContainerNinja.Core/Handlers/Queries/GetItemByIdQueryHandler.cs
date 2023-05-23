@@ -52,7 +52,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             var result = _mapper.Map<ItemDTO>(item);
 
             _logger.LogInformation($"Add Item to Cache and return.");
-            var _ = _cache.SetItem($"item_{request.ItemId}", result);
+            _cache.SetItem($"item_{request.ItemId}", result);
             return result;
         }
     }

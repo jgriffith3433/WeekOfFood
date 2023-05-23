@@ -9,6 +9,7 @@ namespace ContainerNinja.Core.Mapper
         public AutoMapperProfile()
         {
             CreateMap<Item, ItemDTO>();
+            CreateMap<TodoList, TodoListDTO>();
         }
     }
 }

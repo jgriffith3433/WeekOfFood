@@ -1,0 +1,26 @@
+<div class="row">
+    <ng-container *ngFor="let todoList of todoLists">
+        <div class="col-md-4">
+            <a [routerLink]="[todoList.id, 'edit']">
+                <div [ngStyle]="{'background':todoList.color}" class="card card-primary">
+                    <div class="card-body">
+                      <h1 class="card-title">{{todoList.title}}</h1>
+                      <p class="card-text">{{todoList.title}}</p>
+                    </div>
+                    <div class="card-footer">
+                        <ng-container>
+                          <span class="badge badge-light mx-md-1">{{todoList.title}}</span>
+                        </ng-container>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </ng-container>
+    <div *ngIf="todoLists.length == 0" class="col-md-12">
+      <h1 class="display-4">No todo lists found. Click on Add button to create one.</h1>
+    </div>
+</div>
+
+<a [routerLink]="['/todo/add']" class="float bg-success">
+    <i class="fa fa-plus my-float"></i>
+</a>

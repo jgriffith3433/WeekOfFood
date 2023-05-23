@@ -42,6 +42,7 @@ namespace ContainerNinja.Migrations
         }
 
         public DbSet<Item> Items { get; set; }
+        public DbSet<TodoList> TodoLists { get; set; }
         public DbSet<User> Users { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using FluentValidation;
 using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Distributed;
+using ContainerNinja.Contracts.Services;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -25,9 +25,9 @@ namespace ContainerNinja.Core.Handlers.Commands
         private readonly IValidator<CreateOrUpdateItemDTO> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateItemCommandHandler> _logger;
-        private readonly IDistributedCache _cache;
+        private readonly ICachingService _cache;
 
-        public CreateItemCommandHandler(ILogger<CreateItemCommandHandler> logger, IUnitOfWork repository, IValidator<CreateOrUpdateItemDTO> validator, IMapper mapper, IDistributedCache cache)
+        public CreateItemCommandHandler(ILogger<CreateItemCommandHandler> logger, IUnitOfWork repository, IValidator<CreateOrUpdateItemDTO> validator, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
             _validator = validator;
@@ -63,8 +63,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             _repository.Items.Add(entity);
             await _repository.CommitAsync();
-            _cache.Remove("all_items");
-            return _mapper.Map<ItemDTO>(entity);
+            _logger.LogInformation($"Added Item to Cache.");
+            var itemDTO = _mapper.Map<ItemDTO>(entity);
+            _cache.SetItem($"item_{entity.Id}", itemDTO);
+            _cache.RemoveItem("items");
+            return itemDTO;
         }
     }
 }

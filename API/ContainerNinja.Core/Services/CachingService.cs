@@ -29,5 +29,10 @@ namespace ContainerNinja.Core.Services
                 SlidingExpiration = TimeSpan.FromMinutes(60)
             });
         }
+
+        public void RemoveItem(string cacheKey)
+        {
+            _memoryCache.Remove(cacheKey);
+        }
     }
 }

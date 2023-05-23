@@ -1,35 +1,31 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CreateOrUpdateItemDTO } from 'src/app/models/CreateOrUpdateItemDTO';
-import { ItemsService } from 'src/app/providers/items.service';
+import { CreateOrUpdateTodoListDTO } from 'src/app/models/CreateOrUpdateTodoListDTO';
+import { TodoListService } from 'src/app/providers/todo-list.service';
 import { Location } from '@angular/common';
 
 @Component({
-  selector: 'app-addoredit',
-  templateUrl: './addoredit.component.html',
-  styleUrls: ['./addoredit.component.scss']
+  selector: 'app-todo-list',
+  templateUrl: './todo-list.component.html',
+  styleUrls: ['./todo-list.component.scss']
 })
-export class AddoreditComponent implements OnInit {
+export class TodoListComponent implements OnInit {
 
   id: any = 0;
-  item: CreateOrUpdateItemDTO = {
-    name: '',
-    description: '',
-    colorCode: '#FFFFFF',
-    categories: ''
+  todoList: CreateOrUpdateTodoListDTO = {
+    title: '',
+    color: '#FFFFFF',
   };
   form: FormGroup;
   isEdit: boolean = false;
   errors: string[] = [];
   isError: boolean = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private itemsService: ItemsService, private formBuilder: FormBuilder, private router: Router) {
+  constructor(private activatedRoute: ActivatedRoute, private todoListService: TodoListService, private formBuilder: FormBuilder, private router: Router) {
     this.form = this.formBuilder.group({
-      name: new FormControl(this.item.name, []),
-      description: new FormControl(this.item.description, []),
-      categories: new FormControl(this.item.categories, []),
-      colorCode: new FormControl(this.item.colorCode, [])
+      title: new FormControl(this.todoList.title, []),
+      color: new FormControl(this.todoList.color, [])
     })
   }
 
@@ -37,29 +33,27 @@ export class AddoreditComponent implements OnInit {
     this.activatedRoute.paramMap.subscribe((map) => {
       if (map.has('id')) {
         this.id = map.get('id');
-        this.itemsService.getById(this.id).subscribe(x => {
-          this.item = {
-            name: x.name,
-            description: x.description,
-            categories: x.categories,
-            colorCode: x.colorCode
+        this.todoListService.getById(this.id).subscribe(x => {
+          this.todoList = {
+            title: x.title,
+            color: x.color
           }
-          this.form.setValue(this.item);
+          this.form.setValue(this.todoList);
           this.isEdit = true;
         })
       }
     });
   }
 
-  public get Item() {
-    if (this.item === null) return null;
-    else return this.item;
+  public get TodoList() {
+    if (this.todoList === null) return null;
+    else return this.todoList;
   }
 
   save() {
     console.log(this.form.value);
     if (this.isEdit) {
-      this.itemsService.update(this.id, <CreateOrUpdateItemDTO>this.form.value).subscribe({
+      this.todoListService.update(this.id, <CreateOrUpdateTodoListDTO>this.form.value).subscribe({
         next: res => {
           this.back();
         },
@@ -72,7 +66,7 @@ export class AddoreditComponent implements OnInit {
         }
       });
     } else {
-      this.itemsService.add(<CreateOrUpdateItemDTO>this.form.value).subscribe({
+      this.todoListService.add(<CreateOrUpdateTodoListDTO>this.form.value).subscribe({
         next: res => {
           this.back();
         },
@@ -90,7 +84,7 @@ export class AddoreditComponent implements OnInit {
   delete() {
     let response = confirm('Are you sure you want to delete?');
     if (response === true) {
-      this.itemsService.delete(this.id).subscribe({
+      this.todoListService.delete(this.id).subscribe({
         next: res => {
           this.back();
         },
@@ -106,7 +100,6 @@ export class AddoreditComponent implements OnInit {
   }
 
   back() {
-    this.router.navigate(['items']);
+    this.router.navigate(['todo']);
   }
-
 }

@@ -5,7 +5,7 @@ namespace ContainerNinja.Contracts.Data
     public interface IUnitOfWork
     {
         IItemRepository Items { get; }
-        ITodoListRepository TodoList { get; }
+        ITodoListRepository TodoLists { get; }
         IUserRepository Users { get; }
         Task CommitAsync();
     }

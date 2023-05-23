@@ -15,7 +15,7 @@ namespace ContainerNinja.Core.Data
         }
         public IItemRepository Items => new ItemRepository(_context);
 
-        public ITodoListRepository TodoList => new TodoListRepository(_context);
+        public ITodoListRepository TodoLists => new TodoListRepository(_context);
 
         public IUserRepository Users => new UserRepository(_context);
 

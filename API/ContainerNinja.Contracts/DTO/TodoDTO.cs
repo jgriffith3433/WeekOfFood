@@ -4,8 +4,8 @@ namespace ContainerNinja.Contracts.DTO
 {
     public class TodoListDTO : AuditableEntity
     {
-        public string? Title { get; set; }
-        public string? Colour { get; set; }
+        public string Title { get; set; }
+        public string Color { get; set; }
 
         //public IList<TodoItemDto> Items { get; set; }
     }

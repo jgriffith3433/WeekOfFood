@@ -40,14 +40,15 @@ namespace ContainerNinja.Core
             // else return an In-Memory caching implementation
             services.AddSingleton<ICachingService>(x =>
             {
-                if (configuration.GetValue<bool>("IsDistributedCachingEnabled"))
-                {
-                    return ActivatorUtilities.CreateInstance<DistributedCachingService>(x);
-                }
-                else
-                {
-                    return ActivatorUtilities.CreateInstance<CachingService>(x);
-                }
+                //if (configuration.GetValue<bool>("IsDistributedCachingEnabled"))
+                //{
+                //    return ActivatorUtilities.CreateInstance<DistributedCachingService>(x);
+                //}
+                //else
+                //{
+                //    return ActivatorUtilities.CreateInstance<CachingService>(x);
+                //}
+                return ActivatorUtilities.CreateInstance<CachingService>(x);
             });
 
             //services.AddNCacheDistributedCache(configuration =>

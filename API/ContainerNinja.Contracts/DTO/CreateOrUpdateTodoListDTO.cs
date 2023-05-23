@@ -1,6 +1,6 @@
-﻿namespace ContainerNinja.Contracts.Data.Entities
+﻿namespace ContainerNinja.Contracts.DTO
 {
-    public class TodoList : AuditableEntity
+    public class CreateOrUpdateTodoListDTO
     {
         public string Title { get; set; }
         public string Color { get; set; }

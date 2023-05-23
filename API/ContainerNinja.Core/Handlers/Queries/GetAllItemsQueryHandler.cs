@@ -2,7 +2,7 @@ using AutoMapper;
 using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.DTO;
 using MediatR;
-using Microsoft.Extensions.Caching.Distributed;
+using ContainerNinja.Contracts.Services;
 using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.Queries
@@ -15,9 +15,9 @@ namespace ContainerNinja.Core.Handlers.Queries
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
-        private readonly IDistributedCache _cache;
+        private readonly ICachingService _cache;
 
-        public GetAllItemsQueryHandler(IUnitOfWork repository, IMapper mapper, IDistributedCache cache)
+        public GetAllItemsQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
             _mapper = mapper;
@@ -26,19 +26,18 @@ namespace ContainerNinja.Core.Handlers.Queries
 
         public async Task<IEnumerable<ItemDTO>> Handle(GetAllItemsQuery request, CancellationToken cancellationToken)
         {
-            var cachedEntitiesString = await _cache.GetStringAsync("all_items");
+            var cachedEntities = _cache.GetItem<IEnumerable<ItemDTO>>("items");
             
-            if (cachedEntitiesString == null)
+            if (cachedEntities == null)
             {
                 var entities = await Task.FromResult(_repository.Items.GetAll());
                 var result = _mapper.Map<IEnumerable<ItemDTO>>(entities);
 
-                await _cache.SetStringAsync("all_items", JsonConvert.SerializeObject(result));
+                _cache.SetItem("items", result);
                 return result;
             }
             else
             {
-                var cachedEntities = JsonConvert.DeserializeObject<IEnumerable<ItemDTO>>(cachedEntitiesString);
                 return cachedEntities;
             }
 
