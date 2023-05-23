@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { CommonModule } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -14,6 +15,7 @@ import { TodoListComponent } from './components/pages/todo-list/todo-list.compon
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './providers/token.interceptor';
+import { ChatModule } from 'src/chat/chat.module';
 
 @NgModule({
   declarations: [
@@ -31,7 +33,9 @@ import { TokenInterceptor } from './providers/token.interceptor';
     AppRoutingModule,
     ReactiveFormsModule,
     HttpClientModule,
-    FormsModule
+    FormsModule,
+    CommonModule,
+    ChatModule,
   ],
   providers: [
     AuthGuard,
@@ -39,7 +43,7 @@ import { TokenInterceptor } from './providers/token.interceptor';
       provide: HTTP_INTERCEPTORS,
       multi: true,
       useClass: TokenInterceptor
-    }
+    },
   ],
   bootstrap: [AppComponent]
 })

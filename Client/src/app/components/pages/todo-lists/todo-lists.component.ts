@@ -9,6 +9,7 @@ import { TodoListsService } from '../../../providers/todo-lists.service';
 })
 export class TodoListsComponent implements OnInit {
   todoLists: TodoListDTO[] = [];
+  selectedList: TodoListDTO;
 
   constructor(private todoListsService: TodoListsService) { }
 

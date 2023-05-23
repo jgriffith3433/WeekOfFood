@@ -19,6 +19,10 @@ namespace ContainerNinja.Core.Data
 
         public IUserRepository Users => new UserRepository(_context);
 
+        public IChatCommandRepository ChatCommands => new ChatCommandRepository(_context);
+
+        public IChatConversationRepository ChatConversations => new ChatConversationRepository(_context);
+
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();

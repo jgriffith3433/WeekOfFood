@@ -5,7 +5,8 @@
     <!-- Command to run on project build -->
     <BuildCommand>npm install</BuildCommand>
     <!-- Command to create an optimized build of the project that's ready for publishing -->
-    <ProductionBuildCommand></ProductionBuildCommand>
+    <ProductionBuildCommand>
+    </ProductionBuildCommand>
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\Client</BuildOutputFolder>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
