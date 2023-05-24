@@ -25,6 +25,12 @@ namespace ContainerNinja.Core.Data
 
         public IProductRepository Products => new ProductRepository(_context);
 
+        public ICompletedOrderRepository CompletedOrders => new CompletedOrderRepository(_context);
+
+        public ICompletedOrderProductRepository CompletedOrderProducts => new CompletedOrderProductRepository(_context);
+
+        public IProductStockRepository ProductStocks => new ProductStockRepository(_context);
+
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();

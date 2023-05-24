@@ -63,7 +63,6 @@ namespace ContainerNinja.API.Controllers.V1
         [MapToApiVersion("1.0")]
         [HttpPut]
         [Route("{id}")]
-        [TypeFilter(typeof(ETagFilter))]
         [ProducesResponseType(typeof(CreateOrUpdateTodoListDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Update(int id, [FromBody] CreateOrUpdateTodoListDTO model)
@@ -95,7 +94,6 @@ namespace ContainerNinja.API.Controllers.V1
         [MapToApiVersion("1.0")]
         [HttpGet]
         [Route("{id}")]
-        [TypeFilter(typeof(ETagFilter))]
         [ProducesResponseType(typeof(TodoListDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> GetById(int id)

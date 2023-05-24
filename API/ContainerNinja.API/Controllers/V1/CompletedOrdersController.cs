@@ -18,22 +18,22 @@ namespace ContainerNinja.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class ProductsController : ControllerBase
+    public class CompletedOrdersController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public ProductsController(IMediator mediator)
+        public CompletedOrdersController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [MapToApiVersion("1.0")]
         [HttpGet]
-        [ProducesResponseType(typeof(GetAllProductsVM), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(GetAllCompletedOrdersVM), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Get()
         {
-            var query = new GetAllProductsQuery();
+            var query = new GetAllCompletedOrdersQuery();
             var response = await _mediator.Send(query);
             return Ok(response);
         }

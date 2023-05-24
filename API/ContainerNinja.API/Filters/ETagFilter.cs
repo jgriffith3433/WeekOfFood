@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 
 namespace ContainerNinja.API.Filters
 {
+    //TODO: See if this is necessary
+    /*
     // prevents the action filter methods to be invoked twice
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
     public class ETagFilter : ActionFilterAttribute, IAsyncActionFilter
@@ -130,4 +132,5 @@ namespace ContainerNinja.API.Filters
             return Convert.ToBase64String(Encoding.UTF8.GetBytes(strDateTime));
         }
     }
+    */
 }

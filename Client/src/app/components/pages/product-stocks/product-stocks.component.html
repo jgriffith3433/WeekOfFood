@@ -1,0 +1,139 @@
+<h1 id="tableLabel">Stocked Products</h1>
+
+<p *ngIf="!productStocks?.length"><em>Loading...</em></p>
+<!--<button class="btn btn-default float-end" title="New Recipe..."
+        (click)="showNewProductStockModal(newProductStockModalTemplate)">
+  <i class="bi bi-journal-plus"></i>
+</button>-->
+<table class='table table-striped' aria-labelledby="tableLabel" *ngIf="productStocks?.length">
+  <thead>
+    <tr>
+      <th>Id</th>
+      <!--<th>Name</th>
+      <th>Unit Type</th>
+      <th>Units</th>-->
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let productStock of productStocks index as i">
+      <td>{{ productStock.id }}</td>
+      <!--<td>{{ productStock.name }}</td>
+      <td>{{ getUnitTypeNameFromUnitTypeValue(productStock.product != null ? productStock.product.unitType : -1) }}</td>
+      <td>
+        <input id="{{ 'productStock' + i }}" *ngIf="productStock == selectedProductStockUnits" type="text"
+               class="form-control item-input-control" [(ngModel)]="productStock.units" (change)="updateProductStockUnits(productStock)"
+               autofocus="autofocus" />
+        <div *ngIf="productStock != selectedProductStockUnits" (click)="editProductStockUnits(productStock, 'productStock' + i)" class="item-name form-control item-input-control">
+          <span>{{ productStock.units }}</span>
+        </div>
+        <div class="item-commands d-flex">
+          <button *ngIf="productStock.id != 0" (click)="showProductStockDetailsModal(productStockModalTemplate, productStock)" class="my-auto btn btn-default btn-xs" role="button">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+        </div>
+      </td>-->
+    </tr>
+  </tbody>
+</table>
+
+
+<!--<ng-template #productStockModalTemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Product Stock Details</h4>
+    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="productStockModalRef.hide()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form">
+      <div class="form-group">
+        <label for="search">Search by Name</label>
+        <div *ngIf="!productStockEditor.product && productStockEditor.productSearchItems">
+          <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="productStockEditor.search"
+                 [ngClass]="{ 'is-invalid': productStockEditor.error }" (keyup.enter)="searchProductName()" />
+          <div class="float-end">
+            <button class="btn btn-primary" (click)="searchProductName()">Search</button>
+          </div>
+          <select class="form-control" [(ngModel)]="productStockEditor.productId">
+            <option [ngValue]="productSearchItem.id" *ngFor="let productSearchItem of productStockEditor.productSearchItems">{{ productSearchItem.name }}</option>
+          </select>
+        </div>
+        <div *ngIf="!productStockEditor.product && !productStockEditor.productSearchItems">
+          <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="productStockEditor.search"
+                 [ngClass]="{ 'is-invalid': productStockEditor.error }" (keyup.enter)="searchProductName()" />
+          <div class="float-end">
+            <button class="btn btn-primary" (click)="searchProductName()">Search</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="units">Units</label>
+        <input id="units" class="form-control" rows="3" [(ngModel)]="productStockEditor.units" />
+      </div>
+    </div>
+    <div *ngIf="debug">
+      <pre>{{ productStockEditor | json }}</pre>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <div class="clearfix">
+      <div class="float-start">
+        <button class="btn btn-default text-danger" (click)="confirmDeleteProductStock(deleteProductStockModalTemplate)">Delete</button>
+      </div>
+      <div class="float-end">
+        <button class="btn btn-default" (click)="productStockModalRef.hide()">Cancel</button>
+        <button class="btn btn-primary" (click)="updateProductStockDetails()">Update</button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #newProductStockModalTemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">New Product Stock</h4>
+    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="newProductStockCancelled()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group">
+      <label for="name">Name</label>
+      <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="newProductStockEditor.name"
+             [ngClass]="{ 'is-invalid': newProductStockEditor.error }" (keyup.enter)="addProductStock()" />
+      <div *ngIf="newProductStockEditor.error" class="invalid-feedback">
+        {{ newProductStockEditor.error }}
+      </div>
+    </div>
+    <div *ngIf="debug">
+      <pre>{{ newProductStockEditor | json }}</pre>
+    </div>
+  </div>
+  <div class="modal-footer clearfix">
+    <div class="float-end">
+      <button class="btn btn-default" (click)="newProductStockCancelled()">Cancel</button>
+      <button class="btn btn-primary" (click)="addProductStock()">Create</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #deleteProductStockModalTemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Delete "{{ productStockEditor?.name }}"?</h4>
+    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="deleteProductStockModalRef.hide()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p> Will be permanently deleted. </p>
+    <div *ngIf="debug">
+      <pre>{{ productStockEditor | json }}</pre>
+    </div>
+  </div>
+  <div class="modal-footer clearfix">
+    <div class="float-end">
+      <button type="button" class="btn btn-default" (click)="deleteProductStockModalRef.hide()">Cancel</button>
+      <button type="button" class="btn btn-danger" (click)="deleteProductStockConfirmed()">Delete</button>
+    </div>
+  </div>
+</ng-template>-->
+

@@ -47,5 +47,8 @@ namespace ContainerNinja.Migrations
         public DbSet<ChatCommand> ChatCommands { get; set; }
         public DbSet<ChatConversation> ChatConversations { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<CompletedOrder> CompletedOrders { get; set; }
+        public DbSet<CompletedOrderProduct> CompletedOrderProducts { get; set; }
+        public DbSet<ProductStock> ProductStocks { get; set; }
     }
 }

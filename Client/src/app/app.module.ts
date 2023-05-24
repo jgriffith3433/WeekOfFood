@@ -19,6 +19,8 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './providers/token.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ProductsComponent } from './components/pages/products/products.component';
+import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
+import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +33,8 @@ import { ProductsComponent } from './components/pages/products/products.componen
     TodoListsComponent,
     TodoListComponent,
     ProductsComponent,
+    CompletedOrdersComponent,
+    ProductStocksComponent,
   ],
   imports: [
     BrowserModule,

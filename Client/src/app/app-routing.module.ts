@@ -8,6 +8,8 @@ import { TodoListsComponent } from './components/pages/todo-lists/todo-lists.com
 import { TodoListComponent } from './components/pages/todo-list/todo-list.component';
 import { LoginComponent } from './components/pages/login/login.component';
 import { ProductsComponent } from './components/pages/products/products.component';
+import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
+import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
 
 const routes: Routes = [
   {
@@ -29,9 +31,16 @@ const routes: Routes = [
   {
     path: 'products', canActivate: [AuthGuard], children: [
       { path: '', component: ProductsComponent },
-      //{ path: 'add', component: TodoListComponent },
-      //{ path: ':id', component: TodoListComponent },
-      //{ path: ':id/edit', component: TodoListComponent },
+    ]
+  },
+  {
+    path: 'completed-orders', canActivate: [AuthGuard], children: [
+      { path: '', component: CompletedOrdersComponent },
+    ]
+  },
+  {
+    path: 'product-stocks', canActivate: [AuthGuard], children: [
+      { path: '', component: ProductStocksComponent },
     ]
   },
   { path: 'login', component: LoginComponent },

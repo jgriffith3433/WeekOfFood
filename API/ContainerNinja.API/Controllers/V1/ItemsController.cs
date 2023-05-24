@@ -74,7 +74,8 @@ namespace ContainerNinja.Controllers.V1
         [MapToApiVersion("1.0")]
         [HttpPut]
         [Route("{id}")]
-        [TypeFilter(typeof(ETagFilter))]
+        //TODO:
+        //[TypeFilter(typeof(ETagFilter))]
         [ProducesResponseType(typeof(CreateOrUpdateItemDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Update(int id, [FromBody] CreateOrUpdateItemDTO model)
@@ -106,7 +107,8 @@ namespace ContainerNinja.Controllers.V1
         [MapToApiVersion("1.0")]
         [HttpGet]
         [Route("{id}")]
-        [TypeFilter(typeof(ETagFilter))]
+        //TODO:
+        //[TypeFilter(typeof(ETagFilter))]
         [ProducesResponseType(typeof(ItemDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> GetById(int id)
