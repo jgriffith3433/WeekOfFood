@@ -1,5 +1,5 @@
 
 export interface CreateOrUpdateTodoListDTO {
-    title: string;
-    color: string;
+  title: string;
+  color: string;
 }

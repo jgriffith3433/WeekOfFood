@@ -1,7 +1,7 @@
 
 export interface CreateOrUpdateItemDTO {
-    name: string;
-    description: string;
-    categories: string;
-    colorCode: string;
+  name: string;
+  description: string;
+  categories: string;
+  colorCode: string;
 }

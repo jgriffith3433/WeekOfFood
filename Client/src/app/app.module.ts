@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 
 import { AppRoutingModule } from './app-routing.module';
+import { ChatModule } from 'src/chat/chat.module';
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { HomeComponent } from './components/pages/home/home.component';
@@ -16,7 +17,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './providers/token.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ChatModule } from 'src/chat/chat.module';
+import { ProductsComponent } from './components/pages/products/products.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { ChatModule } from 'src/chat/chat.module';
     ItemsListComponent,
     TodoListsComponent,
     TodoListComponent,
+    ProductsComponent,
   ],
   imports: [
     BrowserModule,
