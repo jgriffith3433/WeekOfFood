@@ -9,6 +9,7 @@ namespace ContainerNinja.Contracts.Data
         IUserRepository Users { get; }
         IChatCommandRepository ChatCommands { get; }
         IChatConversationRepository ChatConversations { get; }
+        IProductRepository Products { get; }
         Task CommitAsync();
     }
 }

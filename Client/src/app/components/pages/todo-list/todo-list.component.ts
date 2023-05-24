@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CreateOrUpdateTodoListDTO } from 'src/app/models/CreateOrUpdateTodoListDTO';
 import { TodoListService } from 'src/app/providers/todo-list.service';
@@ -17,15 +17,15 @@ export class TodoListComponent implements OnInit {
     title: '',
     color: '#FFFFFF',
   };
-  form: FormGroup;
+  form: UntypedFormGroup;
   isEdit: boolean = false;
   errors: string[] = [];
   isError: boolean = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private todoListService: TodoListService, private formBuilder: FormBuilder, private router: Router) {
+  constructor(private activatedRoute: ActivatedRoute, private todoListService: TodoListService, private formBuilder: UntypedFormBuilder, private router: Router) {
     this.form = this.formBuilder.group({
-      title: new FormControl(this.todoList.title, []),
-      color: new FormControl(this.todoList.color, [])
+      title: new UntypedFormControl(this.todoList.title, []),
+      color: new UntypedFormControl(this.todoList.color, [])
     })
   }
 

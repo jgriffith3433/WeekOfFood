@@ -11,15 +11,15 @@ using ContainerNinja.Contracts.OpenApi;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
-    public record GetChatResponseQuery : IRequest<GetChatResponseVm>
+    public record GetChatResponseQuery : IRequest<GetChatResponseVM>
     {
-        public List<ChatMessageVm> PreviousMessages { get; set; } = new List<ChatMessageVm> { };
-        public ChatMessageVm ChatMessage { get; set; }
+        public List<ChatMessageVM> PreviousMessages { get; set; } = new List<ChatMessageVM> { };
+        public ChatMessageVM ChatMessage { get; set; }
         public int? ChatConversationId { get; set; }
         public string CurrentUrl { get; set; }
     }
 
-    public class GetChatResponseQueryHandler : IRequestHandler<GetChatResponseQuery, GetChatResponseVm>
+    public class GetChatResponseQueryHandler : IRequestHandler<GetChatResponseQuery, GetChatResponseVM>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
@@ -34,12 +34,12 @@ namespace ContainerNinja.Core.Handlers.Queries
             _openApiService = openApiService;
         }
 
-        public async Task<GetChatResponseVm> Handle(GetChatResponseQuery request, CancellationToken cancellationToken)
+        public async Task<GetChatResponseVM> Handle(GetChatResponseQuery request, CancellationToken cancellationToken)
         {
             var chatResponseMessage = await _openApiService.GetChatResponse(request.ChatMessage.Message, request.PreviousMessages, request.CurrentUrl);
 
             request.PreviousMessages.Add(request.ChatMessage);
-            request.PreviousMessages.Add(new ChatMessageVm
+            request.PreviousMessages.Add(new ChatMessageVM
             {
                 From = 1,
                 Message = chatResponseMessage
@@ -114,12 +114,12 @@ namespace ContainerNinja.Core.Handlers.Queries
                             chatSystemResponseMessage = openApiChatSystemResponseMessageCommand.Response;
                         }
 
-                        request.PreviousMessages.Add(new ChatMessageVm
+                        request.PreviousMessages.Add(new ChatMessageVM
                         {
                             From = 3,
                             Message = chatCommandEntity.SystemResponse
                         });
-                        request.PreviousMessages.Add(new ChatMessageVm
+                        request.PreviousMessages.Add(new ChatMessageVM
                         {
                             From = 1,
                             Message = chatSystemResponseMessage
@@ -141,14 +141,14 @@ namespace ContainerNinja.Core.Handlers.Queries
                 await _repository.CommitAsync();
             }
 
-            return new GetChatResponseVm
+            return new GetChatResponseVM
             {
                 ChatConversationId = chatConversationEntity.Id,
                 Dirty = dirty,
                 Error = error,
                 CreateNewChat = error || !string.IsNullOrEmpty(navigateToPage),
                 NavigateToPage = navigateToPage,
-                ResponseMessage = new ChatMessageVm
+                ResponseMessage = new ChatMessageVM
                 {
                     From = 1,
                     Message = chatResponseMessage

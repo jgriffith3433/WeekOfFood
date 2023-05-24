@@ -6,11 +6,10 @@ import { ChatInputComponent } from './chat-input/chat-input.component'
 import { ChatConfigComponent } from './chat-config/chat-config.component'
     
 @NgModule({
-  imports: [
-    CommonModule
-  ],
-  declarations: [ChatAvatarComponent, ChatWidgetComponent, ChatInputComponent, ChatConfigComponent],
-  exports: [ChatWidgetComponent, ChatConfigComponent],
-  entryComponents: [ChatWidgetComponent, ChatConfigComponent],
+    imports: [
+        CommonModule
+    ],
+    declarations: [ChatAvatarComponent, ChatWidgetComponent, ChatInputComponent, ChatConfigComponent],
+    exports: [ChatWidgetComponent, ChatConfigComponent]
 })
 export class ChatModule {}

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoginDTO } from 'src/app/models/LoginDTO';
 import { AuthService } from 'src/app/providers/auth.service';
@@ -12,18 +12,18 @@ import { TokenService } from 'src/app/providers/token.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
-  form: FormGroup;
+  form: UntypedFormGroup;
   isError: boolean = false;
   errMsg: string = "Some error has occured!";
 
   constructor(
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private authService: AuthService,
     private router: Router,
     private location: Location, private tokenService: TokenService) {
     this.form = this.formBuilder.group({
-      emailAddress: new FormControl([], [Validators.required, Validators.email]),
-      password: new FormControl([], [Validators.required])
+      emailAddress: new UntypedFormControl([], [Validators.required, Validators.email]),
+      password: new UntypedFormControl([], [Validators.required])
     })
   }
 

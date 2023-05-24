@@ -11,7 +11,7 @@
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\Client</BuildOutputFolder>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <TypeScriptNoEmitOnError>true</TypeScriptNoEmitOnError>
-    <TypeScriptToolsVersion>4.5.2</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>4.8.4</TypeScriptToolsVersion>
   </PropertyGroup>
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>

@@ -3,27 +3,27 @@
 <p>List of products</p>
 
 <p *ngIf="!products?.length"><em>Loading...</em></p>
-<button class="btn btn-default float-end" title="New Recipe..."
+<!--<button class="btn btn-default float-end" title="New Recipe..."
         (click)="showNewProductModal(newProductModalTemplate)">
   <i class="bi bi-journal-plus"></i>
-</button>
+</button>-->
 
 <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="products?.length">
   <thead>
     <tr>
       <th>Id</th>
-      <th>Name</th>
+      <!--<th>Name</th>
       <th>Size</th>
       <th>Unit Type</th>
       <th>Price</th>
       <th>Walmart Size</th>
-      <th>Walmart Link</th>
+      <th>Walmart Link</th>-->
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let product of products index as i">
       <td>{{ product.id }}</td>
-      <td>
+      <!--<td>
         <input *ngIf="product == selectedProductName" id="{{ 'productName' + i }}" type="text"
                class="form-control item-input-control" [(ngModel)]="product.name" (change)="updateProductName(product)"
                autofocus="autofocus" />
@@ -62,11 +62,11 @@
         </div>
       </td>
       <td><a href="{{ product.walmartLink }}">{{ product.walmartId }}</a></td>
-    </tr>
+    </tr>-->
   </tbody>
 </table>
 
-<ng-template #productDetailsModalTemplate>
+<!--<ng-template #productDetailsModalTemplate>
   <div class="modal-header">
     <h4 class="modal-title pull-left">Product Details</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="productModalRef.hide()">
@@ -87,9 +87,9 @@
           <select *ngIf="productEditor.walmartSearchItems" class="form-control" [(ngModel)]="productEditor.walmartId">
             <option [ngValue]="walmartSearchItem.itemId" *ngFor="let walmartSearchItem of productEditor.walmartSearchItems">{{ walmartSearchItem.name }}</option>
           </select>
-        </div>
+        </div>-->
         <!--<a href="{{ productEditor.walmartLink || getWalmartLinkFromProductEditor() }}">{{ productEditor.walmartId }}</a>-->
-      </div>
+      <!--</div>
     </div>
     <div *ngIf="debug">
       <pre>{{ productEditor | json }}</pre>
@@ -155,4 +155,4 @@
       <button type="button" class="btn btn-danger" (click)="deleteProduct(selectedProductName)">Delete</button>
     </div>
   </div>
-</ng-template>
+</ng-template>-->

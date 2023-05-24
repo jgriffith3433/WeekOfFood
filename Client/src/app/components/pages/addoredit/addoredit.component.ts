@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CreateOrUpdateItemDTO } from 'src/app/models/CreateOrUpdateItemDTO';
 import { ItemsService } from 'src/app/providers/items.service';
@@ -19,17 +19,17 @@ export class AddoreditComponent implements OnInit {
     colorCode: '#FFFFFF',
     categories: ''
   };
-  form: FormGroup;
+  form: UntypedFormGroup;
   isEdit: boolean = false;
   errors: string[] = [];
   isError: boolean = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private itemsService: ItemsService, private formBuilder: FormBuilder, private router: Router) {
+  constructor(private activatedRoute: ActivatedRoute, private itemsService: ItemsService, private formBuilder: UntypedFormBuilder, private router: Router) {
     this.form = this.formBuilder.group({
-      name: new FormControl(this.item.name, []),
-      description: new FormControl(this.item.description, []),
-      categories: new FormControl(this.item.categories, []),
-      colorCode: new FormControl(this.item.colorCode, [])
+      name: new UntypedFormControl(this.item.name, []),
+      description: new UntypedFormControl(this.item.description, []),
+      categories: new UntypedFormControl(this.item.categories, []),
+      colorCode: new UntypedFormControl(this.item.colorCode, [])
     })
   }
 

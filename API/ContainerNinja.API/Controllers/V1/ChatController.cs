@@ -30,9 +30,9 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPost]
-        [ProducesResponseType(typeof(GetChatResponseVm), (int)HttpStatusCode.Created)]
+        [ProducesResponseType(typeof(GetChatResponseVM), (int)HttpStatusCode.Created)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<GetChatResponseVm>> Create(GetChatResponseQuery query)
+        public async Task<ActionResult<GetChatResponseVM>> Create(GetChatResponseQuery query)
         {
             var response = await _mediator.Send(query);
             return Ok(response);

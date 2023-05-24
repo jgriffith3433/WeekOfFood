@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
+import { ModalModule } from 'ngx-bootstrap/modal';
 
 import { AppRoutingModule } from './app-routing.module';
 import { ChatModule } from 'src/chat/chat.module';
@@ -40,6 +41,7 @@ import { ProductsComponent } from './components/pages/products/products.componen
     CommonModule,
     BrowserAnimationsModule,
     ChatModule,
+    ModalModule.forRoot()
   ],
   providers: [
     AuthGuard,

@@ -29,7 +29,7 @@ namespace ContainerNinja.Core.Services
         }
 
 
-        public async Task<string> GetChatResponse(string message, List<ChatMessageVm> previousMessages, string currentUrl)
+        public async Task<string> GetChatResponse(string message, List<ChatMessageVM> previousMessages, string currentUrl)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
             if (previousMessages == null || previousMessages.Count == 0)
@@ -60,7 +60,7 @@ namespace ContainerNinja.Core.Services
             return completionResult.Choices.First().Message.Content;
         }
 
-        public async Task<string> GetChatResponseFromSystem(string message, List<ChatMessageVm> previousMessages, string currentUrl)
+        public async Task<string> GetChatResponseFromSystem(string message, List<ChatMessageVM> previousMessages, string currentUrl)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
             if (previousMessages == null || previousMessages.Count == 0)

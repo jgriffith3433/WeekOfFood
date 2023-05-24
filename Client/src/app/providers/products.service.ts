@@ -2,6 +2,7 @@ import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { map } from "rxjs";
 import { ProductDTO } from "../models/ProductDTO";
+import { GetAllProductsVm } from "../models/GetAllProductsVm";
 import { Config } from "./config";
 
 @Injectable({
@@ -15,6 +16,6 @@ export class ProductsService {
     }
 
     getAll() {
-      return this.http.get(`${this.baseUri}/Products`).pipe((map(x => <ProductDTO[]>x)));
+      return this.http.get(`${this.baseUri}/Products`).pipe((map(x => <GetAllProductsVm>x)));
     }
 }

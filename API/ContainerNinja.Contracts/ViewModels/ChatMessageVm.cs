@@ -1,7 +1,7 @@
 ﻿
 namespace ContainerNinja.Contracts.ViewModels
 {
-    public record ChatMessageVm
+    public record ChatMessageVM
     {
         public int From { get; set; }
         public string Message { get; set; }
