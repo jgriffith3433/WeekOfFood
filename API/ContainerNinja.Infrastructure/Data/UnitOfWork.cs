@@ -31,6 +31,10 @@ namespace ContainerNinja.Core.Data
 
         public IProductStockRepository ProductStocks => new ProductStockRepository(_context);
 
+        public IRecipeRepository Recipes => new RecipeRepository(_context);
+
+        public ICalledIngredientRepository CalledIngredients => new CalledIngredientRepository(_context);
+
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();

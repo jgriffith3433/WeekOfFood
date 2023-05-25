@@ -2,5 +2,8 @@
 
 namespace ContainerNinja.Contracts.Data.Repositories
 {
-    public interface IProductRepository : IRepository<Product> { }
+    public interface IProductRepository : IRepository<Product>
+    {
+        IEnumerable<Product> SearchForByName(string search);
+    }
 }

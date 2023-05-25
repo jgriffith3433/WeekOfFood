@@ -13,6 +13,7 @@ namespace ContainerNinja.Contracts.Data
         ICompletedOrderRepository CompletedOrders { get; }
         ICompletedOrderProductRepository CompletedOrderProducts { get; }
         IProductStockRepository ProductStocks { get; }
+        ICalledIngredientRepository CalledIngredients { get; }
         Task CommitAsync();
     }
 }

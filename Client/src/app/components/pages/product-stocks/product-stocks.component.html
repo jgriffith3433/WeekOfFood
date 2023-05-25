@@ -1,23 +1,23 @@
 <h1 id="tableLabel">Stocked Products</h1>
 
 <p *ngIf="!productStocks?.length"><em>Loading...</em></p>
-<!--<button class="btn btn-default float-end" title="New Recipe..."
+<button class="btn btn-default float-end" title="New Product Stock..."
         (click)="showNewProductStockModal(newProductStockModalTemplate)">
-  <i class="bi bi-journal-plus"></i>
-</button>-->
+  <i class="bi bi-journal-plus">New Product Stock</i>
+</button>
 <table class='table table-striped' aria-labelledby="tableLabel" *ngIf="productStocks?.length">
   <thead>
     <tr>
       <th>Id</th>
-      <!--<th>Name</th>
+      <th>Name</th>
       <th>Unit Type</th>
-      <th>Units</th>-->
+      <th>Units</th>
     </tr>
   </thead>
   <tbody>
     <tr *ngFor="let productStock of productStocks index as i">
       <td>{{ productStock.id }}</td>
-      <!--<td>{{ productStock.name }}</td>
+      <td>{{ productStock.name }}</td>
       <td>{{ getUnitTypeNameFromUnitTypeValue(productStock.product != null ? productStock.product.unitType : -1) }}</td>
       <td>
         <input id="{{ 'productStock' + i }}" *ngIf="productStock == selectedProductStockUnits" type="text"
@@ -28,16 +28,16 @@
         </div>
         <div class="item-commands d-flex">
           <button *ngIf="productStock.id != 0" (click)="showProductStockDetailsModal(productStockModalTemplate, productStock)" class="my-auto btn btn-default btn-xs" role="button">
-            <i class="bi bi-three-dots-vertical"></i>
+            <i class="bi bi-three-dots-vertical">Edit</i>
           </button>
         </div>
-      </td>-->
+      </td>
     </tr>
   </tbody>
 </table>
 
 
-<!--<ng-template #productStockModalTemplate>
+<ng-template #productStockModalTemplate>
   <div class="modal-header">
     <h4 class="modal-title pull-left">Product Stock Details</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="productStockModalRef.hide()">
@@ -135,5 +135,5 @@
       <button type="button" class="btn btn-danger" (click)="deleteProductStockConfirmed()">Delete</button>
     </div>
   </div>
-</ng-template>-->
+</ng-template>
 

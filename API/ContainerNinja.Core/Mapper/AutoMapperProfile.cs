@@ -22,6 +22,12 @@ namespace ContainerNinja.Core.Mapper
 
             CreateMap<ProductStock, ProductStockDTO>()
                 .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.Product.Id));
+
+            CreateMap<ProductStock, ProductStockDetailsDTO>()
+                .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.Product.Id));
+
+            CreateMap<ProductStockDTO, ProductStockDetailsDTO>();
+            CreateMap<ProductStockDetailsDTO, ProductStockDTO>();
         }
     }
 }

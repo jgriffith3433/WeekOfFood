@@ -1,7 +1,7 @@
 ﻿
 namespace ContainerNinja.Contracts.DTO
 {
-    public class ProductStockDTO
+    public class ProductStockDetailsDTO
     {
         public int Id { get; set; }
 
@@ -12,5 +12,7 @@ namespace ContainerNinja.Contracts.DTO
         public int? ProductId { get; set; }
 
         public ProductDTO Product { get; set; }
+
+        public IList<ProductDTO> ProductSearchItems { get; set; } = new List<ProductDTO>();
     }
 }
