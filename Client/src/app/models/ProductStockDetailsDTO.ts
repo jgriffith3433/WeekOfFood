@@ -1,10 +1,10 @@
 import { ProductDTO } from "./ProductDTO";
 
-export interface ProductStockDetailsDTO {
-  id?: number;
-  name?: string;
-  units?: number;
-  productId?: number | undefined;
+export class ProductStockDetailsDTO {
+  id?: number = undefined;
+  name?: string = undefined;
+  units?: number = undefined;
+  productId?: number | undefined = undefined;
   product?: ProductDTO;
-  productSearchItems?: ProductDTO[];
+  productSearchItems?: ProductDTO[] = undefined;
 }

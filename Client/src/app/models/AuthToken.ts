@@ -1,4 +1,4 @@
-export interface AuthToken {
-  accessToken: string;
-  expiresIn: number;
+export class AuthToken {
+  accessToken?: string = undefined;
+  expiresIn?: number = undefined;
 }

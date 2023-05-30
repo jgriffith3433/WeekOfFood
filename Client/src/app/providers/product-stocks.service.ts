@@ -31,14 +31,14 @@ export class ProductStocksService {
     return this.http.post(`${this.baseUri}/ProductStocks`, command).pipe((map(x => <number>x)));
   }
 
-  getProductStockDetails(id: number | undefined | null, search: string | undefined | null): Observable<ProductStockDetailsDTO> {
+  getProductStockDetails(id: number | undefined | null, name: string | undefined | null): Observable<ProductStockDetailsDTO> {
     let url = this.baseUri + "/ProductStocks/GetProductStockDetails?";
     if (id === null)
       throw new Error("The parameter 'id' cannot be null.");
     else if (id !== undefined)
       url += "Id=" + encodeURIComponent("" + id) + "&";
-    if (search !== undefined && search !== null)
-      url += "Search=" + encodeURIComponent("" + search) + "&";
+    if (name !== undefined && name !== null)
+      url += "Name=" + encodeURIComponent("" + name) + "&";
     url = url.replace(/[?&]$/, "");
 
     return this.http.get(`${url}`).pipe((map(x => <ProductStockDetailsDTO>x)));

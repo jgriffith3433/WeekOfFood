@@ -1,5 +1,5 @@
 
-export interface UnitTypeDTO {
-  value?: number;
-  name?: string | undefined;
+export class UnitTypeDTO {
+  value?: number = undefined;
+  name?: string | undefined = undefined;
 }

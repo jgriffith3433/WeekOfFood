@@ -13,10 +13,10 @@
 		<PackageReference Include="MediatR" Version="9.0.0" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="10.3.4" />
 		<PackageReference Include="NCache.Microsoft.Extensions.Caching" Version="5.1.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
 	</ItemGroup>
 
 	<ItemGroup>

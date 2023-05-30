@@ -31,99 +31,99 @@ namespace ContainerNinja.Controllers.V1
         [HttpGet]
         [ProducesResponseType(typeof(GetAllProductsVM), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult<GetAllProductsVM>> Get()
         {
             var query = new GetAllProductsQuery();
-            var response = await _mediator.Send(query);
-            return Ok(response);
+            return await _mediator.Send(query);
         }
 
-        //[MapToApiVersion("1.0")]
-        //[HttpPost]
-        //[ProducesResponseType(typeof(ItemDTO), (int)HttpStatusCode.Created)]
-        //[ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        //public async Task<IActionResult> Post([FromBody] CreateOrUpdateItemDTO model)
-        //{
-        //    try
-        //    {
-        //        var command = new CreateItemCommand(model);
-        //        var response = await _mediator.Send(command);
-        //        return StatusCode((int)HttpStatusCode.Created, response);
-        //    }
-        //    catch (InvalidRequestBodyException ex)
-        //    {
-        //        return BadRequest(new BaseResponseDTO
-        //        {
-        //            IsSuccess = false,
-        //            Errors = ex.Errors
-        //        });
-        //    }
-        //}
+        [MapToApiVersion("1.0")]
+        [HttpPost]
+        [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<int>> Create(CreateProductCommand command)
+        {
+            return await _mediator.Send(command);
+        }
 
-        //[MapToApiVersion("1.0")]
-        //[HttpDelete]
-        //[Route("{id}")]
-        //[ProducesResponseType((int)HttpStatusCode.OK)]
-        //[ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        //public async Task<IActionResult> Delete(int id)
-        //{
-        //    var command = new DeleteItemCommand(id);
-        //    await _mediator.Send(command);
-        //    return Ok();
-        //}
 
-        //[MapToApiVersion("1.0")]
-        //[HttpPut]
-        //[Route("{id}")]
-        //[ProducesResponseType(typeof(CreateOrUpdateItemDTO), (int)HttpStatusCode.OK)]
-        //[ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        //public async Task<IActionResult> Update(int id, [FromBody] CreateOrUpdateItemDTO model)
-        //{
-        //    try
-        //    {
-        //        var command = new UpdateItemCommand(id, model);
-        //        var response = await _mediator.Send(command);
-        //        return Ok(response);
-        //    }
-        //    catch (InvalidRequestBodyException ex)
-        //    {
-        //        return BadRequest(new BaseResponseDTO
-        //        {
-        //            IsSuccess = false,
-        //            Errors = ex.Errors
-        //        });
-        //    }
-        //    catch (EntityNotFoundException ex)
-        //    {
-        //        return NotFound(new BaseResponseDTO
-        //        {
-        //            IsSuccess = false,
-        //            Errors = new string[] { ex.Message }
-        //        });
-        //    }
-        //}
+        [MapToApiVersion("1.0")]
+        [HttpPut]
+        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<ProductDTO>> Update(int id, UpdateProductCommand command)
+        {
+            if (command == null || id != command.Id)
+            {
+                return BadRequest();
+            }
 
-        //[MapToApiVersion("1.0")]
-        //[HttpGet]
-        //[Route("{id}")]
-        //[ProducesResponseType(typeof(ItemDTO), (int)HttpStatusCode.OK)]
-        //[ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        //public async Task<IActionResult> GetById(int id)
-        //{
-        //    try
-        //    {
-        //        var query = new GetItemByIdQuery(id);
-        //        var response = await _mediator.Send(query);
-        //        return Ok(response);
-        //    }
-        //    catch (EntityNotFoundException ex)
-        //    {
-        //        return NotFound(new BaseResponseDTO
-        //        {
-        //            IsSuccess = false,
-        //            Errors = new string[] { ex.Message }
-        //        });
-        //    }
-        //}
+            return await _mediator.Send(command);
+        }
+
+
+        [MapToApiVersion("1.0")]
+        [HttpPut("UpdateProductName/{id}")]
+        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<ProductDTO>> UpdateProductName(int id, UpdateProductNameCommand command)
+        {
+            if (command == null || id != command.Id)
+            {
+                return BadRequest();
+            }
+
+            return await _mediator.Send(command);
+        }
+
+
+        [MapToApiVersion("1.0")]
+        [HttpPut("UpdateUnitType/{id}")]
+        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<ProductDTO>> UpdateUnitType(int id, UpdateProductUnitTypeCommand command)
+        {
+            if (command == null || id != command.Id)
+            {
+                return BadRequest();
+            }
+
+            return await _mediator.Send(command);
+        }
+
+        [MapToApiVersion("1.0")]
+        [HttpPut("UpdateSize/{id}")]
+        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<ProductDTO>> UpdateSize(int id, UpdateProductSizeCommand command)
+        {
+            if (command == null || id != command.Id)
+            {
+                return BadRequest();
+            }
+
+            return await _mediator.Send(command);
+        }
+
+        [MapToApiVersion("1.0")]
+        [HttpGet("GetProductDetails")]
+        [ProducesResponseType(typeof(ProductDetailsDTO), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<ProductDetailsDTO>> GetProductDetails([FromQuery] GetProductDetailsQuery query)
+        {
+            return await _mediator.Send(query);
+        }
+
+        [MapToApiVersion("1.0")]
+        [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<int>> Delete(int id)
+        {
+            return await _mediator.Send(new DeleteProductCommand
+            {
+                Id = id
+            });
+        }
     }
 }

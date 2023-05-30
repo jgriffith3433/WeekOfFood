@@ -31,16 +31,15 @@ namespace ContainerNinja.Controllers.V1
         [HttpGet]
         [ProducesResponseType(typeof(GetAllProductStocksVM), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult<GetAllProductStocksVM>> Get()
         {
             var query = new GetAllProductStocksQuery();
-            var response = await _mediator.Send(query);
-            return Ok(response);
+            return await _mediator.Send(query);
         }
 
         [MapToApiVersion("1.0")]
-        [HttpPut]
-        [ProducesResponseType(typeof(GetAllProductStocksVM), (int)HttpStatusCode.OK)]
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ProductStockDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ProductStockDTO>> Update(int id, UpdateProductStockCommand command)
         {
@@ -49,7 +48,7 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpGet("GetProductStockDetails")]
-        [ProducesResponseType(typeof(GetAllProductStocksVM), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ProductStockDetailsDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ProductStockDetailsDTO>> GetProductStockDetails([FromQuery] GetProductStockDetailsQuery query)
         {
@@ -58,7 +57,7 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPut("UpdateProductStockDetails/{id}")]
-        [ProducesResponseType(typeof(GetAllProductStocksVM), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ProductStockDetailsDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ProductStockDetailsDTO>> UpdateProductStockDetails(int id, UpdateProductStockDetailsCommand command)
         {
@@ -72,7 +71,7 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPost]
-        [ProducesResponseType(typeof(GetAllProductStocksVM), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<int>> Create(CreateProductStockCommand command)
         {
@@ -81,7 +80,7 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpDelete("{id}")]
-        [ProducesResponseType(typeof(GetAllProductStocksVM), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<int>> Delete(int id)
         {

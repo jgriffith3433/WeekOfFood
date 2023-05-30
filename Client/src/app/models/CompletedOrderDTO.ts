@@ -1,8 +1,8 @@
 import { CompletedOrderProductDTO } from "./CompletedOrderProductDTO";
 
-export interface CompletedOrderDTO {
-  id?: number;
-  name?: string;
-  userImport?: string | undefined;
-  completedOrderProducts?: CompletedOrderProductDTO[];
+export class CompletedOrderDTO {
+  id?: number = undefined;
+  name?: string = undefined;
+  userImport?: string | undefined = undefined;
+  completedOrderProducts?: CompletedOrderProductDTO[] = undefined;
 }

@@ -1,5 +1,5 @@
 
-export interface CreateOrUpdateTodoListDTO {
-  title: string;
-  color: string;
+export class CreateOrUpdateTodoListDTO {
+  title?: string = undefined;
+  color?: string = undefined;
 }

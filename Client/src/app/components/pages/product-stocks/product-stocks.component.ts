@@ -16,13 +16,16 @@ import { ProductStocksService } from '../../../providers/product-stocks.service'
 //UpdateProductStockDetailsCommand,
 //UnitTypeDTO
 
+export interface ObjectConstructor {
+  keys<T>(o: T): (keyof T)[];
+}
 @Component({
   selector: 'app-product-stocks',
   templateUrl: './product-stocks.component.html'
 })
 export class ProductStocksComponent implements OnInit {
-  public productStocks: ProductStockDTO[];
-  unitTypes: UnitTypeDTO[];
+  public productStocks?: ProductStockDTO[];
+  unitTypes?: UnitTypeDTO[];
   debug = false;
   selectedProductStockUnits: ProductStockDTO | null;
   productStockEditor: any = {};
@@ -62,9 +65,11 @@ export class ProductStocksComponent implements OnInit {
   }
 
   getUnitTypeNameFromUnitTypeValue(unitTypeValue: number | undefined): string | undefined {
-    for (var unitType of this.unitTypes) {
-      if (unitType.value == unitTypeValue) {
-        return unitType.name;
+    if (this.unitTypes) {
+      for (var unitType of this.unitTypes) {
+        if (unitType.value == unitTypeValue) {
+          return unitType.name;
+        }
       }
     }
     return "Unknown";
@@ -80,7 +85,7 @@ export class ProductStocksComponent implements OnInit {
     this.productStockService.create(productStock as CreateProductStockCommand).subscribe(
       result => {
         productStock.id = result;
-        this.productStocks.push(productStock);
+        this.productStocks?.push(productStock);
         this.newProductStockModalRef.hide();
         this.newProductStockEditor = {};
       },
@@ -102,13 +107,15 @@ export class ProductStocksComponent implements OnInit {
   }
 
   updateProductStockUnits(productStock: ProductStockDTO, pressedEnter: boolean = false): void {
-    const updateProductStockCommand = productStock as UpdateProductStockCommand;
+    const updateProductStockCommand = this._cast(productStock, UpdateProductStockCommand);
     this.productStockService.update(productStock.id, updateProductStockCommand).subscribe(
       result => {
-        for (var i = this.productStocks.length - 1; i >= 0; i--) {
-          if (this.productStocks[i].id == result.id) {
-            this.productStocks[i] = result;
-            break;
+        if (this.productStocks) {
+          for (var i = this.productStocks.length - 1; i >= 0; i--) {
+            if (this.productStocks[i].id == result.id) {
+              this.productStocks[i] = result;
+              break;
+            }
           }
         }
         this.selectedProductStockUnits = null;
@@ -118,75 +125,100 @@ export class ProductStocksComponent implements OnInit {
   }
 
   updateProductStockDetails(): void {
-    const updateProductStockDetailsCommand = this._cast<UpdateProductStockDetailsCommand>(this.productStockEditor);
+    const updateProductStockDetailsCommand = this._cast(this.productStockEditor, UpdateProductStockDetailsCommand);
+
     this.productStockService.updateProductStockDetails(this.productStockEditor.id, updateProductStockDetailsCommand).subscribe(
       result => {
-        for (var i = this.productStocks.length - 1; i >= 0; i--) {
-          if (this.productStocks[i].id == result.id) {
-            this.productStocks[i] = result;
-            break;
-          }
-        }
-        if (this.productStockEditor.id != result.id) {
-          //product stock was merged into another product stock. remove the old one
+        if (this.productStocks) {
           for (var i = this.productStocks.length - 1; i >= 0; i--) {
-            if (this.productStocks[i].id == this.productStockEditor.id) {
-              this.productStocks.splice(i, 1);
+            if (this.productStocks[i].id == result.id) {
+              this.productStocks[i] = result;
               break;
             }
           }
+          if (this.productStockEditor.id != result.id) {
+            //product stock was merged into another product stock. remove the old one
+            for (var i = this.productStocks.length - 1; i >= 0; i--) {
+              if (this.productStocks[i].id == this.productStockEditor.id) {
+                this.productStocks.splice(i, 1);
+                break;
+              }
+            }
+          }
+          this.productStockModalRef.hide();
+          this.productStockEditor = {};
         }
-        this.productStockModalRef.hide();
-        this.productStockEditor = {};
       },
       error => console.error(error)
     );
   }
 
-  _cast<T extends Object>(object: any): T {
-    let returnValue: T = { ...object } as T;
-    Object.keys(object).forEach(key => {
-      const value = (returnValue as any)[key];
-      (returnValue as any)[key] = value;
-    });
-    return returnValue;
-  }
+  //_cast<T extends Object>(object: any): T {
+  //  type OptionsFlags<T> = {
+  //    [Property in keyof T]: boolean;
+  //  };
+  //  type FeatureOptions = OptionsFlags<T>;
+
+  //  //const specificMembers: string[] = Object.keys(new Specific());
+  //  //const specific: ISpecific = lodash.pick(extended, specificMembers);
+  //  //console.log(specific); // {a: "type", b: "script"}
+
+  //  //let ob: ObjectConstructor = new { ...object };
+  //  //type typeKeys = keyof T;
+  //  //getProperty<T>()
+  //  var returnObject: FeatureOptions = {} as FeatureOptions;
+  //  Object.keys(returnObject).forEach((key) => {
+  //    console.log(object[key])
+  //  })
+  //  type MyIdentityType<T> = T;
+  //  let returnd: MyIdentityType<T> = {} as MyIdentityType<T>;
+  //  let returnValue: T = { } as T;
+  //  Object.keys(returnd).forEach(key => {
+  //    const value = (object as any)[key];
+  //    (returnd as any)[key] = value;
+  //  });
+  //  return returnd;
+  //}
 
   showProductStockDetailsModal(template: TemplateRef<any>, productStock: ProductStockDTO): void {
     this.productStockService.getProductStockDetails(productStock.id, productStock.name).subscribe(
       result => {
-        for (var i = this.productStocks.length - 1; i >= 0; i--) {
-          if (this.productStocks[i].id == result.id) {
-            this.productStocks[i] = result;
-            break;
+        if (this.productStocks) {
+          for (var i = this.productStocks.length - 1; i >= 0; i--) {
+            if (this.productStocks[i].id == result.id) {
+              this.productStocks[i] = result;
+              break;
+            }
           }
+
+          this.productStockEditor = {
+            ...result,
+            name: result.name
+          };
+
+          this.productStockModalRef = this.modalService.show(template);
         }
-
-        this.productStockEditor = {
-          ...result,
-          search: result.name
-        };
-
-        this.productStockModalRef = this.modalService.show(template);
       },
       error => console.error(error)
     );
   }
 
   searchProductName(): void {
-    this.productStockService.getProductStockDetails(this.productStockEditor.id, this.productStockEditor.search).subscribe(
+    this.productStockService.getProductStockDetails(this.productStockEditor.id, this.productStockEditor.name).subscribe(
       result => {
-        for (var i = this.productStocks.length - 1; i >= 0; i--) {
-          if (this.productStocks[i].id == result.id) {
-            this.productStocks[i] = result;
-            break;
+        if (this.productStocks) {
+          for (var i = this.productStocks?.length - 1; i >= 0; i--) {
+            if (this.productStocks[i].id == result.id) {
+              this.productStocks[i] = result;
+              break;
+            }
           }
+          var oldName = this.productStockEditor.name;
+          this.productStockEditor = {
+            ...result,
+            name: oldName
+          };
         }
-        var oldSearch = this.productStockEditor.search;
-        this.productStockEditor = {
-          ...result,
-          search: oldSearch
-        };
       },
       error => {
         const errors = JSON.parse(error.response);
@@ -195,7 +227,7 @@ export class ProductStocksComponent implements OnInit {
           this.productStockEditor.error = errors.Title[0];
         }
 
-        setTimeout(() => document.getElementById('search')?.focus(), 250);
+        setTimeout(() => document.getElementById('name')?.focus(), 250);
       }
     );
   }
@@ -209,10 +241,21 @@ export class ProductStocksComponent implements OnInit {
     this.productStockService.delete(this.productStockEditor.id).subscribe(
       () => {
         this.deleteProductStockModalRef.hide();
-        this.productStocks = this.productStocks.filter(t => t.id !== this.productStockEditor.id);
+        this.productStocks = this.productStocks?.filter(t => t.id !== this.productStockEditor.id);
       },
       error => console.error(error)
     );
+  }
+
+  _cast<K extends T, T>(obj: K, tClass: { new(...args: any[]): K }): K {
+    let returnObject: K = new tClass();
+    for (let p in returnObject) {
+      const value = obj[p] || undefined;
+      if (value != undefined) {
+        returnObject[p] = value;
+      }
+    }
+    return returnObject;
   }
 
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Contracts.Data.Repositories;
 using ContainerNinja.Migrations;
+using Microsoft.EntityFrameworkCore.Query;
+using System.Linq.Expressions;
 
 namespace ContainerNinja.Core.Data.Repositories
 {
@@ -25,7 +27,7 @@ namespace ContainerNinja.Core.Data.Repositories
             return _dbSet.Count();
         }
 
-        public void Delete(object id)
+        public void Delete(int id)
         {
             var entity = Get(id);
             if (entity != null)
@@ -38,7 +40,12 @@ namespace ContainerNinja.Core.Data.Repositories
             }
         }
 
-        public T Get(object id)
+        public IIncludableQueryable<T, TProperty> Include<TEntity, TProperty>(Expression<Func<T, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return _dbSet.Include(navigationPropertyPath);
+        }
+
+        public T Get(int id)
         {
             var x = _dbSet.Find(id);
             return x;

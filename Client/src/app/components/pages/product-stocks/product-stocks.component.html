@@ -47,9 +47,9 @@
   <div class="modal-body">
     <div class="form">
       <div class="form-group">
-        <label for="search">Search by Name</label>
+        <label for="name">Name</label>
         <div *ngIf="!productStockEditor.product && productStockEditor.productSearchItems">
-          <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="productStockEditor.search"
+          <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="productStockEditor.name"
                  [ngClass]="{ 'is-invalid': productStockEditor.error }" (keyup.enter)="searchProductName()" />
           <div class="float-end">
             <button class="btn btn-primary" (click)="searchProductName()">Search</button>
@@ -59,7 +59,7 @@
           </select>
         </div>
         <div *ngIf="!productStockEditor.product && !productStockEditor.productSearchItems">
-          <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="productStockEditor.search"
+          <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="productStockEditor.name"
                  [ngClass]="{ 'is-invalid': productStockEditor.error }" (keyup.enter)="searchProductName()" />
           <div class="float-end">
             <button class="btn btn-primary" (click)="searchProductName()">Search</button>

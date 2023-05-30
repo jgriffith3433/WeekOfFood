@@ -1,0 +1,52 @@
+﻿using MediatR;
+using ContainerNinja.Contracts.Data;
+using ContainerNinja.Contracts.Services;
+using ContainerNinja.Contracts.DTO;
+using ContainerNinja.Core.Exceptions;
+using ContainerNinja.Contracts.Data.Entities;
+
+namespace ContainerNinja.Core.Handlers.Commands
+{
+    public class DeleteProductCommand : IRequest<int>
+    {
+        public int Id { get; set; }
+    }
+
+    public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, int>
+    {
+        private readonly IUnitOfWork _repository;
+        private readonly ICachingService _cache;
+
+        public DeleteProductCommandHandler(IUnitOfWork repository, ICachingService cache)
+        {
+            _repository = repository;
+            _cache = cache;
+        }
+
+        public async Task<int> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+        {
+            var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.Id == request.Id);
+
+            if (productEntity == null)
+            {
+                throw new EntityNotFoundException($"No Product found for the Id {request.Id}");
+            }
+
+            if (productEntity.ProductStock != null)
+            {
+                _cache.RemoveItem("product_stocks");
+                _cache.RemoveItem($"product_stock_{productEntity.ProductStock.Id}");
+                productEntity.ProductStock.Product = null;
+                _repository.ProductStocks.Update(productEntity.ProductStock);
+            }
+
+            _repository.Products.Delete(request.Id);
+
+            await _repository.CommitAsync();
+
+            _cache.RemoveItem("products");
+            _cache.RemoveItem($"product_{request.Id}");
+            return productEntity.Id;
+        }
+    }
+}

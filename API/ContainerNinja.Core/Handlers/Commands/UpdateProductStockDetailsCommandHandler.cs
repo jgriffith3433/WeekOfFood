@@ -14,6 +14,8 @@ namespace ContainerNinja.Core.Handlers.Commands
     {
         public int Id { get; init; }
 
+        public string Name { get; init; }
+
         public int ProductId { get; init; }
 
         public float Units { get; init; }
@@ -49,7 +51,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                 };
             }
 
-            var productStockEntity = _repository.ProductStocks.Get(request.Id);
+            var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).FirstOrDefault(ps => ps.Id == request.Id);
 
             if (productStockEntity == null)
             {
@@ -59,17 +61,17 @@ namespace ContainerNinja.Core.Handlers.Commands
             if (productStockEntity.Product == null || request.ProductId != productStockEntity.Product.Id)
             {
                 //First search for product stocks that are already linked to the product
-                var alreadyLinkedProductStock = _repository.ProductStocks.GetAll().Where(p => p.Product != null && p.Product.Id == request.ProductId).FirstOrDefault();
+                var alreadyLinkedProductStock = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).Where(p => p.Product != null && p.Product.Id == request.ProductId).FirstOrDefault();
                 if (alreadyLinkedProductStock != null)
                 {
                     //we found an existing product stock, merge
-                    var calledIngredients = _repository.CalledIngredients.GetAll().Where(ci => ci.ProductStock != null && ci.ProductStock.Id == productStockEntity.Id);
+                    var calledIngredients = _repository.CalledIngredients.Include<CalledIngredient, ProductStock>(ci => ci.ProductStock).Where(ci => ci.ProductStock != null && ci.ProductStock.Id == productStockEntity.Id);
                     foreach (var calledIngredient in calledIngredients)
                     {
                         calledIngredient.ProductStock = alreadyLinkedProductStock;
                         _repository.CalledIngredients.Update(calledIngredient);
                     }
-                    _repository.ProductStocks.Delete(productStockEntity);
+                    _repository.ProductStocks.Delete(productStockEntity.Id);
                     productStockEntity = alreadyLinkedProductStock;
                 }
                 else
@@ -85,6 +87,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             }
 
             productStockEntity.Units = request.Units;
+            productStockEntity.Name = request.Name;
 
             _repository.ProductStocks.Update(productStockEntity);
 

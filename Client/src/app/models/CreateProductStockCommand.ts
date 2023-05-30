@@ -1,4 +1,4 @@
 
-export interface CreateProductStockCommand {
-    name?: string;
+export class CreateProductStockCommand {
+  name?: string = undefined;
 }

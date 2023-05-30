@@ -1,5 +1,5 @@
 import { CompletedOrderDTO } from "./CompletedOrderDTO";
 
-export interface GetAllCompletedOrdersVm {
-  completedOrders?: CompletedOrderDTO[];
+export class GetAllCompletedOrdersVm {
+  completedOrders?: CompletedOrderDTO[] = undefined;
 }

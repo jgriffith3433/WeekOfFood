@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.Services;
+using ContainerNinja.Contracts.Data.Entities;
+using ContainerNinja.Core.Exceptions;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -22,8 +24,24 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(DeleteProductStockCommand request, CancellationToken cancellationToken)
         {
+            var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(p => p.Product).FirstOrDefault(p => p.Id == request.Id);
+
+            if (productStockEntity == null)
+            {
+                throw new EntityNotFoundException($"No Product Stock found for the Id {request.Id}");
+            }
+
+            if (productStockEntity.Product != null)
+            {
+                _cache.RemoveItem("products");
+                _cache.RemoveItem($"product_{productStockEntity.Product.Id}");
+                _repository.Products.Delete(productStockEntity.Product.Id);
+            }
+
             _repository.ProductStocks.Delete(request.Id);
+
             await _repository.CommitAsync();
+
             _cache.RemoveItem("product_stocks");
             _cache.RemoveItem($"product_stock_{request.Id}");
             return request.Id;

@@ -4,13 +4,16 @@ using ContainerNinja.Contracts.DTO;
 using MediatR;
 using ContainerNinja.Contracts.Services;
 using ContainerNinja.Core.Exceptions;
+using Alachisoft.NCache.Client;
+using Microsoft.EntityFrameworkCore;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
     public class GetProductStockDetailsQuery : IRequest<ProductStockDetailsDTO>
     {
         public int Id { get; init; }
-        public string Search { get; init; }
+        public string Name { get; init; }
     }
 
     public class GetProductStockDetailsQueryHandler : IRequestHandler<GetProductStockDetailsQuery, ProductStockDetailsDTO>
@@ -44,7 +47,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             var productStockDetailsDTO = _mapper.Map<ProductStockDetailsDTO>(productStockDTO);
 
-            var searchResults = _repository.Products.SearchForByName(request.Search);
+            var searchResults = from p in _repository.Products.Include<Product, ProductStock>(p => p.ProductStock) where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) && p.ProductStock.Id != request.Id select p;
 
             productStockDetailsDTO.ProductSearchItems = _mapper.Map<IEnumerable<ProductDTO>>(searchResults).ToList();
 

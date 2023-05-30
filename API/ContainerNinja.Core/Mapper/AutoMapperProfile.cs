@@ -16,6 +16,13 @@ namespace ContainerNinja.Core.Mapper
                 .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
                 .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => s.ProductStock != null ? s.ProductStock.Id : -1));
 
+            CreateMap<Product, ProductDetailsDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
+                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => s.ProductStock != null ? s.ProductStock.Id : -1));
+
+            CreateMap<ProductDTO, ProductDetailsDTO>();
+            CreateMap<ProductDetailsDTO, ProductDTO>();
+
             CreateMap<CompletedOrder, CompletedOrderDTO>();
 
             CreateMap<CompletedOrderProduct, CompletedOrderProductDTO>();
@@ -28,6 +35,8 @@ namespace ContainerNinja.Core.Mapper
 
             CreateMap<ProductStockDTO, ProductStockDetailsDTO>();
             CreateMap<ProductStockDetailsDTO, ProductStockDTO>();
+
+
         }
     }
 }

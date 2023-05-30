@@ -1,6 +1,6 @@
 
-export interface TodoListDTO {
-  id: number;
-  title: string;
-  color: string;
+export class TodoListDTO {
+  id?: number = undefined;
+  title?: string = undefined;
+  color?: string = undefined;
 }

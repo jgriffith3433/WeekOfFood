@@ -6,6 +6,7 @@ using ContainerNinja.Contracts.Services;
 using Newtonsoft.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -32,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             if (cachedEntities == null)
             {
-                var entities = await Task.FromResult(_repository.CompletedOrders.GetAll());
+                var entities = await Task.FromResult(_repository.CompletedOrders.Include<CompletedOrder, IList<CompletedOrderProduct>>(co => co.CompletedOrderProducts).AsEnumerable());
                 var result = new GetAllCompletedOrdersVM
                 {
                     CompletedOrders = _mapper.Map<List<CompletedOrderDTO>>(entities),

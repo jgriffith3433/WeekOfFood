@@ -1,5 +1,5 @@
 
-export interface LoginDTO {
-  emailAddress: string;
-  password: string;
+export class LoginDTO {
+  emailAddress?: string = undefined;
+  password?: string = undefined;
 }

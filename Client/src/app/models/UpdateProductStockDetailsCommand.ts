@@ -1,6 +1,7 @@
 
-export interface UpdateProductStockDetailsCommand {
-  id?: number;
-  productId?: number;
-  units?: number;
+export class UpdateProductStockDetailsCommand {
+  id?: number = undefined;
+  productId?: number = undefined;
+  units?: number = undefined;
+  name?: string = undefined;
 }

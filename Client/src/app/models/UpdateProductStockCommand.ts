@@ -1,5 +1,5 @@
 
-export interface UpdateProductStockCommand {
-  id?: number;
-  units?: number;
+export class UpdateProductStockCommand {
+  id?: number = undefined;
+  units?: number = undefined;
 }

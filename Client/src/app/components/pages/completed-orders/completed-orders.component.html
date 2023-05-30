@@ -8,10 +8,10 @@
     <div class="col-sm-4">
       <div class="clearfix">
         <h2 class="float-start">Completed Orders</h2>
-        <!--<button class="btn btn-default float-end" title="New Completed Order..."
+        <button class="btn btn-default float-end" title="New Completed Order..."
                 (click)="showNewCompletedOrderModal(newCompletedOrderModalTemplate)">
-          <i class="bi bi-journal-plus"></i>
-        </button>-->
+          <i class="bi bi-journal-plus">New Completed Order</i>
+        </button>
       </div>
       <ul class="list-group">
         <li *ngFor="let completedOrder of completedOrders; index as i" class="list-group-item"
@@ -27,7 +27,7 @@
         </li>
       </ul>
     </div>
-    <!--<div class="col-sm-8" *ngIf="selectedCompletedOrder">
+    <div class="col-sm-8" *ngIf="selectedCompletedOrder">
       <div class="clearfix">
         <textarea readonly type="text" id="form7" class="md-textarea md-textarea-auto form-control" mdbInput value="{{ selectedCompletedOrder.userImport }}"></textarea>
         <h2 class=""></h2>
@@ -62,11 +62,11 @@
           <button class="btn btn-default">Add Completed Order Product...</button>
         </li>
       </ul>
-    </div>-->
+    </div>
   </div>
 </div>
 
-<!--<ng-template #completedOrderOptionsModalTemplate>
+<ng-template #completedOrderOptionsModalTemplate>
   <div class="modal-header">
     <h4 class="modal-title pull-left">Completed Order Options</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="completedOrderOptionsModalRef.hide()">
@@ -128,9 +128,9 @@
           <div class="float-end">
             <button class="btn btn-primary" (click)="searchCompletedOrderProductName()">Search</button>
           </div>
-        </div>-->
+        </div>
         <!--<a href="{{ completedOrderProductDetailsEditor.walmartLink || getWalmartLinkFromProductDetailsEditor() }}">{{ completedOrderProductDetailsEditor.walmartId }}</a>-->
-      <!--</div>
+      </div>
     </div>
     <div *ngIf="debug">
       <pre>{{ completedOrderProductDetailsEditor | json }}</pre>
@@ -204,4 +204,4 @@
       <button class="btn btn-primary" (click)="addCompletedOrder()">Create</button>
     </div>
   </div>
-</ng-template>-->
+</ng-template>

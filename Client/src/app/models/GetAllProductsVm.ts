@@ -1,7 +1,7 @@
 import { ProductDTO } from "./ProductDTO";
 import { UnitTypeDTO } from "./UnitTypeDTO";
 
-export interface GetAllProductsVM {
-  products: ProductDTO[];
-  unitTypes: UnitTypeDTO[];
+export class GetAllProductsVM {
+  products?: ProductDTO[] = undefined;
+  unitTypes?: UnitTypeDTO[] = undefined;
 }

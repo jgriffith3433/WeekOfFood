@@ -22,6 +22,50 @@ namespace ContainerNinja.Migrations.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CalledIngredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProductStockId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitType")
+                        .HasColumnType("int");
+
+                    b.Property<float?>("Units")
+                        .HasColumnType("real");
+
+                    b.Property<bool>("Verified")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductStockId");
+
+                    b.ToTable("CalledIngredient");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ChatCommand", b =>
                 {
                     b.Property<int>("Id")
@@ -398,6 +442,15 @@ namespace ContainerNinja.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CalledIngredient", b =>
+                {
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductStock")
+                        .WithMany()
+                        .HasForeignKey("ProductStockId");
+
+                    b.Navigation("ProductStock");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ChatCommand", b =>
