@@ -8,6 +8,7 @@ using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ContainerNinja.Contracts.Data.Entities;
+using ContainerNinja.Core.Services;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -25,14 +26,16 @@ namespace ContainerNinja.Core.Handlers.Commands
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateProductNameCommandHandler> _logger;
+        private readonly IWalmartService _walmartService;
 
-        public UpdateProductNameCommandHandler(ILogger<UpdateProductNameCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateProductNameCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateProductNameCommandHandler(ILogger<UpdateProductNameCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateProductNameCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;
+            _walmartService = walmartService;
         }
 
         async Task<ProductDTO> IRequestHandler<UpdateProductNameCommand, ProductDTO>.Handle(UpdateProductNameCommand request, CancellationToken cancellationToken)
@@ -61,9 +64,9 @@ namespace ContainerNinja.Core.Handlers.Commands
                 productEntity.Name = request.Name;
                 productEntity.ProductStock.Name = request.Name;
 
-                //var searchResponse = _walmartApiService.Search(request.Name);
+                var searchResponse = await _walmartService.Search(request.Name);
+                productEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
 
-                //productEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
                 _repository.Products.Update(productEntity);
                 _repository.ProductStocks.Update(productEntity.ProductStock);
                 await _repository.CommitAsync();

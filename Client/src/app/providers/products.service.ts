@@ -25,24 +25,24 @@ export class ProductsService {
     return this.http.get(`${this.baseUri}/Products`).pipe((map(x => <GetAllProductsVM>x)));
   }
 
-  create(command: CreateProductCommand): Observable<number> {
-    return this.http.post(`${this.baseUri}/Products`, command).pipe((map(x => <number>x)));
+  create(command: any): Observable<number> {
+    return this.http.post(`${this.baseUri}/Products`, this._cast(command, CreateProductCommand)).pipe((map(x => <number>x)));
   }
 
-  update(id: number | undefined, command: UpdateProductCommand): Observable<ProductDTO> {
-    return this.http.put(`${this.baseUri}/Products/${id}`, command).pipe((map(x => <ProductDTO>x)));
+  update(id: number | undefined, command: any): Observable<ProductDTO> {
+    return this.http.put(`${this.baseUri}/Products/${id}`, this._cast(command, UpdateProductCommand)).pipe((map(x => <ProductDTO>x)));
   }
 
-  updateName(id: number | undefined, command: UpdateProductNameCommand): Observable<ProductDTO> {
-    return this.http.put(`${this.baseUri}/Products/UpdateProductName/${id}`, command).pipe((map(x => <ProductDTO>x)));
+  updateName(id: number | undefined, command: any): Observable<ProductDTO> {
+    return this.http.put(`${this.baseUri}/Products/UpdateProductName/${id}`, this._cast(command, UpdateProductNameCommand)).pipe((map(x => <ProductDTO>x)));
   }
 
-  updateUnitType(id: number | undefined, command: UpdateProductUnitTypeCommand): Observable<ProductDTO> {
-    return this.http.put(`${this.baseUri}/Products/UpdateUnitType/${id}`, command).pipe((map(x => <ProductDTO>x)));
+  updateUnitType(id: number | undefined, command: any): Observable<ProductDTO> {
+    return this.http.put(`${this.baseUri}/Products/UpdateUnitType/${id}`, this._cast(command, UpdateProductUnitTypeCommand)).pipe((map(x => <ProductDTO>x)));
   }
 
-  updateSize(id: number | undefined, command: UpdateProductSizeCommand): Observable<ProductDTO> {
-    return this.http.put(`${this.baseUri}/Products/UpdateSize/${id}`, command).pipe((map(x => <ProductDTO>x)));
+  updateSize(id: number | undefined, command: any): Observable<ProductDTO> {
+    return this.http.put(`${this.baseUri}/Products/UpdateSize/${id}`, this._cast(command, UpdateProductSizeCommand)).pipe((map(x => <ProductDTO>x)));
   }
 
   getProductDetails(id: number | undefined): Observable<ProductDTO> {
@@ -58,5 +58,16 @@ export class ProductsService {
 
   delete(id: number | undefined): Observable<number> {
     return this.http.delete(`${this.baseUri}/Products/${id}`).pipe((map(x => <number>x)));
+  }
+
+  _cast<K extends T, T>(obj: K, tClass: { new(...args: any[]): K }): K {
+    let returnObject: K = new tClass();
+    for (let p in returnObject) {
+      const value = obj[p] || undefined;
+      if (value != undefined) {
+        returnObject[p] = value;
+      }
+    }
+    return returnObject;
   }
 }

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using System.Text;
-using ContainerNinja.Contracts.OpenApi;
+using ContainerNinja.Contracts.ChatAI;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -24,19 +24,19 @@ namespace ContainerNinja.Core.Handlers.Queries
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
-        private readonly IOpenApiService _openApiService;
+        private readonly IChatAIService _chatAIService;
 
-        public GetChatResponseQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache, IOpenApiService openApiService)
+        public GetChatResponseQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService)
         {
             _repository = repository;
             _mapper = mapper;
             _cache = cache;
-            _openApiService = openApiService;
+            _chatAIService = chatAIService;
         }
 
         public async Task<GetChatResponseVM> Handle(GetChatResponseQuery request, CancellationToken cancellationToken)
         {
-            var chatResponseMessage = await _openApiService.GetChatResponse(request.ChatMessage.Message, request.PreviousMessages, request.CurrentUrl);
+            var chatResponseMessage = await _chatAIService.GetChatResponse(request.ChatMessage.Message, request.PreviousMessages, request.CurrentUrl);
 
             request.PreviousMessages.Add(request.ChatMessage);
             request.PreviousMessages.Add(new ChatMessageVM
@@ -80,7 +80,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                 if (startIndex != -1 && endIndex != -1)
                 {
                     chatResponseMessage = chatResponseMessage.Substring(startIndex, endIndex - startIndex + 1);
-                    var openApiChatCommand = JsonConvert.DeserializeObject<OpenApiChatCommand>(chatResponseMessage);
+                    var openApiChatCommand = JsonConvert.DeserializeObject<ChatAICommand>(chatResponseMessage);
 
                     chatCommandEntity.CommandName = openApiChatCommand.Cmd;
                     chatCommandEntity.ChatConversation = chatConversationEntity;
@@ -96,7 +96,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
                     if (!string.IsNullOrEmpty(chatCommandEntity.SystemResponse))
                     {
-                        var chatSystemResponseMessage = await _openApiService.GetChatResponseFromSystem(chatCommandEntity.SystemResponse, request.PreviousMessages, request.CurrentUrl);
+                        var chatSystemResponseMessage = await _chatAIService.GetChatResponseFromSystem(chatCommandEntity.SystemResponse, request.PreviousMessages, request.CurrentUrl);
                         startIndex = chatSystemResponseMessage.IndexOf('{');
                         endIndex = chatSystemResponseMessage.LastIndexOf('}');
 
@@ -110,7 +110,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                         {
                             //json response
                             chatSystemResponseMessage = chatSystemResponseMessage.Substring(startIndex, endIndex - startIndex + 1);
-                            var openApiChatSystemResponseMessageCommand = JsonConvert.DeserializeObject<OpenApiChatCommand>(chatSystemResponseMessage);
+                            var openApiChatSystemResponseMessageCommand = JsonConvert.DeserializeObject<ChatAICommand>(chatSystemResponseMessage);
                             chatSystemResponseMessage = openApiChatSystemResponseMessageCommand.Response;
                         }
 

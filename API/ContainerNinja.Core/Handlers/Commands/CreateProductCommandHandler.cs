@@ -23,14 +23,16 @@ namespace ContainerNinja.Core.Handlers.Commands
         private readonly IMapper _mapper;
         private readonly ILogger<CreateProductCommandHandler> _logger;
         private readonly ICachingService _cache;
+        private readonly IWalmartService _walmartService;
 
-        public CreateProductCommandHandler(ILogger<CreateProductCommandHandler> logger, IUnitOfWork repository, IValidator<CreateProductCommand> validator, IMapper mapper, ICachingService cache)
+        public CreateProductCommandHandler(ILogger<CreateProductCommandHandler> logger, IUnitOfWork repository, IValidator<CreateProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;
+            _walmartService = walmartService;
         }
 
         public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -64,9 +66,9 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             productStockEntity.Product = productEntity;
 
-            //var searchResponse = _walmartApiService.Search(request.Name);
+            var searchResponse = await _walmartService.Search(request.Name);
 
-            //entity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
+            productEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
 
             _repository.Products.Add(productEntity);
 

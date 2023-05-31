@@ -7,6 +7,7 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Services;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -23,14 +24,16 @@ namespace ContainerNinja.Core.Handlers.Commands
         private readonly IMapper _mapper;
         private readonly ILogger<CreateCompletedOrderProductCommandHandler> _logger;
         private readonly ICachingService _cache;
+        private readonly IWalmartService _walmartService;
 
-        public CreateCompletedOrderProductCommandHandler(ILogger<CreateCompletedOrderProductCommandHandler> logger, IUnitOfWork repository, IValidator<CreateCompletedOrderProductCommand> validator, IMapper mapper, ICachingService cache)
+        public CreateCompletedOrderProductCommandHandler(ILogger<CreateCompletedOrderProductCommandHandler> logger, IUnitOfWork repository, IValidator<CreateCompletedOrderProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;
+            _walmartService = walmartService;
         }
 
         public async Task<int> Handle(CreateCompletedOrderProductCommand request, CancellationToken cancellationToken)
@@ -65,7 +68,9 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             _repository.CompletedOrders.Update(completedOrderEntity);
 
-            //completedOrderEntity.AddDomainEvent(new CompletedOrderProductCreatedEvent(completedOrderEntity));
+            var searchResponse = _walmartService.Search(completedOrderProductEntity.Name);
+
+            completedOrderProductEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
 
             await _repository.CommitAsync();
 

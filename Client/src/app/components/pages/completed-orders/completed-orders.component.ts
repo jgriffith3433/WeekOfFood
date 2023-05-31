@@ -313,13 +313,14 @@ export class CompletedOrdersComponent implements OnInit {
       this.completedOrderProductDetailsModalRef.hide();
     }
 
-    if (completedOrderProduct?.id === 0) {
-      if (this.selectedCompletedOrder && this.selectedCompletedOrderProduct) {
+    if (this.selectedCompletedOrder && this.selectedCompletedOrderProduct && completedOrderProduct) {
+      if (completedOrderProduct.id === 0) {
         const completedOrderProductIndex = this.selectedCompletedOrder.completedOrderProducts?.indexOf(this.selectedCompletedOrderProduct);
         if (completedOrderProductIndex) {
           this.selectedCompletedOrder.completedOrderProducts?.splice(completedOrderProductIndex, 1);
         }
-      } else {
+      }
+      else {
         this.completedOrdersService.deleteCompletedOrderProduct(completedOrderProduct.id).subscribe(
           result => {
             if (this.selectedCompletedOrder && this.selectedCompletedOrderProduct) {

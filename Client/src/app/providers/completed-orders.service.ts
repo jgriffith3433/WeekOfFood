@@ -65,7 +65,7 @@ export class CompletedOrdersService {
     return this.http.put(`${this.baseUri}/CompletedOrders/UpdateCompletedOrderProduct/${id}`, command).pipe((map(x => <CompletedOrderProductDTO>x)));
   }
 
-  deleteCompletedOrderProduct(id: number): Observable<number> {
+  deleteCompletedOrderProduct(id: number | undefined): Observable<number> {
     return this.http.delete(`${this.baseUri}/CompletedOrders/DeleteCompletedOrderProduct/${id}`).pipe((map(x => <number>x)));
   }
 }

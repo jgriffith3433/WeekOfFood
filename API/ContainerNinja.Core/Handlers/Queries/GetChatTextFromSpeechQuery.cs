@@ -16,19 +16,19 @@ namespace ContainerNinja.Core.Handlers.Queries
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
-        private readonly IOpenApiService _openApiService;
+        private readonly IChatAIService _chatAIService;
 
-        public GetChatTextFromSpeechQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache, IOpenApiService openApiService)
+        public GetChatTextFromSpeechQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService)
         {
             _repository = repository;
             _mapper = mapper;
             _cache = cache;
-            _openApiService = openApiService;
+            _chatAIService = chatAIService;
         }
 
         public async Task<GetChatTextFromSpeechVm> Handle(GetChatTextFromSpeechQuery request, CancellationToken cancellationToken)
         {
-            var speechToTextMessage = await _openApiService.GetTextFromSpeech(request.Speech);
+            var speechToTextMessage = await _chatAIService.GetTextFromSpeech(request.Speech);
 
             return new GetChatTextFromSpeechVm
             {

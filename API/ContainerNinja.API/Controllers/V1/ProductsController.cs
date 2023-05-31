@@ -48,7 +48,7 @@ namespace ContainerNinja.Controllers.V1
 
 
         [MapToApiVersion("1.0")]
-        [HttpPut]
+        [HttpPut("{id}")]
         [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ProductDTO>> Update(int id, UpdateProductCommand command)

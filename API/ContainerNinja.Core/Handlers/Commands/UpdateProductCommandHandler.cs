@@ -7,6 +7,8 @@ using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Data.Entities;
+using ContainerNinja.Core.Services;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -24,14 +26,16 @@ namespace ContainerNinja.Core.Handlers.Commands
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateProductCommandHandler> _logger;
+        private readonly IWalmartService _walmartService;
 
-        public UpdateProductCommandHandler(ILogger<UpdateProductCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateProductCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateProductCommandHandler(ILogger<UpdateProductCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;
+            _walmartService = walmartService;
         }
 
         async Task<ProductDTO> IRequestHandler<UpdateProductCommand, ProductDTO>.Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -69,17 +73,17 @@ namespace ContainerNinja.Core.Handlers.Commands
 
                 try
                 {
-                    //var itemResponse = _walmartApiService.GetItem(request.WalmartId);
+                    var itemResponse = await _walmartService.GetItem(request.WalmartId);
 
-                    //var serializedItemResponse = JsonConvert.SerializeObject(itemResponse);
+                    var serializedItemResponse = JsonConvert.SerializeObject(itemResponse);
 
-                    ////always update values from walmart to keep synced
-                    //productEntity.WalmartItemResponse = serializedItemResponse;
-                    //productEntity.Name = itemResponse.name;
-                    //productEntity.ProductStock.Name = itemResponse.name;
-                    //productEntity.Price = itemResponse.salePrice;
-                    //productEntity.WalmartSize = itemResponse.size;
-                    //productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
+                    //always update values from walmart to keep synced
+                    productEntity.WalmartItemResponse = serializedItemResponse;
+                    productEntity.Name = itemResponse.name;
+                    productEntity.ProductStock.Name = itemResponse.name;
+                    productEntity.Price = itemResponse.salePrice;
+                    productEntity.WalmartSize = itemResponse.size;
+                    productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
                 }
                 catch (Exception ex)
                 {

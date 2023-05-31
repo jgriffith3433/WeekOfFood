@@ -7,6 +7,8 @@ using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Data.Entities;
+using ContainerNinja.Core.Services;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -26,14 +28,16 @@ namespace ContainerNinja.Core.Handlers.Commands
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateCompletedOrderProductCommandHandler> _logger;
+        private readonly IWalmartService _walmartService;
 
-        public UpdateCompletedOrderProductCommandHandler(ILogger<UpdateCompletedOrderProductCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateCompletedOrderProductCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateCompletedOrderProductCommandHandler(ILogger<UpdateCompletedOrderProductCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateCompletedOrderProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
             _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;
+            _walmartService = walmartService;
         }
 
         async Task<CompletedOrderProductDTO> IRequestHandler<UpdateCompletedOrderProductCommand, CompletedOrderProductDTO>.Handle(UpdateCompletedOrderProductCommand request, CancellationToken cancellationToken)
@@ -60,8 +64,8 @@ namespace ContainerNinja.Core.Handlers.Commands
             {
                 //Still searching for product
                 completedOrderProductEntity.Name = request.Name;
-                //var searchResponse = _walmartApiService.Search(completedOrderProductEntity.Name);
-                //completedOrderProductEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
+                var searchResponse = await _walmartService.Search(completedOrderProductEntity.Name);
+                completedOrderProductEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
             }
             //TODO: Look into this absurd if statement
             if ((completedOrderProductEntity.WalmartId == null && request.WalmartId != null) || (completedOrderProductEntity.WalmartId != null && completedOrderProductEntity.WalmartId != request.WalmartId || completedOrderProductEntity.Product == null))
@@ -72,53 +76,54 @@ namespace ContainerNinja.Core.Handlers.Commands
                 {
                     try
                     {
-                        //var itemResponse = _walmartApiService.GetItem(completedOrderProductEntity.WalmartId);
-                        //var serializedItemResponse = JsonConvert.SerializeObject(itemResponse);
-                        //completedOrderProductEntity.WalmartItemResponse = serializedItemResponse;
-                        //completedOrderProductEntity.Name = itemResponse.name;
+                        var itemResponse = await _walmartService.GetItem(completedOrderProductEntity.WalmartId);
+                        var serializedItemResponse = JsonConvert.SerializeObject(itemResponse);
+                        completedOrderProductEntity.WalmartItemResponse = serializedItemResponse;
+                        completedOrderProductEntity.Name = itemResponse.name;
 
-                        //var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
+                        var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
 
-                        //if (productEntity != null)
-                        //{
-                        //    productEntity.ProductStock.Units += 1;
-                        //    _repository.ProductStocks.Update(productEntity.ProductStock);
-                        //}
-                        //else
-                        //{
-                        //    productEntity = new Product
-                        //    {
-                        //        WalmartId = itemResponse.itemId,
-                        //    };
+                        if (productEntity != null)
+                        {
+                            productEntity.ProductStock.Units += 1;
+                            _repository.ProductStocks.Update(productEntity.ProductStock);
+                        }
+                        else
+                        {
+                            productEntity = new Product
+                            {
+                                Name = itemResponse.name,
+                                WalmartId = itemResponse.itemId,
+                            };
 
-                        //    //always ensure a product stock record exists for each product
-                        //    productEntity.ProductStock = new ProductStock
-                        //    {
-                        //        Name = itemResponse.name,
-                        //        Units = 1,
-                        //        Product = productEntity
-                        //    };
-                        //    _repository.ProductStocks.Add(productEntity.ProductStock);
-                        //    _repository.Products.Add(productEntity);
-                        //}
+                            //always ensure a product stock record exists for each product
+                            productEntity.ProductStock = new ProductStock
+                            {
+                                Name = itemResponse.name,
+                                Units = 1,
+                                Product = productEntity
+                            };
+                            _repository.ProductStocks.Add(productEntity.ProductStock);
+                            _repository.Products.Add(productEntity);
+                        }
 
-                        //await _repository.CommitAsync();
-                        //var productDTO = _mapper.Map<ProductStockDTO>(productEntity);
-                        //_cache.SetItem($"product_{productEntity.Id}", productDTO);
-                        //_cache.RemoveItem("products");
+                        await _repository.CommitAsync();
+                        var productDTO = _mapper.Map<ProductDTO>(productEntity);
+                        _cache.SetItem($"product_{productEntity.Id}", productDTO);
+                        _cache.RemoveItem("products");
 
-                        //var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
-                        //_cache.SetItem($"product_stock_{productEntity.ProductStock.Id}", productStockDTO);
-                        //_cache.RemoveItem("product_stocks");
+                        var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
+                        _cache.SetItem($"product_stock_{productEntity.ProductStock.Id}", productStockDTO);
+                        _cache.RemoveItem("product_stocks");
 
-                        ////always update values from walmart to keep synced
-                        //productEntity.WalmartItemResponse = serializedItemResponse;
-                        //productEntity.Name = itemResponse.name;
-                        //productEntity.Price = itemResponse.salePrice;
-                        //productEntity.WalmartSize = itemResponse.size;
-                        //productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
-                        //completedOrderProductEntity.Product = productEntity;
-                        //_repository.CompletedOrderProducts.Update(completedOrderProductEntity);
+                        //always update values from walmart to keep synced
+                        productEntity.WalmartItemResponse = serializedItemResponse;
+                        productEntity.Name = itemResponse.name;
+                        productEntity.Price = itemResponse.salePrice;
+                        productEntity.WalmartSize = itemResponse.size;
+                        productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
+                        completedOrderProductEntity.Product = productEntity;
+                        _repository.CompletedOrderProducts.Update(completedOrderProductEntity);
                     }
                     catch (Exception ex)
                     {

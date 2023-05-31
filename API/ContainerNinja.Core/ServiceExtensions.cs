@@ -34,7 +34,8 @@ namespace ContainerNinja.Core
             // register services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
-            services.AddTransient<IOpenApiService, OpenApiService>();
+            services.AddTransient<IChatAIService, ChatAIService>();
+            services.AddTransient<IWalmartService, WalmartService>();
 
             // if DistributedCaching is enabled
             // return an instance of DistributedCachingService implementation

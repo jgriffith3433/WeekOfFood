@@ -116,8 +116,7 @@ export class ProductsComponent implements OnInit {
   }
 
   updateProductName(product: ProductDTO, pressedEnter: boolean = false): void {
-    const updateProductNameCommand = this._cast(product, UpdateProductNameCommand);
-    this.productsService.updateName(product.id, updateProductNameCommand).subscribe(
+    this.productsService.updateName(product.id, product).subscribe(
       result => {
         if (this.products) {
           for (var i = this.products.length - 1; i >= 0; i--) {
@@ -134,8 +133,7 @@ export class ProductsComponent implements OnInit {
   }
 
   updateProductUnitType(product: ProductDTO, pressedEnter: boolean = false): void {
-    const updateProductUnitTypeCommand = this._cast(product, UpdateProductUnitTypeCommand);
-    this.productsService.updateUnitType(product.id, updateProductUnitTypeCommand).subscribe(
+    this.productsService.updateUnitType(product.id, product).subscribe(
       result => {
         if (this.products) {
           for (var i = this.products.length - 1; i >= 0; i--) {
@@ -261,17 +259,4 @@ export class ProductsComponent implements OnInit {
       }
     }
   }
-
-  _cast<K extends T, T>(obj: K, tClass: { new(...args: any[]): K }): K {
-    let returnObject: K = new tClass();
-    for (let p in returnObject) {
-      const value = obj[p] || undefined;
-      if (value != undefined) {
-        returnObject[p] = value;
-      }
-    }
-    return returnObject;
-  }
-
-
 }
