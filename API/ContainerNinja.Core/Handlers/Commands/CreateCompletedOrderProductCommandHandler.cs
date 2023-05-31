@@ -74,7 +74,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             _cache.RemoveItem("completed_orders");
             _logger.LogInformation($"Added CompletedOrderProduct to Cache.");
 
-            return completedOrderEntity.Id;
+            return completedOrderProductEntity.Id;
         }
     }
 }

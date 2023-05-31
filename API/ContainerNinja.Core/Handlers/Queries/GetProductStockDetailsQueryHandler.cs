@@ -34,7 +34,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             var productStockDTO = _cache.GetItem<ProductStockDTO>($"product_stock_{request.Id}");
             if (productStockDTO == null)
             {
-                var productStockEntity = _repository.ProductStocks.Get(request.Id);
+                var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).FirstOrDefault(ps => ps.Id == request.Id);
 
                 if (productStockEntity == null)
                 {
@@ -47,13 +47,17 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             var productStockDetailsDTO = _mapper.Map<ProductStockDetailsDTO>(productStockDTO);
 
-            var searchResults = from p in _repository.Products.Include<Product, ProductStock>(p => p.ProductStock) where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) && p.ProductStock.Id != request.Id select p;
+            var searchResults = from p in _repository.Products.Include<Product, ProductStock>(p => p.ProductStock) where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) select p;
 
             productStockDetailsDTO.ProductSearchItems = _mapper.Map<IEnumerable<ProductDTO>>(searchResults).ToList();
 
             foreach (var productSearchItem in productStockDetailsDTO.ProductSearchItems)
             {
-                if (productSearchItem.ProductStockId != null)
+                if (productSearchItem.ProductStockId == request.Id)
+                {
+                    productSearchItem.Name += " ( Linked )";
+                }
+                else if (productSearchItem.ProductStockId != null)
                 {
                     productSearchItem.Name += " ( Merge )";
                 }

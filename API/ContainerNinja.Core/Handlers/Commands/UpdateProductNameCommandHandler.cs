@@ -7,6 +7,7 @@ using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -47,7 +48,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                 };
             }
 
-            var productEntity = _repository.Products.Get(request.Id);
+            var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.Id == request.Id);
 
             if (productEntity == null)
             {
@@ -64,8 +65,13 @@ namespace ContainerNinja.Core.Handlers.Commands
 
                 //productEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
                 _repository.Products.Update(productEntity);
+                _repository.ProductStocks.Update(productEntity.ProductStock);
                 await _repository.CommitAsync();
             }
+
+            var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
+            _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
+            _cache.RemoveItem("product_stocks");
 
             var productDTO = _mapper.Map<ProductDTO>(productEntity);
             _cache.SetItem($"product_{request.Id}", productDTO);

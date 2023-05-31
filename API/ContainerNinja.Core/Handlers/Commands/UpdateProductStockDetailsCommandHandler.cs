@@ -61,7 +61,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             if (productStockEntity.Product == null || request.ProductId != productStockEntity.Product.Id)
             {
                 //First search for product stocks that are already linked to the product
-                var alreadyLinkedProductStock = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).Where(p => p.Product != null && p.Product.Id == request.ProductId).FirstOrDefault();
+                var alreadyLinkedProductStock = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).Where(p => p.Product.Id == request.ProductId).FirstOrDefault();
                 if (alreadyLinkedProductStock != null)
                 {
                     //we found an existing product stock, merge
@@ -92,15 +92,14 @@ namespace ContainerNinja.Core.Handlers.Commands
             _repository.ProductStocks.Update(productStockEntity);
 
             await _repository.CommitAsync();
+
             var productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);
-
-            if (_cache.GetItem<ProductStockDTO>($"product_stock_{productStockDTO.Id}") != null)
-            {
-                _logger.LogInformation($"Product Stock Exists in Cache. Setting new Product Stock Details for the same Key.");
-                _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
-            }
-
+            _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
+
+            var productDTO = _mapper.Map<ProductDTO>(productStockEntity.Product);
+            _cache.SetItem($"product_{request.Id}", productDTO);
+            _cache.RemoveItem("products");
 
             return _mapper.Map<ProductStockDetailsDTO>(productStockDTO);
         }

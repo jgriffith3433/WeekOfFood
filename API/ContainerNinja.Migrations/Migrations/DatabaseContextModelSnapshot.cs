@@ -455,7 +455,7 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProductId")
+                    b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<float?>("Units")
@@ -464,8 +464,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId")
-                        .IsUnique()
-                        .HasFilter("[ProductId] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("ProductStocks");
                 });
@@ -653,7 +652,9 @@ namespace ContainerNinja.Migrations.Migrations
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
                         .WithOne("ProductStock")
-                        .HasForeignKey("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductId");
+                        .HasForeignKey("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Product");
                 });

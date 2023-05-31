@@ -48,7 +48,7 @@
     <div class="form">
       <div class="form-group">
         <label for="name">Name</label>
-        <div *ngIf="!productStockEditor.product && productStockEditor.productSearchItems">
+        <div *ngIf="productStockEditor.productSearchItems">
           <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="productStockEditor.name"
                  [ngClass]="{ 'is-invalid': productStockEditor.error }" (keyup.enter)="searchProductName()" />
           <div class="float-end">
@@ -57,13 +57,6 @@
           <select class="form-control" [(ngModel)]="productStockEditor.productId">
             <option [ngValue]="productSearchItem.id" *ngFor="let productSearchItem of productStockEditor.productSearchItems">{{ productSearchItem.name }}</option>
           </select>
-        </div>
-        <div *ngIf="!productStockEditor.product && !productStockEditor.productSearchItems">
-          <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="productStockEditor.name"
-                 [ngClass]="{ 'is-invalid': productStockEditor.error }" (keyup.enter)="searchProductName()" />
-          <div class="float-end">
-            <button class="btn btn-primary" (click)="searchProductName()">Search</button>
-          </div>
         </div>
       </div>
       <div class="form-group">

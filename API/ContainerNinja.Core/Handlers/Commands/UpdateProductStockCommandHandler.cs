@@ -6,6 +6,7 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -46,7 +47,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                 };
             }
 
-            var productStockEntity = _repository.ProductStocks.Get(request.Id);
+            var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).FirstOrDefault(ps => ps.Id == request.Id);
 
             if (productStockEntity == null)
             {
@@ -58,16 +59,16 @@ namespace ContainerNinja.Core.Handlers.Commands
             _repository.ProductStocks.Update(productStockEntity);
 
             await _repository.CommitAsync();
-            var response = _mapper.Map<ProductStockDTO>(productStockEntity);
 
-            if (_cache.GetItem<ProductStockDTO>($"product_stock_{response.Id}") != null)
-            {
-                _logger.LogInformation($"Product Stock Exists in Cache. Setting new Product Stock for the same Key.");
-                _cache.SetItem($"product_stock_{request.Id}", response);
-            }
+            var productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);
+            _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
 
-            return response;
+            var productDTO = _mapper.Map<ProductDTO>(productStockEntity.Product);
+            _cache.SetItem($"product_{request.Id}", productDTO);
+            _cache.RemoveItem("products");
+
+            return productStockDTO;
         }
     }
 }

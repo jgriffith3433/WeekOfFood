@@ -47,18 +47,29 @@ namespace ContainerNinja.Core.Handlers.Commands
                 };
             }
 
-            var entity = new ProductStock
+            var productStockEntity = new ProductStock
             {
                 Name = request.Name
             };
 
-            _repository.ProductStocks.Add(entity);
+            var productEntity = new Product
+            {
+                Name = request.Name,
+                ProductStock = productStockEntity
+            };
+
+            _repository.ProductStocks.Add(productStockEntity);
+            _repository.Products.Add(productEntity);
 
             await _repository.CommitAsync();
 
-            var productStockDTO = _mapper.Map<ProductStockDTO>(entity);
+            var productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);
             _cache.SetItem($"product_stock_{productStockDTO.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
+
+            var productDTO = _mapper.Map<ProductDTO>(productEntity);
+            _cache.SetItem($"product_{productDTO.Id}", productDTO);
+            _cache.RemoveItem("products");
             _logger.LogInformation($"Added TodoList to Cache.");
             return productStockDTO.Id;
         }

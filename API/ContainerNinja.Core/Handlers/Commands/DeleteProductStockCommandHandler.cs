@@ -31,19 +31,16 @@ namespace ContainerNinja.Core.Handlers.Commands
                 throw new EntityNotFoundException($"No Product Stock found for the Id {request.Id}");
             }
 
-            if (productStockEntity.Product != null)
-            {
-                _cache.RemoveItem("products");
-                _cache.RemoveItem($"product_{productStockEntity.Product.Id}");
-                _repository.Products.Delete(productStockEntity.Product.Id);
-            }
+            _cache.RemoveItem("products");
+            _cache.RemoveItem($"product_{productStockEntity.Product.Id}");
+            _repository.Products.Delete(productStockEntity.Product.Id);
 
+            _cache.RemoveItem("product_stocks");
+            _cache.RemoveItem($"product_stock_{request.Id}");
             _repository.ProductStocks.Delete(request.Id);
 
             await _repository.CommitAsync();
 
-            _cache.RemoveItem("product_stocks");
-            _cache.RemoveItem($"product_stock_{request.Id}");
             return request.Id;
         }
     }

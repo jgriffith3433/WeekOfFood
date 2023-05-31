@@ -8,6 +8,7 @@ using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -35,7 +36,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<ProductDTO> IRequestHandler<UpdateProductUnitTypeCommand, ProductDTO>.Handle(UpdateProductUnitTypeCommand request, CancellationToken cancellationToken)
         {
-            var productEntity = _repository.Products.Get(request.Id);
+            var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.Id == request.Id);
 
             if (productEntity == null)
             {
@@ -45,6 +46,10 @@ namespace ContainerNinja.Core.Handlers.Commands
             productEntity.UnitType = (UnitType)request.UnitType;
             _repository.Products.Update(productEntity);
             await _repository.CommitAsync();
+
+            var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
+            _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
+            _cache.RemoveItem("product_stocks");
 
             var productDTO = _mapper.Map<ProductDTO>(productEntity);
             _cache.SetItem($"product_{request.Id}", productDTO);
