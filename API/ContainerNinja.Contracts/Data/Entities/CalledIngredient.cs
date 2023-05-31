@@ -14,6 +14,6 @@ namespace ContainerNinja.Contracts.Data.Entities
 
         public ProductStock? ProductStock { get; set; } = null!;
 
-        //public Recipe Recipe { get; set; } = null!;
+        public Recipe Recipe { get; set; }
     }
 }

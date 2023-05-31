@@ -14,6 +14,9 @@ namespace ContainerNinja.Contracts.Data
         ICompletedOrderProductRepository CompletedOrderProducts { get; }
         IProductStockRepository ProductStocks { get; }
         ICalledIngredientRepository CalledIngredients { get; }
+        IRecipeRepository Recipes { get; }
+        ICookedRecipeRepository CookedRecipes { get; }
+        ICookedRecipeCalledIngredientRepository CookedRecipeCalledIngredients { get; }
         Task CommitAsync();
     }
 }

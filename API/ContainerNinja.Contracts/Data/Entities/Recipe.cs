@@ -9,6 +9,6 @@ namespace ContainerNinja.Contracts.Data.Entities
         public int? Serves { get; set; }
 
         public IList<CalledIngredient> CalledIngredients { get; private set; } = new List<CalledIngredient>();
-        public ProductStock ProductStock { get; set; }
+        public IList<CookedRecipe> CookedRecipes { get; private set; } = new List<CookedRecipe>();
     }
 }

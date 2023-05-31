@@ -18,7 +18,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public int ProductId { get; init; }
 
-        public float Units { get; init; }
+        public float? Units { get; init; }
     }
 
     public class UpdateProductStockDetailsCommandHandler : IRequestHandler<UpdateProductStockDetailsCommand, ProductStockDetailsDTO>

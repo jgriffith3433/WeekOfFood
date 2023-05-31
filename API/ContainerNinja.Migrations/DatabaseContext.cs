@@ -51,5 +51,8 @@ namespace ContainerNinja.Migrations
         public DbSet<CompletedOrderProduct> CompletedOrderProducts { get; set; }
         public DbSet<ProductStock> ProductStocks { get; set; }
         public DbSet<CalledIngredient> CalledIngredient { get; set; }
+        public DbSet<Recipe> Recipes { get; set; }
+        public DbSet<CookedRecipe> CookedRecipes { get; set; }
+        public DbSet<CookedRecipeCalledIngredient> CookedRecipeCalledIngredients { get; set; }
     }
 }

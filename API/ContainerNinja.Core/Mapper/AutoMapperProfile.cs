@@ -36,7 +36,33 @@ namespace ContainerNinja.Core.Mapper
             CreateMap<ProductStockDTO, ProductStockDetailsDTO>();
             CreateMap<ProductStockDetailsDTO, ProductStockDTO>();
 
+            CreateMap<Recipe, RecipeDTO>();
 
+            CreateMap<CalledIngredient, CalledIngredientDetailsDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
+                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => s.ProductStock != null ? s.ProductStock.Id : -1));
+
+            CreateMap<CalledIngredient, CalledIngredientDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType));
+
+            CreateMap<CalledIngredientDTO, CalledIngredientDetailsDTO>();
+            CreateMap<CalledIngredientDetailsDTO, CalledIngredientDTO>();
+
+            CreateMap<CookedRecipe, CookedRecipeDTO>()
+                .ForMember(d => d.RecipeId, opt => opt.MapFrom(mapExpression: s => s.Recipe != null ? s.Recipe.Id : -1));
+
+            CreateMap<CookedRecipeCalledIngredient, CookedRecipeCalledIngredientDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
+                .ForMember(d => d.CookedRecipeId, opt => opt.MapFrom(s => s.CookedRecipe.Id))
+                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => (int?)(s.ProductStock != null ? s.ProductStock.Id : null)));
+
+            CreateMap<CookedRecipeCalledIngredient, CookedRecipeCalledIngredientDetailsDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
+                .ForMember(d => d.CookedRecipeId, opt => opt.MapFrom(s => s.CookedRecipe.Id))
+                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => (int?)(s.ProductStock != null ? s.ProductStock.Id : null)));
+
+            CreateMap<CookedRecipeCalledIngredientDTO, CookedRecipeCalledIngredientDetailsDTO>();
+            CreateMap<CookedRecipeCalledIngredientDetailsDTO, CookedRecipeCalledIngredientDTO>();
         }
     }
 }

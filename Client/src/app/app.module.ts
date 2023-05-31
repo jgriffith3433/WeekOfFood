@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { ModalModule } from 'ngx-bootstrap/modal';
-
 import { AppRoutingModule } from './app-routing.module';
 import { ChatModule } from 'src/chat/chat.module';
 import { AppComponent } from './app.component';
@@ -21,6 +20,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ProductsComponent } from './components/pages/products/products.component';
 import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
 import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
+import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';
+import { RecipesComponent } from './components/pages/recipes/recipes.component';
+import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
 
 @NgModule({
   declarations: [
@@ -35,6 +37,9 @@ import { ProductStocksComponent } from './components/pages/product-stocks/produc
     ProductsComponent,
     CompletedOrdersComponent,
     ProductStocksComponent,
+    CalledIngredientsComponent,
+    RecipesComponent,
+    CookedRecipesComponent,
   ],
   imports: [
     BrowserModule,

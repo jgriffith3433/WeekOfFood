@@ -10,6 +10,9 @@ import { LoginComponent } from './components/pages/login/login.component';
 import { ProductsComponent } from './components/pages/products/products.component';
 import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
 import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
+import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';
+import { RecipesComponent } from './components/pages/recipes/recipes.component';
+import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
 
 const routes: Routes = [
   {
@@ -41,6 +44,21 @@ const routes: Routes = [
   {
     path: 'product-stocks', canActivate: [AuthGuard], children: [
       { path: '', component: ProductStocksComponent },
+    ]
+  },
+  {
+    path: 'called-ingredients', canActivate: [AuthGuard], children: [
+      { path: '', component: CalledIngredientsComponent },
+    ]
+  },
+  {
+    path: 'recipes', canActivate: [AuthGuard], children: [
+      { path: '', component: RecipesComponent },
+    ]
+  },
+  {
+    path: 'cooked-recipes', canActivate: [AuthGuard], children: [
+      { path: '', component: CookedRecipesComponent },
     ]
   },
   { path: 'login', component: LoginComponent },

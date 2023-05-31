@@ -8,7 +8,6 @@ namespace ContainerNinja.Core.Validators
         public UpdateCompletedOrderCommandValidator()
         {
             RuleFor(v => v.UserImport)
-                .NotEmpty().WithMessage("UserImport is required.")
                 .MaximumLength(40000).WithMessage("UserImport must not exceed 40000 characters.");
         }
     }

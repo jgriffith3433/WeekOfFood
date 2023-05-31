@@ -50,6 +50,9 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<int?>("ProductStockId")
                         .HasColumnType("int");
 
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
                     b.Property<int>("UnitType")
                         .HasColumnType("int");
 
@@ -62,6 +65,8 @@ namespace ContainerNinja.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductStockId");
+
+                    b.HasIndex("RecipeId");
 
                     b.ToTable("CalledIngredient");
                 });
@@ -241,6 +246,88 @@ namespace ContainerNinja.Migrations.Migrations
                     b.ToTable("CompletedOrderProducts");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CookedRecipe", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("CookedRecipes");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CookedRecipeCalledIngredient", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CalledIngredientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CookedRecipeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProductStockId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UnitType")
+                        .HasColumnType("int");
+
+                    b.Property<float?>("Units")
+                        .HasColumnType("real");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalledIngredientId");
+
+                    b.HasIndex("CookedRecipeId");
+
+                    b.HasIndex("ProductStockId");
+
+                    b.ToTable("CookedRecipeCalledIngredients");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Item", b =>
                 {
                     b.Property<int>("Id")
@@ -371,7 +458,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<float>("Units")
+                    b.Property<float?>("Units")
                         .HasColumnType("real");
 
                     b.HasKey("Id");
@@ -381,6 +468,45 @@ namespace ContainerNinja.Migrations.Migrations
                         .HasFilter("[ProductId] IS NOT NULL");
 
                     b.ToTable("ProductStocks");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Recipe", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Serves")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserImport")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Recipes");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoList", b =>
@@ -450,7 +576,15 @@ namespace ContainerNinja.Migrations.Migrations
                         .WithMany()
                         .HasForeignKey("ProductStockId");
 
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.Recipe", "Recipe")
+                        .WithMany("CalledIngredients")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("ProductStock");
+
+                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ChatCommand", b =>
@@ -481,6 +615,40 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CookedRecipe", b =>
+                {
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.Recipe", "Recipe")
+                        .WithMany("CookedRecipes")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CookedRecipeCalledIngredient", b =>
+                {
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.CalledIngredient", "CalledIngredient")
+                        .WithMany()
+                        .HasForeignKey("CalledIngredientId");
+
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.CookedRecipe", "CookedRecipe")
+                        .WithMany("CookedRecipeCalledIngredients")
+                        .HasForeignKey("CookedRecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductStock")
+                        .WithMany()
+                        .HasForeignKey("ProductStockId");
+
+                    b.Navigation("CalledIngredient");
+
+                    b.Navigation("CookedRecipe");
+
+                    b.Navigation("ProductStock");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ProductStock", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
@@ -495,12 +663,24 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("CompletedOrderProducts");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CookedRecipe", b =>
+                {
+                    b.Navigation("CookedRecipeCalledIngredients");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Product", b =>
                 {
                     b.Navigation("CompletedOrderProducts");
 
                     b.Navigation("ProductStock")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Recipe", b =>
+                {
+                    b.Navigation("CalledIngredients");
+
+                    b.Navigation("CookedRecipes");
                 });
 #pragma warning restore 612, 618
         }
