@@ -86,7 +86,6 @@ namespace ContainerNinja.Migrations.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("CommandName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Created")

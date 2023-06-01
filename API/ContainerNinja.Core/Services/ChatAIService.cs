@@ -28,13 +28,23 @@ namespace ContainerNinja.Core.Services
             });
         }
 
-
-        public async Task<string> GetChatResponse(string message, List<ChatMessageVM> previousMessages, string currentUrl)
+        public async Task<string> GetChatResponse(string message, int from, List<ChatMessageVM> previousMessages, string currentUrl)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
             if (previousMessages == null || previousMessages.Count == 0)
             {
-                chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(message));
+                if (from == 1)
+                {
+                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromAssistant(message));
+                }
+                else if (from == 2)
+                {
+                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(message));
+                }
+                else if (from == 3)
+                {
+                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(message));
+                }
             }
             else
             {
@@ -54,38 +64,18 @@ namespace ContainerNinja.Core.Services
                         chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(previousChatMessage.Message));
                     }
                 }
-                chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(message));
-            }
-            var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
-            return completionResult.Choices.First().Message.Content;
-        }
-
-        public async Task<string> GetChatResponseFromSystem(string message, List<ChatMessageVM> previousMessages, string currentUrl)
-        {
-            var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
-            if (previousMessages == null || previousMessages.Count == 0)
-            {
-                chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(message));
-            }
-            else
-            {
-                foreach (var previousChatMessage in previousMessages)
+                if (from == 1)
                 {
-                    if (previousChatMessage.From == 1)
-                    {
-                        chatCompletionCreateRequest.Messages.Add(ChatMessage.FromAssistant(previousChatMessage.Message));
-
-                    }
-                    else if (previousChatMessage.From == 2)
-                    {
-                        chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(previousChatMessage.Message));
-                    }
-                    else if (previousChatMessage.From == 3)
-                    {
-                        chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(previousChatMessage.Message));
-                    }
+                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromAssistant(message));
                 }
-                chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(message));
+                else if (from == 2)
+                {
+                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(message));
+                }
+                else if (from == 3)
+                {
+                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(message));
+                }
             }
             var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
             return completionResult.Choices.First().Message.Content;
@@ -170,7 +160,7 @@ namespace ContainerNinja.Core.Services
             var chatPromptList = new List<ChatMessage>
         {
             ChatMessage.FromSystem(
-                "You are a website assistant. You must respond only with JSON and no extra text. " +
+                "You are a website assistant. You must respond only with JSON and no extra text. The cmd and response fields are required. " +
                 "The user is on the home page. The available commands you can return are: none, go-to-page. The available pages are " + string.Join(", ", GetPages()) + "."
                 ),
             ChatMessage.FromUser("Hello"),
@@ -260,6 +250,32 @@ namespace ContainerNinja.Core.Services
   ]
 }"
                         ),
+                    ChatMessage.FromUser("Give me a barbeque chicken recipe"),
+                    ChatMessage.FromAssistant(
+@"{
+  ""cmd"": ""create-recipe"",
+  ""response"": ""Created."",
+  ""name"": ""Barbeque Chicken Thighs"",
+  ""serves"": 2,
+  ""ingredients"": [
+    {
+      ""name"": ""boneless chicken thighs"",
+      ""units"": 3,
+      ""unittype"": ""pounds""
+    },
+    {
+      ""name"": ""garlic powder"",
+      ""units"": .5,
+      ""unittype"": ""teaspoons""
+    },
+    {
+      ""name"": ""BBQ sauce"",
+      ""units"": 1,
+      ""unittype"": ""bottle""
+    },
+  ]
+}"
+                        ),
                     ChatMessage.FromUser("Remove the spaghetti with meat sauce recipe"),
                     ChatMessage.FromAssistant(
 @"{
@@ -313,8 +329,8 @@ namespace ContainerNinja.Core.Services
                 case "cooked-recipes":
                     chatPromptList.AddRange(new List<ChatMessage>
                     {
-                    ChatMessage.FromUser("I added two teaspoons of salt to the bienenstich recipe."),
-                    ChatMessage.FromAssistant(
+                        ChatMessage.FromUser("I added two teaspoons of salt to the bienenstich recipe."),
+                        ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""add-cooked-recipe-ingredient"",
   ""response"": ""Okay, I have added salt to the cooked recipe."",
@@ -324,16 +340,27 @@ namespace ContainerNinja.Core.Services
   ""unittype"": ""teaspoon""
 }"
                     ),
-                    ChatMessage.FromUser("I made tacos tonight."),
-                    ChatMessage.FromAssistant(
+                        ChatMessage.FromUser("Add syrup to oatmeal"),
+                        ChatMessage.FromAssistant(
+@"{
+  ""cmd"": ""add-cooked-recipe-ingredient"",
+  ""response"": ""Okay, I have added syrup to the oatmeal recipe."",
+  ""recipe"": ""oatmeal"",
+  ""name"": ""syrup"",
+  ""units"": 1,
+  ""unittype"": ""tablespoon""
+}"
+                    ),
+                        ChatMessage.FromUser("I made tacos tonight."),
+                        ChatMessage.FromAssistant(
                         @"{
   ""cmd"": ""create-cooked-recipe"",
   ""response"": ""Created."",
   ""recipe"": ""tacos"",
 }"
                         ),
-                    ChatMessage.FromUser("Substitute chicken broth for vegetable broth in the chicken and dumplings recipe"),
-                    ChatMessage.FromAssistant(
+                        ChatMessage.FromUser("Substitute chicken broth for vegetable broth in the chicken and dumplings recipe"),
+                        ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""substitute-cooked-recipe-ingredient"",
   ""response"": ""Substituted."",
@@ -341,9 +368,9 @@ namespace ContainerNinja.Core.Services
   ""original"": ""chicken broth"",
   ""new"": ""vegetable broth"",
 }"
-                    ),
-                    ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe"),
-                    ChatMessage.FromAssistant(
+                        ),
+                        ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe"),
+                        ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""edit-cooked-recipe-ingredient-unittype"",
   ""response"": ""Changed the butter unit type to tablespoons."",
@@ -351,9 +378,9 @@ namespace ContainerNinja.Core.Services
   ""ingredient"": ""butter"",
   ""unittype"": ""tablespoons"",
 }"
-                    ),
-                    ChatMessage.FromUser("Remove the onions from the spicy chili recipe"),
-                    ChatMessage.FromAssistant(
+                        ),
+                        ChatMessage.FromUser("Remove the onions from the spicy chili recipe"),
+                        ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""remove-cooked-recipe-ingredient"",
   ""response"": ""Removed."",
@@ -387,7 +414,7 @@ namespace ContainerNinja.Core.Services
                     ChatMessage.FromUser("Change the unit type on olive oil to ounces"),
                     ChatMessage.FromAssistant(
 @"{
-  ""cmd"": ""order"",
+  ""cmd"": ""edit-product-unit-type"",
   ""response"": ""Okay, the unit type has been changed to ounces for olive oil."",
   ""product"": ""olive oil"",
   ""unittype"": ""ounces"",

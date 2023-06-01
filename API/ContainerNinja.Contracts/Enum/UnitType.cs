@@ -15,5 +15,6 @@
         Package = 10,
         Bar = 11,
         Bun = 12,
+        Bottle = 13,
     }
 }

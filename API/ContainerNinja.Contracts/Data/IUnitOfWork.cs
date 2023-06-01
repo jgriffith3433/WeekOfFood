@@ -1,9 +1,11 @@
 ﻿using ContainerNinja.Contracts.Data.Repositories;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ContainerNinja.Contracts.Data
 {
     public interface IUnitOfWork
     {
+        ChangeTracker ChangeTracker { get; }
         IItemRepository Items { get; }
         ITodoListRepository TodoLists { get; }
         IUserRepository Users { get; }

@@ -2,7 +2,7 @@
 {
     public class ChatCommand : AuditableEntity
     {
-        public string CommandName { get; set; }
+        public string? CommandName { get; set; }
         public string? SystemResponse { get; set; }
         public string? Error { get; set; }
         public string RawReponse { get; set; }

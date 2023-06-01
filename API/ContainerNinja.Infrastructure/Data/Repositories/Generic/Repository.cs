@@ -51,6 +51,11 @@ namespace ContainerNinja.Core.Data.Repositories
             return x;
         }
 
+        public T FirstOrDefault(Expression<Func<T, bool>> predicate)
+        {
+            return _dbSet.FirstOrDefault(predicate);
+        }
+
         public IEnumerable<T> GetAll()
         {
             return _dbSet.AsEnumerable();

@@ -61,13 +61,11 @@ namespace ContainerNinja.Core.Handlers.Commands
             await _repository.CommitAsync();
 
             var productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);
+            _cache.Clear();
             _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
-            _cache.RemoveItem("product_stocks");
 
             var productDTO = _mapper.Map<ProductDTO>(productStockEntity.Product);
             _cache.SetItem($"product_{request.Id}", productDTO);
-            _cache.RemoveItem("products");
-
             return productStockDTO;
         }
     }

@@ -55,7 +55,10 @@ namespace ContainerNinja.Core.Handlers.Commands
                 };
             }
 
-            var calledIngredientEntity = _repository.CalledIngredients.Include<CalledIngredient, ProductStock>(co => co.ProductStock).FirstOrDefault(co => co.Id == request.Id);
+            var calledIngredientEntity = _repository.CalledIngredients
+                .Include<CalledIngredient, ProductStock>(ci => ci.ProductStock)
+                .Include<CalledIngredient, Recipe>(ci => ci.Recipe)
+                .FirstOrDefault(co => co.Id == request.Id);
 
             if (calledIngredientEntity == null)
             {
@@ -72,6 +75,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             }
 
             _repository.CalledIngredients.Update(calledIngredientEntity);
+            await _repository.CommitAsync();
 
             var calledIngredientDTO = _mapper.Map<CalledIngredientDTO>(calledIngredientEntity);
 

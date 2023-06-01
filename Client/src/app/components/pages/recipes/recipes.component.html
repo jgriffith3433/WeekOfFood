@@ -54,7 +54,7 @@
             </div>
             <div class="item-commands d-flex">
               <button *ngIf="calledIngredient.id != 0" (click)="showCalledIngredientDetailsModal(calledIngredientDetailsModalTemplate, calledIngredient)" class="my-auto btn btn-default btn-xs" role="button">
-                <i class="bi bi-three-dots-vertical"></i>
+                <i class="bi bi-three-dots-vertical">Edit</i>
               </button>
             </div>
           </div>
@@ -182,7 +182,7 @@
         </select>
       </div>
       <div class="form-group">
-        <div *ngIf="!calledIngredientDetailsEditor.productStock && calledIngredientDetailsEditor.productStockSearchItems">
+        <div>
           <label for="search">Search by Name</label>
           <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="calledIngredientDetailsEditor.search"
                  [ngClass]="{ 'is-invalid': calledIngredientDetailsEditor.error }" (keyup.enter)="searchIngredientName()" />

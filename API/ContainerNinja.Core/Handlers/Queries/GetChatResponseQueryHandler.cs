@@ -8,6 +8,7 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using System.Text;
 using ContainerNinja.Contracts.ChatAI;
+using ContainerNinja.Core.Handlers.Commands;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -25,29 +26,23 @@ namespace ContainerNinja.Core.Handlers.Queries
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
+        private readonly IMediator _mediator;
 
-        public GetChatResponseQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService)
+        public GetChatResponseQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
             _cache = cache;
             _chatAIService = chatAIService;
+            _mediator = mediator;
         }
 
         public async Task<GetChatResponseVM> Handle(GetChatResponseQuery request, CancellationToken cancellationToken)
         {
-            var chatResponseMessage = await _chatAIService.GetChatResponse(request.ChatMessage.Message, request.PreviousMessages, request.CurrentUrl);
-
-            request.PreviousMessages.Add(request.ChatMessage);
-            request.PreviousMessages.Add(new ChatMessageVM
-            {
-                From = 1,
-                Message = chatResponseMessage
-            });
             ChatConversation chatConversationEntity;
             if (request.ChatConversationId.HasValue && request.ChatConversationId.Value != -1)
             {
-                chatConversationEntity = _repository.ChatConversations.GetAll().Where(cc => cc.Id == request.ChatConversationId.Value).FirstOrDefault();
+                chatConversationEntity = _repository.ChatConversations.FirstOrDefault(cc => cc.Id == request.ChatConversationId.Value);
                 if (chatConversationEntity == null)
                 {
                     throw new Exception("Not Found");
@@ -68,69 +63,78 @@ namespace ContainerNinja.Core.Handlers.Queries
             var dirty = false;
             var error = false;
             var navigateToPage = "";
+            var chatResponseMessage = "";
             try
             {
-                var chatCommandEntity = new ChatCommand
+                //try a few times without user intervention to get a command from openai
+                var numTries = 3;
+                //1-Assistant, 2-User, 3-System
+                var currentChatFrom = request.ChatMessage.From;
+                var currentChatMessage = request.ChatMessage.Message;
+                for (var i = 0; i < numTries; i++)
                 {
-                    RawReponse = chatResponseMessage,
-                    CurrentUrl = request.CurrentUrl
-                };
-                var startIndex = chatResponseMessage.IndexOf('{');
-                var endIndex = chatResponseMessage.LastIndexOf('}');
-                if (startIndex != -1 && endIndex != -1)
-                {
-                    chatResponseMessage = chatResponseMessage.Substring(startIndex, endIndex - startIndex + 1);
-                    var openApiChatCommand = JsonConvert.DeserializeObject<ChatAICommand>(chatResponseMessage);
-
-                    chatCommandEntity.CommandName = openApiChatCommand.Cmd;
-                    chatCommandEntity.ChatConversation = chatConversationEntity;
-                    _repository.ChatCommands.Add(chatCommandEntity);
-
-                    //TODO: Do we need to call SaveChangesAsync before the domain event is sent so the change tracker HasChanges only if the event modified entities?
-                    //calling for now
-                    //await _repository.CommitAsync();
-                    //chatCommandEntity.AddDomainEvent(new ReceivedChatCommandEvent(chatCommandEntity));
-                    await _repository.CommitAsync();
-                    dirty = chatCommandEntity.ChangedData;
-                    navigateToPage = chatCommandEntity.NavigateToPage;
-
-                    if (!string.IsNullOrEmpty(chatCommandEntity.SystemResponse))
+                    chatResponseMessage = await _chatAIService.GetChatResponse(currentChatMessage, currentChatFrom, request.PreviousMessages, request.CurrentUrl);
+                    request.PreviousMessages.Add(new ChatMessageVM
                     {
-                        var chatSystemResponseMessage = await _chatAIService.GetChatResponseFromSystem(chatCommandEntity.SystemResponse, request.PreviousMessages, request.CurrentUrl);
-                        startIndex = chatSystemResponseMessage.IndexOf('{');
-                        endIndex = chatSystemResponseMessage.LastIndexOf('}');
+                        Message = currentChatMessage,
+                        From = currentChatFrom
+                    });
+                    request.PreviousMessages.Add(new ChatMessageVM
+                    {
+                        Message = chatResponseMessage,
+                        From = 1,
+                    });
 
-                        if (startIndex != -1 && endIndex == -1)
-                        {
-                            //partial json response
-                            chatSystemResponseMessage = "I'm sorry, I'm having trouble contacting the server.";
-                            error = true;
-                        }
-                        else if (startIndex != -1 && endIndex != -1)
-                        {
-                            //json response
-                            chatSystemResponseMessage = chatSystemResponseMessage.Substring(startIndex, endIndex - startIndex + 1);
-                            var openApiChatSystemResponseMessageCommand = JsonConvert.DeserializeObject<ChatAICommand>(chatSystemResponseMessage);
-                            chatSystemResponseMessage = openApiChatSystemResponseMessageCommand.Response;
-                        }
+                    var chatCommandEntity = new ChatCommand
+                    {
+                        RawReponse = chatResponseMessage,
+                        CurrentUrl = request.CurrentUrl
+                    };
+                    var startIndex = chatResponseMessage.IndexOf('{');
+                    var endIndex = chatResponseMessage.LastIndexOf('}');
+                    if (startIndex != -1 && endIndex == -1)
+                    {
+                        //partial json response
+                        chatResponseMessage = "I'm sorry, I'm having trouble contacting the server.";
+                        error = true;
+                        break;
+                    }
+                    else if (startIndex != -1 && endIndex != -1)
+                    {
+                        //json response
+                        chatResponseMessage = chatResponseMessage.Substring(startIndex, endIndex - startIndex + 1);
+                        var openApiChatCommand = JsonConvert.DeserializeObject<ChatAICommand>(chatResponseMessage);
 
-                        request.PreviousMessages.Add(new ChatMessageVM
+                        chatCommandEntity.CommandName = openApiChatCommand.Cmd;
+                        chatCommandEntity.ChatConversation = chatConversationEntity;
+                        _repository.ChatCommands.Add(chatCommandEntity);
+
+                        await _repository.CommitAsync();
+                        await _mediator.Send(new ReceivedChatCommand
                         {
-                            From = 3,
-                            Message = chatCommandEntity.SystemResponse
+                            ChatCommand = chatCommandEntity
                         });
-                        request.PreviousMessages.Add(new ChatMessageVM
-                        {
-                            From = 1,
-                            Message = chatSystemResponseMessage
-                        });
 
-                        chatConversationEntity.Content = JsonConvert.SerializeObject(request);
-                        chatResponseMessage = chatSystemResponseMessage;
+                        dirty = chatCommandEntity.ChangedData;
+                        navigateToPage = chatCommandEntity.NavigateToPage;
+
+                        if (string.IsNullOrEmpty(chatCommandEntity.SystemResponse))
+                        {
+                            //success
+                            chatResponseMessage = openApiChatCommand.Response;
+                            break;
+                        }
+                        else
+                        {
+                            //error in handling command, system communicating with openai
+                            currentChatMessage = chatCommandEntity.SystemResponse;
+                            currentChatFrom = 3;
+                        }
                     }
                     else
                     {
-                        chatResponseMessage = openApiChatCommand.Response;
+                        //no json in response. send to user
+                        break;
                     }
                 }
             }
@@ -140,6 +144,11 @@ namespace ContainerNinja.Core.Handlers.Queries
                 chatConversationEntity.Error = FlattenException(e);
                 await _repository.CommitAsync();
             }
+            _cache.Clear();
+
+            chatConversationEntity.Content = JsonConvert.SerializeObject(request);
+            _repository.ChatConversations.Update(chatConversationEntity);
+            await _repository.CommitAsync();
 
             return new GetChatResponseVM
             {

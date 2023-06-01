@@ -2,6 +2,7 @@
 using ContainerNinja.Contracts.Data.Repositories;
 using ContainerNinja.Core.Data.Repositories;
 using ContainerNinja.Migrations;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ContainerNinja.Core.Data
 {
@@ -12,6 +13,11 @@ namespace ContainerNinja.Core.Data
         public UnitOfWork(DatabaseContext context)
         {
             _context = context;
+        }
+
+        public ChangeTracker ChangeTracker
+        {
+            get { return _context.ChangeTracker; }
         }
 
         public IItemRepository Items => new ItemRepository(_context);

@@ -6,6 +6,7 @@ using ContainerNinja.Contracts.Services;
 using Newtonsoft.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -32,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             if (cachedEntities == null)
             {
-                var entities = await Task.FromResult(_repository.ProductStocks.GetAll());
+                var entities = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).AsEnumerable();
                 var result = new GetAllProductStocksVM
                 {
                     ProductStocks = _mapper.Map<List<ProductStockDTO>>(entities),

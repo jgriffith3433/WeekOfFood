@@ -7,6 +7,7 @@ namespace ContainerNinja.Contracts.Data.Repositories
     {
         IEnumerable<T> GetAll();
         T Get(int id);
+        T FirstOrDefault(Expression<Func<T, bool>> predicate);
         void Add(T entity);
         void Update(T entity);
         void Delete(int id);

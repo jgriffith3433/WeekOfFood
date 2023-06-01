@@ -38,6 +38,7 @@ export class ChatWidgetComponent implements OnInit {
   private baseUrl: string;
   protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
   mediaRecorder: any;
+  keepRecording:boolean = false;
 
   constructor(
     private chatService: ChatService,
@@ -235,10 +236,12 @@ export class ChatWidgetComponent implements OnInit {
   }
 
   stop() {
+    this.keepRecording = false;
     this.mediaRecorder.stop();
   }
 
   record() {
+    this.keepRecording = true;
     const MIN_DECIBELS = -45;
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -254,6 +257,7 @@ export class ChatWidgetComponent implements OnInit {
         console.log("sound detected: " + soundDetected);
         console.log("end silence detected: " + endSilenceDetected);
         if (soundDetected && endSilenceDetected) {
+          this.keepRecording = false;
           this.mediaRecorder.stop();
         }
       });
@@ -312,7 +316,9 @@ export class ChatWidgetComponent implements OnInit {
         const audioBlob = new Blob(audioChunks);
         if (soundDetected) {
           this.sendSpeech(audioBlob);
-          this.record();
+          if (this.keepRecording) {
+            this.record();
+          }
         }
         else {
           console.log("no sound detected");

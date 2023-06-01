@@ -47,7 +47,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             var productStockDetailsDTO = _mapper.Map<ProductStockDetailsDTO>(productStockDTO);
 
-            var searchResults = from p in _repository.Products.Include<Product, ProductStock>(p => p.ProductStock) where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) select p;
+            var searchResults = from p in _repository.Products.Include<Product, ProductStock>(p => p.ProductStock) where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) || p.Id == productStockDTO.ProductId select p;
 
             productStockDetailsDTO.ProductSearchItems = _mapper.Map<IEnumerable<ProductDTO>>(searchResults).ToList();
 
