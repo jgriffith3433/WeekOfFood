@@ -179,8 +179,10 @@ export class ProductsComponent implements OnInit {
               break;
             }
           }
+          this.productEditor.walmartSearchItems = [];
           if (this.productEditor.walmartSearchResponse) {
             this.productEditor.walmartSearchItems = JSON.parse(this.productEditor.walmartSearchResponse).items;
+            this.productEditor.walmartSearchItems.unshift({});
           }
         }
       },
@@ -200,8 +202,10 @@ export class ProductsComponent implements OnInit {
               break;
             }
           }
+          this.productEditor.walmartSearchItems = [];
           if (this.productEditor.walmartSearchResponse) {
             this.productEditor.walmartSearchItems = JSON.parse(this.productEditor.walmartSearchResponse).items;
+            this.productEditor.walmartSearchItems.unshift({});
           }
           this.productModalRef.hide();
           this.productEditor = null;
@@ -225,8 +229,10 @@ export class ProductsComponent implements OnInit {
           this.productEditor = {
             ...result
           };
+          this.productEditor.walmartSearchItems = [];
           if (this.productEditor.walmartSearchResponse) {
             this.productEditor.walmartSearchItems = JSON.parse(this.productEditor.walmartSearchResponse).items;
+            this.productEditor.walmartSearchItems.unshift({});
           }
 
           this.productModalRef = this.modalService.show(template);

@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace ContainerNinja.Core.Validators
 {
-    public class ReceivedChatCommandValidator : AbstractValidator<ReceivedChatCommand>
+    public class ConsumeChatCommandValidator : AbstractValidator<ConsumeChatCommand>
     {
-        public ReceivedChatCommandValidator()
+        public ConsumeChatCommandValidator()
         {
         }
     }

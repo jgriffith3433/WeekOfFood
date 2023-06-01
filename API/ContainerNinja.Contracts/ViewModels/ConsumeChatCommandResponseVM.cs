@@ -2,7 +2,7 @@
 
 namespace ContainerNinja.Contracts.ViewModels
 {
-    public record ChatResponseVM
+    public record ConsumeChatCommandResponseVM
     {
         public int ChatConversationId { get; set; }
         public bool CreateNewChat { get; set; }

@@ -6,6 +6,5 @@ export interface GetChatResponseVm {
   error?: boolean;
   dirty?: boolean;
   navigateToPage?: string;
-  previousMessages?: ChatMessageVm[];
-  responseMessage?: ChatMessageVm;
+  chatMessages?: ChatMessageVm[];
 }

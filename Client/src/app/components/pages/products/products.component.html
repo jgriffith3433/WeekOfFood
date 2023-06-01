@@ -70,42 +70,44 @@
 </table>
 
 <ng-template #productDetailsModalTemplate>
-  <div class="modal-header">
-    <h4 class="modal-title pull-left">Product Details</h4>
-    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="productModalRef.hide()">
-      <span aria-hidden="true" class="visually-hidden">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body">
-    <div class="form">
-      <div class="form-group">
-        <div>
-          <h2>{{ productEditor.name }}</h2>
-          <label for="name">Search by Name</label>
-          <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="productEditor.name"
-                 [ngClass]="{ 'is-invalid': productEditor.error }" (change)="searchProductName()" />
-          <div class="float-end">
-            <button class="btn btn-primary" (click)="searchProductName()">Search</button>
+  <div *ngIf="productEditor">
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">Product Details</h4>
+      <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="productModalRef.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form">
+        <div class="form-group">
+          <div>
+            <h2>{{ productEditor.name }}</h2>
+            <label for="name">Search by Name</label>
+            <input type="text" class="form-control" id="name" placeholder="Name..." [(ngModel)]="productEditor.name"
+                   [ngClass]="{ 'is-invalid': productEditor.error }" (change)="searchProductName()" />
+            <div class="float-end">
+              <button class="btn btn-primary" (click)="searchProductName()">Search</button>
+            </div>
+            <select *ngIf="productEditor.walmartSearchItems" class="form-control" [(ngModel)]="productEditor.walmartId">
+              <option [ngValue]="walmartSearchItem.itemId" *ngFor="let walmartSearchItem of productEditor.walmartSearchItems">{{ walmartSearchItem.name }}</option>
+            </select>
           </div>
-          <select *ngIf="productEditor.walmartSearchItems" class="form-control" [(ngModel)]="productEditor.walmartId">
-            <option [ngValue]="walmartSearchItem.itemId" *ngFor="let walmartSearchItem of productEditor.walmartSearchItems">{{ walmartSearchItem.name }}</option>
-          </select>
+          <!--<a href="{{ productEditor.walmartLink || getWalmartLinkFromProductEditor() }}">{{ productEditor.walmartId }}</a>-->
         </div>
-        <!--<a href="{{ productEditor.walmartLink || getWalmartLinkFromProductEditor() }}">{{ productEditor.walmartId }}</a>-->
+      </div>
+      <div *ngIf="debug">
+        <pre>{{ productEditor | json }}</pre>
       </div>
     </div>
-    <div *ngIf="debug">
-      <pre>{{ productEditor | json }}</pre>
-    </div>
-  </div>
-  <div class="modal-footer">
-    <div class="clearfix">
-      <div class="float-start">
-        <button class="btn btn-default text-danger" (click)="deleteProduct(productEditor)">Delete</button>
-      </div>
-      <div class="float-end">
-        <button class="btn btn-default" (click)="productModalRef.hide()">Cancel</button>
-        <button class="btn btn-primary" (click)="updateProductDetails()">Update</button>
+    <div class="modal-footer">
+      <div class="clearfix">
+        <div class="float-start">
+          <button class="btn btn-default text-danger" (click)="deleteProduct(productEditor)">Delete</button>
+        </div>
+        <div class="float-end">
+          <button class="btn btn-default" (click)="productModalRef.hide()">Cancel</button>
+          <button class="btn btn-primary" (click)="updateProductDetails()">Update</button>
+        </div>
       </div>
     </div>
   </div>

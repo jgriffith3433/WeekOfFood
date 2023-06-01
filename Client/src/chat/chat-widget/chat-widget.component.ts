@@ -33,7 +33,7 @@ export class ChatWidgetComponent implements OnInit {
   public _botNavigating = false;
   _previousScrollPosition = 0;
   _chatConversationId: number = -1;
-  previousMessages: ChatMessageVm[] = [];
+  chatMessages: ChatMessageVm[] = [];
   private http: HttpClient;
   private baseUrl: string;
   protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -77,8 +77,8 @@ export class ChatWidgetComponent implements OnInit {
             while (this.messages.length > 0) {
               this.messages.pop();
             }
-            while (this.previousMessages.length > 0) {
-              this.previousMessages.pop();
+            while (this.chatMessages.length > 0) {
+              this.chatMessages.pop();
             }
             if (event.url.toLowerCase().indexOf('login') == -1) {
               this.addMessage(this.operator, 'How can I help you manage your ' + this.getCurrentPageName(), 'received');
@@ -160,13 +160,16 @@ export class ChatWidgetComponent implements OnInit {
     }
 
     let chatMessage: ChatMessageVm = {
-      message: message,
-      from: 2
+      content: message,
+      name: "user",
+      role: "user"
     }
 
+    this.chatMessages.push(chatMessage);
+
     let query: GetChatResponseQuery = {
-      chatMessage: chatMessage,
-      previousMessages: this.previousMessages,
+      sendToRole: "assistant",
+      chatMessages: this.chatMessages,
       chatConversationId: this._chatConversationId,
       currentUrl: this.getCurrentPageName()
     };
@@ -181,24 +184,29 @@ export class ChatWidgetComponent implements OnInit {
               while (this.messages.length > 0) {
                 this.messages.pop();
               }
-              while (this.previousMessages.length > 0) {
-                this.previousMessages.pop();
+              while (this.chatMessages.length > 0) {
+                this.chatMessages.pop();
               }
               this.router.navigateByUrl(this.router.url);
             }, 2000);
           }
           else {
             this._botNavigating = true;
-            if (result.responseMessage?.message) {
-              this.addMessage(this.operator, result.responseMessage.message, 'received');
+            while (this.messages.length > 0) {
+              this.messages.pop();
+            }
+            if (result.chatMessages) {
+              for (let m of result.chatMessages) {
+                this.addMessage(this.operator, m.content, 'received');
+              }
             }
             setTimeout(() => {
               this._chatConversationId = -1;
               while (this.messages.length > 0) {
                 this.messages.pop();
               }
-              while (this.previousMessages.length > 0) {
-                this.previousMessages.pop();
+              while (this.chatMessages.length > 0) {
+                this.chatMessages.pop();
               }
               this.router.navigateByUrl(result.navigateToPage || '/');
             }, 2000);
@@ -206,8 +214,15 @@ export class ChatWidgetComponent implements OnInit {
         }
         else {
           this._chatConversationId = result.chatConversationId || -1;
-          this.previousMessages = result.previousMessages || [] as ChatMessageVm[];
-          this.addMessage(this.operator, result.responseMessage?.message, 'received');
+          while (this.messages.length > 0) {
+            this.messages.pop();
+          }
+          if (result.chatMessages) {
+            for (let m of result.chatMessages) {
+              this.addMessage(this.operator, m.content, 'received');
+            }
+          }
+
           if (result.dirty) {
             this._refreshing = true;
             this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;

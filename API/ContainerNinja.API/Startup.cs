@@ -8,7 +8,6 @@ using ContainerNinja.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using ContainerNinja.API.Filters;
-using OpenAI.GPT3.Extensions;
 
 namespace ContainerNinja
 {

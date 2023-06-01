@@ -1,15 +1,12 @@
 ﻿using ContainerNinja.Contracts.Services;
-using ContainerNinja.Contracts.ViewModels;
-using OpenAI.GPT3.ObjectModels.RequestModels;
-using OpenAI.GPT3.ObjectModels;
-using OpenAI.GPT3.Interfaces;
 using Newtonsoft.Json;
 using Microsoft.Extensions.DependencyInjection;
-using System.Configuration;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
-using OpenAI.GPT3.Managers;
-using OpenAI.GPT3;
+using OpenAI;
+using OpenAI.Interfaces;
+using OpenAI.Managers;
+using OpenAI.ObjectModels.RequestModels;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Services
 {
@@ -28,57 +25,19 @@ namespace ContainerNinja.Core.Services
             });
         }
 
-        public async Task<string> GetChatResponse(string message, int from, List<ChatMessageVM> previousMessages, string currentUrl)
+        public async Task<string> GetChatResponse(List<ChatMessage> chatMessages, string currentUrl)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
-            if (previousMessages == null || previousMessages.Count == 0)
+            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(cm));
+            var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
+            if (completionResult.Error != null)
             {
-                if (from == 1)
-                {
-                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromAssistant(message));
-                }
-                else if (from == 2)
-                {
-                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(message));
-                }
-                else if (from == 3)
-                {
-                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(message));
-                }
+                return completionResult.Error.Message;
             }
             else
             {
-                foreach (var previousChatMessage in previousMessages)
-                {
-                    if (previousChatMessage.From == 1)
-                    {
-                        chatCompletionCreateRequest.Messages.Add(ChatMessage.FromAssistant(previousChatMessage.Message));
-
-                    }
-                    else if (previousChatMessage.From == 2)
-                    {
-                        chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(previousChatMessage.Message));
-                    }
-                    else if (previousChatMessage.From == 3)
-                    {
-                        chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(previousChatMessage.Message));
-                    }
-                }
-                if (from == 1)
-                {
-                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromAssistant(message));
-                }
-                else if (from == 2)
-                {
-                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromUser(message));
-                }
-                else if (from == 3)
-                {
-                    chatCompletionCreateRequest.Messages.Add(ChatMessage.FromSystem(message));
-                }
+                return completionResult.Choices.First().Message.Content;
             }
-            var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
-            return completionResult.Choices.First().Message.Content;
         }
 
         private ChatCompletionCreateRequest CreateChatCompletionCreateRequest(string currentUrl)
@@ -128,7 +87,9 @@ namespace ContainerNinja.Core.Services
                     {
                     "none",
                     "go-to-page",
-                    "edit-product-unit-type"
+                    "edit-product-unit-type",
+                    "create-product",
+                    "delete-product"
                     };
                 case "home":
                 default:
@@ -419,7 +380,23 @@ namespace ContainerNinja.Core.Services
   ""product"": ""olive oil"",
   ""unittype"": ""ounces"",
 }"
-                    )
+                    ),
+                    ChatMessage.FromUser("Add X"),
+                    ChatMessage.FromAssistant(
+@"{
+  ""cmd"": ""create-product"",
+  ""response"": ""Created."",
+  ""product"": ""X"",
+}"
+                    ),
+                    ChatMessage.FromUser("Delete X"),
+                    ChatMessage.FromAssistant(
+@"{
+  ""cmd"": ""delete-product"",
+  ""response"": ""Deleted."",
+  ""product"": ""X"",
+}"
+                    ),
                 });
                     break;
                 case "home":

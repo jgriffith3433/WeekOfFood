@@ -3,9 +3,8 @@
     public class ChatCommand : AuditableEntity
     {
         public string? CommandName { get; set; }
-        public string? SystemResponse { get; set; }
         public string? Error { get; set; }
-        public string RawReponse { get; set; }
+        public string RawChatAICommand { get; set; }
         public string? CurrentUrl { get; set; }
         public bool Unknown { get; set; }
         public bool ChangedData { get; set; }
