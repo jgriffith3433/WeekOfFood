@@ -44,6 +44,11 @@ export class ChatWidgetComponent implements OnInit {
   protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
   mediaRecorder: any;
   keepRecording: boolean = false;
+  lastTimeDetected: number;
+  timeSinceDetected: number;
+  soundDetectedSendToServer: boolean = false;
+  soundWasDetected: boolean = false;
+  //endSilenceDetected: boolean = false;
   public sayCommand: string;
   public recommendedVoices: RecommendedVoices;
   public rates: number[];
@@ -52,7 +57,8 @@ export class ChatWidgetComponent implements OnInit {
   public selectedVoice: SpeechSynthesisVoice | null;
   public text: string;
   public voices: SpeechSynthesisVoice[];
-  public speechSynthesisOn: boolean;
+  public speechSynthesisOn: boolean = true;
+  public normalConversation: boolean = true;
 
   constructor(
     private chatService: ChatService,
@@ -260,7 +266,15 @@ export class ChatWidgetComponent implements OnInit {
     utterance.rate = rate;
 
     speechSynthesis.speak(utterance);
-
+    function myTimer() {
+      speechSynthesis.pause();
+      speechSynthesis.resume();
+      (window as any).myTimeout = window.setTimeout(myTimer, 3000);
+    }
+    if ((window as any).myTimeout) {
+      window.clearTimeout((window as any).myTimeout);
+    }
+    (window as any).myTimeout = window.setTimeout(myTimer, 3000);
   }
 
 
@@ -279,7 +293,6 @@ export class ChatWidgetComponent implements OnInit {
 
   public addMessage(newChatMessage: ChatMessageVm) {
     this.chatMessages.push(newChatMessage);
-    this.scrollToBottom()
   }
 
   public scrollToBottom() {
@@ -344,6 +357,7 @@ export class ChatWidgetComponent implements OnInit {
       name: this.user.name,
       role: this.user.name
     } as ChatMessageVm);
+    this.scrollToBottom();
 
     let query: GetChatResponseQuery = {
       sendToRole: "assistant",
@@ -352,78 +366,160 @@ export class ChatWidgetComponent implements OnInit {
       currentUrl: this.getCurrentPageName(),
     };
 
-    this.chatService.getChatResponse(query).subscribe(
-      result => {
-        let newChatMessages: ChatMessageVm[] = [];
-        if (result.chatMessages) {
-          for (let i = this.chatMessages.length; i < result.chatMessages.length; i++) {
-            newChatMessages.push(result.chatMessages[i]);
-          }
-        }
-        if (this.speechSynthesisOn) {
-          let textToSpeak = "";
-          for (let c of newChatMessages) {
-            if (c.content && c.role == this.assistant.name) {
-              textToSpeak += c.content + '...';
+    if (this.normalConversation) {
+      this.chatService.getNormalChatResponse(query).subscribe(
+        result => {
+          let newChatMessages: ChatMessageVm[] = [];
+          if (result.chatMessages) {
+            for (let i = this.chatMessages.length; i < result.chatMessages.length; i++) {
+              newChatMessages.push(result.chatMessages[i]);
             }
           }
-          if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
-            this.text = textToSpeak;
-            this.speak();
-          }
-        }
-        if (result.createNewChat) {
-          if (result.error) {
-            this.greeting = 'Something went wrong, creating new chat instance';
-            setTimeout(() => {
-              this._chatConversationId = -1;
-              while (this.chatMessages.length > 0) {
-                this.chatMessages.pop();
+          if (this.speechSynthesisOn) {
+            let textToSpeak = "";
+            for (let c of newChatMessages) {
+              if (c.content && c.role == this.assistant.name) {
+                textToSpeak += c.content + '...';
               }
-              this.router.navigateByUrl(this.router.url);
-            }, 2000);
+            }
+            if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
+              this.text = textToSpeak;
+              this.speak();
+            }
+          }
+          if (result.createNewChat) {
+            if (result.error) {
+              this.greeting = 'Something went wrong, creating new chat instance';
+              setTimeout(() => {
+                this._chatConversationId = -1;
+                while (this.chatMessages.length > 0) {
+                  this.chatMessages.pop();
+                }
+                this.router.navigateByUrl(this.router.url);
+              }, 2000);
+            }
+            else {
+              this._botNavigating = true;
+              for (let newChatMessage of newChatMessages) {
+                this.addMessage(newChatMessage);
+              }
+              this.scrollToBottom();
+              setTimeout(() => {
+                this._chatConversationId = -1;
+                while (this.chatMessages.length > 0) {
+                  this.chatMessages.pop();
+                }
+                this.router.navigateByUrl(result.navigateToPage || '/');
+              }, 2000);
+            }
           }
           else {
-            this._botNavigating = true;
+            this._chatConversationId = result.chatConversationId || -1;
             for (let newChatMessage of newChatMessages) {
               this.addMessage(newChatMessage);
             }
-            setTimeout(() => {
-              this._chatConversationId = -1;
-              while (this.chatMessages.length > 0) {
-                this.chatMessages.pop();
-              }
-              this.router.navigateByUrl(result.navigateToPage || '/');
-            }, 2000);
-          }
-        }
-        else {
-          this._chatConversationId = result.chatConversationId || -1;
-          for (let newChatMessage of newChatMessages) {
-            this.addMessage(newChatMessage);
-          }
+            this.scrollToBottom();
 
-          if (result.dirty) {
-            this._refreshing = true;
-            this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
-            this.router.navigateByUrl(this.router.url);
+            if (result.dirty) {
+              this._refreshing = true;
+              this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
+              this.router.navigateByUrl(this.router.url);
+            }
           }
+        },
+        error => {
+          console.error(error);
+          setTimeout(() => {
+            if (this.getCurrentPageName() != 'login') {
+              this.addMessage({
+                content: 'An error occured.',
+                rawContent: 'An error occured.',
+                name: this.system.name,
+                role: this.system.name
+              } as ChatMessageVm);
+              this.scrollToBottom();
+            }
+          }, 500);
         }
-      },
-      error => {
-        console.error(error);
-        setTimeout(() => {
-          if (this.getCurrentPageName() != 'login') {
-            this.addMessage({
-              content: 'An error occured.',
-              rawContent: 'An error occured.',
-              name: this.system.name,
-              role: this.system.name
-            } as ChatMessageVm);
+      );
+    }
+    else {
+      this.chatService.getChatResponse(query).subscribe(
+        result => {
+          let newChatMessages: ChatMessageVm[] = [];
+          if (result.chatMessages) {
+            for (let i = this.chatMessages.length; i < result.chatMessages.length; i++) {
+              newChatMessages.push(result.chatMessages[i]);
+            }
           }
-        }, 500);
-      }
-    );
+          if (this.speechSynthesisOn) {
+            let textToSpeak = "";
+            for (let c of newChatMessages) {
+              if (c.content && c.role == this.assistant.name) {
+                textToSpeak += c.content + '...';
+              }
+            }
+            if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
+              this.text = textToSpeak;
+              this.speak();
+            }
+          }
+          if (result.createNewChat) {
+            if (result.error) {
+              this.greeting = 'Something went wrong, creating new chat instance';
+              setTimeout(() => {
+                this._chatConversationId = -1;
+                while (this.chatMessages.length > 0) {
+                  this.chatMessages.pop();
+                }
+                this.router.navigateByUrl(this.router.url);
+              }, 2000);
+            }
+            else {
+              this._botNavigating = true;
+              for (let newChatMessage of newChatMessages) {
+                this.addMessage(newChatMessage);
+              }
+              this.scrollToBottom();
+              setTimeout(() => {
+                this._chatConversationId = -1;
+                while (this.chatMessages.length > 0) {
+                  this.chatMessages.pop();
+                }
+                this.router.navigateByUrl(result.navigateToPage || '/');
+              }, 2000);
+            }
+          }
+          else {
+            this._chatConversationId = result.chatConversationId || -1;
+            for (let newChatMessage of newChatMessages) {
+              this.addMessage(newChatMessage);
+            }
+            this.scrollToBottom();
+
+            if (result.dirty) {
+              this._refreshing = true;
+              this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
+              this.router.navigateByUrl(this.router.url);
+            }
+          }
+        },
+        error => {
+          console.error(error);
+          setTimeout(() => {
+            if (this.getCurrentPageName() != 'login') {
+              this.addMessage({
+                content: 'An error occured.',
+                rawContent: 'An error occured.',
+                name: this.system.name,
+                role: this.system.name
+              } as ChatMessageVm);
+              this.scrollToBottom();
+            }
+          }, 500);
+        }
+      );
+    }
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -438,6 +534,10 @@ export class ChatWidgetComponent implements OnInit {
 
   toggleSpeechSynthesis() {
     this.speechSynthesisOn = !this.speechSynthesisOn;
+  }
+
+  toggleNormalConversation() {
+    this.normalConversation = !this.normalConversation;
   }
 
   _addVoicesList = (voices: any[]) => {
@@ -458,12 +558,14 @@ export class ChatWidgetComponent implements OnInit {
   }
 
   record() {
+    console.log("recording");
     this.keepRecording = true;
     const MIN_DECIBELS = -45;
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      let endSilenceDetected = false;
-      let soundDetected = false;
+      //this.endSilenceDetected = false;
+      this.soundDetectedSendToServer = false;
+      this.soundWasDetected = false;
       this.mediaRecorder = new MediaRecorder(stream);
       this.mediaRecorder.start(3000);
 
@@ -471,11 +573,15 @@ export class ChatWidgetComponent implements OnInit {
       this.mediaRecorder.addEventListener("dataavailable", (event: { data: any; }) => {
         audioChunks.push(event.data);
         const audioBlob = new Blob(audioChunks);
-        console.log("sound detected: " + soundDetected);
-        console.log("end silence detected: " + endSilenceDetected);
-        if (soundDetected && endSilenceDetected) {
-          this.keepRecording = false;
-          this.mediaRecorder.stop();
+        console.log("dataavailable");
+        //console.log("end silence detected: " + this.endSilenceDetected);
+        //if (this.soundDetected && this.endSilenceDetected) {
+        if (this.soundWasDetected) {
+          if (this.timeSinceDetected > 1) {
+            this.soundDetectedSendToServer = true;
+            this.soundWasDetected = false;
+            this.mediaRecorder.stop();
+          }
         }
       });
 
@@ -490,19 +596,25 @@ export class ChatWidgetComponent implements OnInit {
 
 
       const detectSound = () => {
-        if (soundDetected) {
-          return;
-        }
 
         analyser.getByteFrequencyData(domainData);
-
+        let detected = false;
         for (let i = 0; i < bufferLength; i++) {
           const value = domainData[i];
 
           if (domainData[i] > 0) {
-            soundDetected = true;
+            detected = true;
+            break;
           }
         }
+        if (detected) {
+          this.lastTimeDetected = performance.now();
+          this.soundWasDetected = true;
+        }
+        else {
+          this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
+        }
+
         if (this.mediaRecorder.state == "recording") {
           window.requestAnimationFrame(detectSound);
         }
@@ -510,28 +622,33 @@ export class ChatWidgetComponent implements OnInit {
       window.requestAnimationFrame(detectSound);
 
 
-      const detectEndSilence = () => {
-        analyser.getByteFrequencyData(domainData);
+      //const detectEndSilence = () => {
+      //  analyser.getByteFrequencyData(domainData);
 
-        let endSoundDetected = false;
-        for (let i = bufferLength - 1; i >= 0; i--) {
-          const value = domainData[i];
+      //  let endSoundDetected = false;
+      //  for (let i = bufferLength - 1; i >= 0; i--) {
+      //    const value = domainData[i];
 
-          if (domainData[i] > 0) {
-            endSoundDetected = true;
-          }
-          endSilenceDetected = !endSoundDetected && bufferLength - i > 100;
-        }
+      //    if (domainData[i] > 0) {
+      //      endSoundDetected = true;
+      //    }
+      //    if (i < 500) {
+      //      if (endSoundDetected == false) {
+      //        this.endSilenceDetected = true;
+      //      }
+      //    }
+      //  }
 
-        if (this.mediaRecorder.state == "recording") {
-          window.requestAnimationFrame(detectEndSilence);
-        }
-      };
-      window.requestAnimationFrame(detectEndSilence);
+      //  if (this.mediaRecorder.state == "recording") {
+      //    window.requestAnimationFrame(detectEndSilence);
+      //  }
+      //};
+      //window.requestAnimationFrame(detectEndSilence);
 
       this.mediaRecorder.addEventListener("stop", () => {
         const audioBlob = new Blob(audioChunks);
-        if (soundDetected) {
+        if (this.soundDetectedSendToServer) {
+          this.soundDetectedSendToServer = false;
           this.sendSpeech(audioBlob);
           if (this.keepRecording) {
             this.record();

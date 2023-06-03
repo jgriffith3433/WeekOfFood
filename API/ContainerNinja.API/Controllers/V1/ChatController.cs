@@ -57,6 +57,33 @@ namespace ContainerNinja.Controllers.V1
         }
 
         [MapToApiVersion("1.0")]
+        [HttpPost("Normal")]
+        [ProducesResponseType(typeof(ChatResponseVM), (int)HttpStatusCode.Created)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<ActionResult<ChatResponseVM>> CreateNormal(GetChatResponseVM getChatResponse)
+        {
+            var chatConversation = await _mediator.Send(new GetChatConversation
+            {
+                ChatConversationId = getChatResponse.ChatConversationId,
+            });
+            var response = await _mediator.Send(new GetNormalChatResponseQuery
+            {
+                ChatMessages = getChatResponse.ChatMessages,
+                CurrentUrl = getChatResponse.CurrentUrl,
+                SendToRole = getChatResponse.SendToRole,
+                ChatConversation = chatConversation,
+            });
+            if (response.Error)
+            {
+                return BadRequest(response);
+            }
+            else
+            {
+                return Ok(response);
+            }
+        }
+
+        [MapToApiVersion("1.0")]
         [HttpPost("speech")]
         [ProducesResponseType(typeof(GetChatTextFromSpeechVm), (int)HttpStatusCode.Created)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]

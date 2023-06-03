@@ -41,11 +41,40 @@ namespace ContainerNinja.Core.Services
             }
         }
 
+        public async Task<string> GetNormalChatResponse(List<ChatMessageVM> chatMessages)
+        {
+            var chatCompletionCreateRequest = CreateNormalChatCompletionCreateRequest();
+            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.Role, cm.RawContent, cm.Name)));
+            var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
+            if (completionResult.Error != null)
+            {
+                return completionResult.Error.Message;
+            }
+            else
+            {
+                return completionResult.Choices.First().Message.Content;
+            }
+        }
+
         private ChatCompletionCreateRequest CreateChatCompletionCreateRequest(string currentUrl)
         {
             var chatCompletionCreateRequest = new ChatCompletionCreateRequest
             {
                 Messages = GetChatPromptForCurrentUrl(currentUrl),
+                Model = Models.ChatGpt3_5Turbo,
+                //MaxTokens = 400,
+                //FrequencyPenalty = -1,
+                //PresencePenalty = -1,
+                Temperature = 0.1f
+            };
+            return chatCompletionCreateRequest;
+        }
+
+        private ChatCompletionCreateRequest CreateNormalChatCompletionCreateRequest()
+        {
+            var chatCompletionCreateRequest = new ChatCompletionCreateRequest
+            {
+                Messages = GetNormalChatPrompt(),
                 Model = Models.ChatGpt3_5Turbo,
                 //MaxTokens = 400,
                 //FrequencyPenalty = -1,
@@ -438,6 +467,15 @@ namespace ContainerNinja.Core.Services
                 default:
                     return chatPromptList;
             }
+            return chatPromptList;
+        }
+
+        private List<ChatMessage> GetNormalChatPrompt()
+        {
+            var chatPromptList = new List<ChatMessage>
+            {
+                ChatMessage.FromSystem("You are a conversationalist. Have fun talking with the user.", StaticValues.ChatMessageRoles.System),
+            };
             return chatPromptList;
         }
 

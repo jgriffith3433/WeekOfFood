@@ -20,6 +20,10 @@ export class ChatService {
     return this.http.post(`${this.baseUri}/Chat`, query).pipe((map(x => <GetChatResponseVm>x)));
   }
 
+  getNormalChatResponse(query: GetChatResponseQuery): Observable<GetChatResponseVm> {
+    return this.http.post(`${this.baseUri}/Chat/Normal`, query).pipe((map(x => <GetChatResponseVm>x)));
+  }
+
   getChatTextFromSpeech(speech: any): Observable<GetChatTextFromSpeechVm>{
     const formData = new FormData();
     formData.append("speech", speech);
