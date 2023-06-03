@@ -37,11 +37,8 @@ namespace ContainerNinja.Core.Handlers.Queries
             var cachedTodoList = _cache.GetItem<TodoListDTO>($"todo_list_{request.TodoListId}");
             if (cachedTodoList != null)
             {
-                _logger.LogInformation($"TodoList Exists in Cache. Return CachedTodoList.");
                 return cachedTodoList;
             }
-
-            _logger.LogInformation($"TodoList doesn't exist in Cache.");
 
             var todoList = await Task.FromResult(_repository.TodoLists.Get(request.TodoListId));
             if (todoList == null)
@@ -50,8 +47,6 @@ namespace ContainerNinja.Core.Handlers.Queries
             }
 
             var result = _mapper.Map<TodoListDTO>(todoList);
-
-            _logger.LogInformation($"Add TodoList to Cache and return.");
             _cache.SetItem($"todo_list_{request.TodoListId}", result);
             return result;
         }

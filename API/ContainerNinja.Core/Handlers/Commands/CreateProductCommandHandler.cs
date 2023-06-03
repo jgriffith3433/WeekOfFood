@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             var result = _validator.Validate(request);
 
-            _logger.LogInformation($"CreateProductCommand Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -77,12 +77,10 @@ namespace ContainerNinja.Core.Handlers.Commands
             var productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);
             _cache.SetItem($"product_stock_{productStockDTO.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
-            _logger.LogInformation($"Added ProductStock to Cache.");
 
             var productDTO = _mapper.Map<ProductDTO>(productEntity);
             _cache.SetItem($"product_{productDTO.Id}", productDTO);
             _cache.RemoveItem("products");
-            _logger.LogInformation($"Added Product to Cache.");
             return productDTO.Id;
 
         }

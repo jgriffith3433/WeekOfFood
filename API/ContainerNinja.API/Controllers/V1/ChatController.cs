@@ -32,10 +32,28 @@ namespace ContainerNinja.Controllers.V1
         [HttpPost]
         [ProducesResponseType(typeof(ChatResponseVM), (int)HttpStatusCode.Created)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<ChatResponseVM>> Create(GetChatResponseQuery query)
+        public async Task<ActionResult<ChatResponseVM>> Create(GetChatResponseVM getChatResponse)
         {
-            var response = await _mediator.Send(query);
-            return Ok(response);
+            var chatConversation = await _mediator.Send(new GetChatConversation
+            {
+                ChatConversationId = getChatResponse.ChatConversationId,
+            });
+            var response = await _mediator.Send(new GetChatResponseQuery
+            {
+                ChatMessages = getChatResponse.ChatMessages,
+                CurrentUrl = getChatResponse.CurrentUrl,
+                SendToRole = getChatResponse.SendToRole,
+                ChatConversation = chatConversation,
+                CurrentSystemToAssistantChatCalls = 1,
+            });
+            if (response.Error)
+            {
+                return BadRequest(response);
+            }
+            else
+            {
+                return Ok(response);
+            }
         }
 
         [MapToApiVersion("1.0")]

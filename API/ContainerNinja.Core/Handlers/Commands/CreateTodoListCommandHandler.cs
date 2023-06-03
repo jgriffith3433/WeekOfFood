@@ -42,7 +42,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var result = _validator.Validate(model);
 
-            _logger.LogInformation($"CreateTodoList Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -61,7 +61,6 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             _repository.TodoLists.Add(entity);
             await _repository.CommitAsync();
-            _logger.LogInformation($"Added TodoList to Cache.");
             var todoListDTO = _mapper.Map<TodoListDTO>(entity);
             _cache.SetItem($"todo_list_{entity.Id}", todoListDTO);
             _cache.RemoveItem("todo_lists");

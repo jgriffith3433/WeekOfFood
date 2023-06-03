@@ -7,6 +7,7 @@ using OpenAI.Interfaces;
 using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
+using ContainerNinja.Contracts.ViewModels;
 
 namespace ContainerNinja.Core.Services
 {
@@ -25,10 +26,10 @@ namespace ContainerNinja.Core.Services
             });
         }
 
-        public async Task<string> GetChatResponse(List<ChatMessage> chatMessages, string currentUrl)
+        public async Task<string> GetChatResponse(List<ChatMessageVM> chatMessages, string currentUrl)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
-            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(cm));
+            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.Role, cm.RawContent, cm.Name)));
             var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
             if (completionResult.Error != null)
             {
@@ -122,32 +123,48 @@ namespace ContainerNinja.Core.Services
         {
             ChatMessage.FromSystem(
                 "You are a website assistant. You must respond only with JSON and no extra text. The cmd and response fields are required. " +
-                "The user is on the home page. The available commands you can return are: none, go-to-page. The available pages are " + string.Join(", ", GetPages()) + "."
+                "The user is on the home page. The available commands you can return are: none, go-to-page. The available pages are " + string.Join(", ", GetPages()) + ".",
+                StaticValues.ChatMessageRoles.System
                 ),
-            ChatMessage.FromUser("Hello"),
+            ChatMessage.FromAssistant(
+                @"{
+""cmd"": ""none"",
+""response"": ""How can I help you manage your home page?"",
+}",
+                StaticValues.ChatMessageRoles.Assistant),
+            ChatMessage.FromUser("Hello", StaticValues.ChatMessageRoles.User),
             ChatMessage.FromAssistant(
 @"{
 ""cmd"": ""none"",
-""response"": ""Hi, how may I help you manage your home page?"",
-}"
+""response"": ""Hello, is there anything I can help with on your home page?"",
+}",
+                StaticValues.ChatMessageRoles.Assistant
                 )
         };
             if (currentUrl != "home")
             {
                 chatPromptList.AddRange(new List<ChatMessage>
                 {
-                ChatMessage.FromUser("Go to " + currentUrl),
+                ChatMessage.FromUser("Go to " + currentUrl, StaticValues.ChatMessageRoles.User),
                 ChatMessage.FromAssistant(
 @"{
 ""cmd"": ""go-to-page"",
 ""response"": ""Okay, navigating to "
                     + currentUrl + @""",
 ""page"": """ + currentUrl + @""",
-}"
+}",
+                StaticValues.ChatMessageRoles.Assistant
                 ),
                 ChatMessage.FromSystem(
-                    "The user is on the " + currentUrl + " page. The available commands you can return are: " + string.Join(", ", GetCommandsForCurrentUrl(currentUrl)) + "."
-                )
+                    "The user is on the " + currentUrl + " page. The available commands you can return are: " + string.Join(", ", GetCommandsForCurrentUrl(currentUrl)) + ".",
+                    StaticValues.ChatMessageRoles.System
+                ),
+                ChatMessage.FromAssistant(
+@"{
+""cmd"": ""none"",
+""response"": ""How can I help you manage your " + currentUrl + @""",
+}",
+                StaticValues.ChatMessageRoles.Assistant),
             });
             }
             switch (currentUrl)
@@ -155,16 +172,17 @@ namespace ContainerNinja.Core.Services
                 case "recipes":
                     chatPromptList.AddRange(new List<ChatMessage>
                     {
-                    ChatMessage.FromUser("Change the bienenstich recipe to yummy"),
+                    ChatMessage.FromUser("Change the bienenstich recipe to yummy", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
 ""cmd"": ""edit-recipe-name"",
   ""response"": ""Okay, I have updated your recipe."",
   ""original"": ""bienenstich"",
   ""new"": ""yummy""
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Can you substitute the bread for gluten free bread in the sandwich recipe?"),
+                    ChatMessage.FromUser("Can you substitute the bread for gluten free bread in the sandwich recipe?", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""edit-recipe-ingredient"",
@@ -172,10 +190,11 @@ namespace ContainerNinja.Core.Services
   ""recipe"": ""sandwich"",
   ""original"": ""bread"",
   ""new"": ""Gluten-free bread""
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
 
-                    ChatMessage.FromUser("Create a new recipe that has chicken"),
+                    ChatMessage.FromUser("Create a new recipe that has chicken", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""create-recipe"",
@@ -209,9 +228,10 @@ namespace ContainerNinja.Core.Services
       ""unittype"": ""whole""
     },
   ]
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Give me a barbeque chicken recipe"),
+                    ChatMessage.FromUser("Give me a barbeque chicken recipe", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""create-recipe"",
@@ -235,17 +255,19 @@ namespace ContainerNinja.Core.Services
       ""unittype"": ""bottle""
     },
   ]
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Remove the spaghetti with meat sauce recipe"),
+                    ChatMessage.FromUser("Remove the spaghetti with meat sauce recipe", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""delete-recipe"",
   ""response"": ""Removed."",
   ""recipe"": ""spaghetti with meat sauce"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe"),
+                    ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""edit-recipe-ingredient-unittype"",
@@ -253,9 +275,10 @@ namespace ContainerNinja.Core.Services
   ""recipe"": ""eggs and spinach"",
   ""ingredient"": ""butter"",
   ""unittype"": ""tablespoons"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Add two teaspoons of pepper to the spicy chili recipe"),
+                    ChatMessage.FromUser("Add two teaspoons of pepper to the spicy chili recipe", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""add-recipe-ingredient"",
@@ -264,9 +287,10 @@ namespace ContainerNinja.Core.Services
   ""ingredient"": ""pepper"",
   ""unittype"": ""teaspoons"",
   ""units"": 2
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Substitute sesame oil for vegetable oil in the orange chicken recipe"),
+                    ChatMessage.FromUser("Substitute sesame oil for vegetable oil in the orange chicken recipe", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""substitute-recipe-ingredient"",
@@ -274,23 +298,25 @@ namespace ContainerNinja.Core.Services
   ""recipe"": ""orange chicken"",
   ""original"": ""sesame oil"",
   ""new"": ""vegetable oil"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                    ChatMessage.FromUser("Remove the onions from the spicy chili recipe"),
+                    ChatMessage.FromUser("Remove the onions from the spicy chili recipe", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""remove-recipe-ingredient"",
   ""response"": ""Removed."",
   ""recipe"": ""spicy chili"",
   ""ingredient"": ""onions"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         )
                 });
                     break;
                 case "cooked-recipes":
                     chatPromptList.AddRange(new List<ChatMessage>
                     {
-                        ChatMessage.FromUser("I added two teaspoons of salt to the bienenstich recipe."),
+                        ChatMessage.FromUser("I added two teaspoons of salt to the bienenstich recipe.", StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""add-cooked-recipe-ingredient"",
@@ -299,9 +325,10 @@ namespace ContainerNinja.Core.Services
   ""name"": ""salt"",
   ""units"": 2,
   ""unittype"": ""teaspoon""
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                     ),
-                        ChatMessage.FromUser("Add syrup to oatmeal"),
+                        ChatMessage.FromUser("Add syrup to oatmeal", StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""add-cooked-recipe-ingredient"",
@@ -310,17 +337,19 @@ namespace ContainerNinja.Core.Services
   ""name"": ""syrup"",
   ""units"": 1,
   ""unittype"": ""tablespoon""
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                     ),
-                        ChatMessage.FromUser("I made tacos tonight."),
+                        ChatMessage.FromUser("I made tacos tonight.", StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
                         @"{
   ""cmd"": ""create-cooked-recipe"",
   ""response"": ""Created."",
   ""recipe"": ""tacos"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                        ChatMessage.FromUser("Substitute chicken broth for vegetable broth in the chicken and dumplings recipe"),
+                        ChatMessage.FromUser("Substitute chicken broth for vegetable broth in the chicken and dumplings recipe", StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""substitute-cooked-recipe-ingredient"",
@@ -328,9 +357,10 @@ namespace ContainerNinja.Core.Services
   ""recipe"": ""chicken and dumplings"",
   ""original"": ""chicken broth"",
   ""new"": ""vegetable broth"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                        ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe"),
+                        ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe", StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""edit-cooked-recipe-ingredient-unittype"",
@@ -338,23 +368,25 @@ namespace ContainerNinja.Core.Services
   ""recipe"": ""eggs and spinach"",
   ""ingredient"": ""butter"",
   ""unittype"": ""tablespoons"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         ),
-                        ChatMessage.FromUser("Remove the onions from the spicy chili recipe"),
+                        ChatMessage.FromUser("Remove the onions from the spicy chili recipe", StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""remove-cooked-recipe-ingredient"",
   ""response"": ""Removed."",
   ""recipe"": ""spicy chili"",
   ""ingredient"": ""onions"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                     )
                 });
                     break;
                 case "completed-orders":
                     chatPromptList.AddRange(new List<ChatMessage>
                 {
-                    ChatMessage.FromUser("Order two cans of black eyed peas"),
+                    ChatMessage.FromUser("Order two cans of black eyed peas", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""order"",
@@ -365,23 +397,25 @@ namespace ContainerNinja.Core.Services
       ""quantity"": 2
     }
   ]
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                         )
                 });
                     break;
                 case "products":
                     chatPromptList.AddRange(new List<ChatMessage>
                 {
-                    ChatMessage.FromUser("Change the unit type on olive oil to ounces"),
+                    ChatMessage.FromUser("Change the unit type on olive oil to ounces", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""edit-product-unit-type"",
   ""response"": ""Okay, the unit type has been changed to ounces for olive oil."",
   ""product"": ""olive oil"",
   ""unittype"": ""ounces"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                     ),
-                    ChatMessage.FromUser("Add X"),
+                    ChatMessage.FromUser("Add X", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""create-product"",
@@ -389,13 +423,14 @@ namespace ContainerNinja.Core.Services
   ""product"": ""X"",
 }"
                     ),
-                    ChatMessage.FromUser("Delete X"),
+                    ChatMessage.FromUser("Delete X", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
 @"{
   ""cmd"": ""delete-product"",
   ""response"": ""Deleted."",
   ""product"": ""X"",
-}"
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                     ),
                 });
                     break;

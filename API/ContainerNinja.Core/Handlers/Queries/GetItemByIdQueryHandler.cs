@@ -37,11 +37,8 @@ namespace ContainerNinja.Core.Handlers.Queries
             var cachedItem = _cache.GetItem<ItemDTO>($"item_{request.ItemId}");
             if (cachedItem != null)
             {
-                _logger.LogInformation($"Item Exists in Cache. Return CachedItem.");
                 return cachedItem;
             }
-
-            _logger.LogInformation($"Item doesn't exist in Cache.");
 
             var item = await Task.FromResult(_repository.Items.Get(request.ItemId));
             if (item == null)
@@ -50,8 +47,6 @@ namespace ContainerNinja.Core.Handlers.Queries
             }
 
             var result = _mapper.Map<ItemDTO>(item);
-
-            _logger.LogInformation($"Add Item to Cache and return.");
             _cache.SetItem($"item_{request.ItemId}", result);
             return result;
         }

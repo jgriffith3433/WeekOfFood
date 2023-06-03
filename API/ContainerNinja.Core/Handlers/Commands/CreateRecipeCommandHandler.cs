@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             var result = _validator.Validate(request);
 
-            _logger.LogInformation($"CreateRecipeCommand Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -70,7 +70,6 @@ namespace ContainerNinja.Core.Handlers.Commands
             var recipeDTO = _mapper.Map<RecipeDTO>(recipeEntity);
             _cache.SetItem($"recipe_{recipeDTO.Id}", recipeDTO);
             _cache.RemoveItem("recipes");
-            _logger.LogInformation($"Added Recipe to Cache.");
             return recipeDTO;
         }
     }

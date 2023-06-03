@@ -36,7 +36,7 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             var result = _validator.Validate(request);
 
-            _logger.LogInformation($"CreateProductStockCommand Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -70,7 +70,6 @@ namespace ContainerNinja.Core.Handlers.Commands
             var productDTO = _mapper.Map<ProductDTO>(productEntity);
             _cache.SetItem($"product_{productDTO.Id}", productDTO);
             _cache.RemoveItem("products");
-            _logger.LogInformation($"Added TodoList to Cache.");
             return productStockDTO.Id;
         }
     }

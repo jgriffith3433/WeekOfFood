@@ -70,6 +70,7 @@
   display: flex;
   flex-direction: column-reverse;
   overflow: auto;
+  padding-bottom: 20px;
 }
 
 .chat-box-footer {
@@ -77,26 +78,27 @@
   height: 50px;
 }
 
-.operator-name {
+.system-greeting {
   margin: 0;
-  padding: 1px;
+  padding: 15px;
+  font-size: 12px;
 }
 
-.operator-status {
+.system-status {
   float: right;
   padding: 4px;
 }
-.operator-status span {
+.system-status span {
   margin-left: 4px;
 }
-.operator-status-online {
+.system-status-online {
   color: lawngreen;
 }
-.operator-status-offline {
+.system-status-offline {
   color: red;
 }
 
-.operator-avatar {
+.system-avatar {
   height: 30px;
   width: 30px;
   border-radius: 50%;

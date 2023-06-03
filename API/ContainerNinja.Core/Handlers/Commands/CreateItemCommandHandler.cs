@@ -42,7 +42,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var result = _validator.Validate(model);
 
-            _logger.LogInformation($"CreateItem Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -63,7 +63,6 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             _repository.Items.Add(entity);
             await _repository.CommitAsync();
-            _logger.LogInformation($"Added Item to Cache.");
             var itemDTO = _mapper.Map<ItemDTO>(entity);
             _cache.SetItem($"item_{entity.Id}", itemDTO);
             _cache.RemoveItem("items");

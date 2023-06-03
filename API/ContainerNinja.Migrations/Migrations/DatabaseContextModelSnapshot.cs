@@ -114,7 +114,7 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Unknown")
+                    b.Property<bool>("UnknownCommand")
                         .HasColumnType("bit");
 
                     b.HasKey("Id");
@@ -584,13 +584,11 @@ namespace ContainerNinja.Migrations.Migrations
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ChatCommand", b =>
                 {
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.ChatConversation", "ChatConversation")
-                        .WithMany()
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.ChatConversation", null)
+                        .WithMany("ChatCommands")
                         .HasForeignKey("ChatConversationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("ChatConversation");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CompletedOrderProduct", b =>
@@ -653,6 +651,11 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ChatConversation", b =>
+                {
+                    b.Navigation("ChatCommands");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CompletedOrder", b =>

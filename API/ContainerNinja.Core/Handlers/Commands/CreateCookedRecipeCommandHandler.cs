@@ -38,7 +38,7 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             var result = _validator.Validate(request);
 
-            _logger.LogInformation($"CreateCookedRecipeCommand Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -81,7 +81,6 @@ namespace ContainerNinja.Core.Handlers.Commands
             var cookedRecipeDTO = _mapper.Map<CookedRecipeDTO>(cookedRecipeEntity);
             _cache.SetItem($"cooked_recipe_{cookedRecipeDTO.Id}", cookedRecipeDTO);
             _cache.RemoveItem("cooked_recipes");
-            _logger.LogInformation($"Added CookedRecipe to Cache.");
             return cookedRecipeDTO;
         }
     }

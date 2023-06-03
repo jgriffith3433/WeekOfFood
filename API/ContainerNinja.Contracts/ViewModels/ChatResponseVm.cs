@@ -1,5 +1,4 @@
-﻿using OpenAI.ObjectModels.RequestModels;
-
+﻿
 namespace ContainerNinja.Contracts.ViewModels
 {
     public record ChatResponseVM
@@ -8,7 +7,8 @@ namespace ContainerNinja.Contracts.ViewModels
         public bool CreateNewChat { get; set; }
         public bool Error { get; set; }
         public bool Dirty { get; set; }
+        public bool UnknownCommand { get; set; }
         public string NavigateToPage { get; set; }
-        public List<ChatMessage> ChatMessages { get; set; }
+        public List<ChatMessageVM> ChatMessages { get; set; }
     }
 }

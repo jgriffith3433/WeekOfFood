@@ -37,7 +37,7 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             var result = _validator.Validate(request);
 
-            _logger.LogInformation($"CreateCompletedOrderCommand Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -74,7 +74,6 @@ namespace ContainerNinja.Core.Handlers.Commands
             var completedOrderDTO = _mapper.Map<CompletedOrderDTO>(completedOrderEntity);
             _cache.SetItem($"completed_order_{completedOrderDTO.Id}", completedOrderDTO);
             _cache.RemoveItem("completed_orders");
-            _logger.LogInformation($"Added CompletedOrder to Cache.");
             return completedOrderDTO.Id;
         }
     }

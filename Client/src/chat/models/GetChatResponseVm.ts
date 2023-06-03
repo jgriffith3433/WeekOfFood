@@ -1,7 +1,7 @@
 import { ChatMessageVm } from './ChatMessageVm';
 
 export interface GetChatResponseVm {
-  chatConversationId?: number;
+  chatConversationId: number;
   createNewChat?: boolean;
   error?: boolean;
   dirty?: boolean;

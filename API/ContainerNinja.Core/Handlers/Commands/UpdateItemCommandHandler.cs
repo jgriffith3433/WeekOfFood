@@ -45,7 +45,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var result = _validator.Validate(model);
 
-            _logger.LogInformation($"CreateItem Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -73,13 +73,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var updatedItem = _mapper.Map<ItemDTO>(dbEntity);
             
-            // if a version exists in the Cache
-            // replace Cached Item with the Updated Item
-            if (_cache.GetItem<ItemDTO>($"item_{itemId}") != null)
-            {
-                _logger.LogInformation($"Item Exists in Cache. Setting new Item for the same Key.");
-                _cache.SetItem($"item_{itemId}", updatedItem);
-            }
+            _cache.SetItem($"item_{itemId}", updatedItem);
             _cache.RemoveItem("items");
             
             return updatedItem;

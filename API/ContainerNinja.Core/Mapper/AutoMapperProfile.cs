@@ -1,6 +1,11 @@
 ﻿using AutoMapper;
+using ContainerNinja.Contracts.ChatAI;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Contracts.DTO;
+using ContainerNinja.Contracts.ViewModels;
+using ContainerNinja.Core.Handlers.ChatCommands;
+using Newtonsoft.Json;
+using OpenAI.ObjectModels.RequestModels;
 
 namespace ContainerNinja.Core.Mapper
 {
@@ -63,6 +68,26 @@ namespace ContainerNinja.Core.Mapper
 
             CreateMap<CookedRecipeCalledIngredientDTO, CookedRecipeCalledIngredientDetailsDTO>();
             CreateMap<CookedRecipeCalledIngredientDetailsDTO, CookedRecipeCalledIngredientDTO>();
+
+            CreateMap<ChatMessage, ChatMessageVM>();
+            CreateMap<ChatMessageVM, ChatMessage>();
+
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandEditRecipeName>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandEditRecipeName>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandGoToPage>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandGoToPage>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandOrder>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandOrder>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandNone>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandNone>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandDefault>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandDefault>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+
         }
     }
 }

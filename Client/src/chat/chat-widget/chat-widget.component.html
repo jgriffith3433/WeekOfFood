@@ -2,45 +2,53 @@
   <div class="chat-box" *ngIf="visible" [@fadeInOut]="visible">
     <div class="chat-box-header">
       <div class="">
-        <div class="operator-status">
-          {{operator.status}}
-          <span class="operator-status-online">●</span>
+        <select id="voice-control" name="voice" class="form-control item-input-control" value="{{selectedVoiceName}}" (change)="demoSelectedVoice($event)">
+          <option value="">- Select a voice -</option>
+          <option value="{{voice.name}}" *ngFor="let voice of voices">
+            {{ voice.name }}
+            <ng-template [ngIf]="recommendedVoices[ voice.name ]">
+              &larr; Recommended
+            </ng-template>
+          </option>
+        </select>
+        <div class="system-status">
+          {{system.status}}
+          <span class="system-status-online">●</span>
           <button class="chat-button-header" (click)="toggleChat()">✕</button>
         </div>
-        <chat-avatar [image]="operator.avatar"></chat-avatar>
-        <h3 class="operator-name">
-          {{operator.name}}
+        <chat-avatar [image]="system.avatar"></chat-avatar>
+        <h3 class="system-greeting">
+          {{greeting}}
         </h3>
       </div>
     </div>
     <div class="chat-box-main">
       <div class="chat-message-bottom" #bottom></div>
-      <ng-container *ngFor="let message of messages">
-        <div class="chat-message" [class.chat-message-received]="message.type === 'received'"
+      <ng-container *ngFor="let message of chatMessages.slice().reverse()">
+        <div *ngIf="message.content" class="chat-message" [class.chat-message-received]="message.role != 'user'"
              [@fadeIn]
-             [class.chat-message-sent]="message.type === 'sent'">
+             [class.chat-message-sent]="message.role == 'user'">
           <div>
-            <chat-avatar [image]="message.from.avatar" class="chat-message-from-avatar"></chat-avatar>
+            <chat-avatar [image]="getAvatarForRole(message.role)" class="chat-message-from-avatar"></chat-avatar>
             <div class="chat-message-text">
-              {{message.text}}
+              {{message.content}}
             </div>
           </div>
-          <div class="chat-message-date">
+          <!--<div class="chat-message-date">
             {{message.date | date: 'short'}}
-          </div>
+          </div>-->
         </div>
       </ng-container>
     </div>
     <div class="chat-box-footer">
       <chat-input (send)="sendMessage($event)" (dismiss)="toggleChat()"></chat-input>
-      <button class="chat-button" (click)="record()">
-      </button>
-      <button class="chat-button" (click)="stop()" style="right:-20px;">
-      </button>
+      <button class="chat-button" (click)="record()">Record</button>
+      <button class="chat-button" (click)="stopRecording()" style="right:-20px;">Stop</button>
     </div>
   </div>
   <button class="chat-button" (click)="toggleChat()">
     <span [@fadeIn] *ngIf="visible">✕</span>
     <span [@fadeIn] *ngIf="!visible">?</span>
   </button>
+  <button class="chat-button" (click)="toggleSpeechSynthesis()">Synth</button>
 </div>

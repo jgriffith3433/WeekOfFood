@@ -45,7 +45,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var result = _validator.Validate(model);
 
-            _logger.LogInformation($"CreateTodoList Validation result: {result}");
+            _logger.LogInformation($"Validation result: {result}");
 
             if (!result.IsValid)
             {
@@ -70,14 +70,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             await _repository.CommitAsync();
 
             var updatedTodoList = _mapper.Map<TodoListDTO>(dbEntity);
-
-            // if a version exists in the Cache
-            // replace Cached TodoList with the Updated TodoList
-            if (_cache.GetItem<TodoListDTO>($"todo_list_{todoListId}") != null)
-            {
-                _logger.LogInformation($"TodoList Exists in Cache. Setting new TodoList for the same Key.");
-                _cache.SetItem($"todo_list_{todoListId}", updatedTodoList);
-            }
+            _cache.SetItem($"todo_list_{todoListId}", updatedTodoList);
             _cache.RemoveItem("todo_lists");
             return updatedTodoList;
         }
