@@ -1,10 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
-import { PicoModels } from '../models/picoModels';
 import { TokenService } from '../../app/providers/token.service';
 import { PorcupineService } from '@picovoice/porcupine-angular';
 import { PorcupineDetection } from '@picovoice/porcupine-web';
+import { PicoModels } from '../models/PicoModels';
 
 @Injectable({
   providedIn: 'root'
