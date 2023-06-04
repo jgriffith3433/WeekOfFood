@@ -110,7 +110,8 @@ namespace ContainerNinja.Core.Services
                     "add-cooked-recipe-ingredient",
                     "create-cooked-recipe",
                     "substitute-cooked-recipe-ingredient",
-                    "edit-cooked-recipe-ingredient-unittype"
+                    "edit-cooked-recipe-ingredient-unittype",
+                    "delete-cooked-recipe"
                     };
                 case "products":
                     return new string[]
@@ -409,7 +410,17 @@ namespace ContainerNinja.Core.Services
   ""ingredient"": ""onions"",
 }",
                         StaticValues.ChatMessageRoles.Assistant
+                    ),
+                        ChatMessage.FromUser("Remove the chili recipe", StaticValues.ChatMessageRoles.User),
+                        ChatMessage.FromAssistant(
+@"{
+  ""cmd"": ""delete-cooked-recipe"",
+  ""response"": ""Removed."",
+  ""recipe"": ""chili""
+}",
+                        StaticValues.ChatMessageRoles.Assistant
                     )
+
                 });
                     break;
                 case "completed-orders":

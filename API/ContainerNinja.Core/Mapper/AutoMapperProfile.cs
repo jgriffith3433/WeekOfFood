@@ -87,6 +87,54 @@ namespace ContainerNinja.Core.Mapper
             CreateMap<ConsumeChatCommand, ConsumeChatCommandDefault>()
                 .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandDefault>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
 
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandAddCookedRecipeIngredient>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandAddCookedRecipeIngredient>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandAddRecipeIngredient> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandAddRecipeIngredient> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandCookedRecipeSubstituteIngredient> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandCookedRecipeSubstituteIngredient> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandCreateCookedRecipe> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandCreateCookedRecipe> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandCreateProduct> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandCreateProduct> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandCreateRecipe> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandCreateRecipe> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandDeleteCookedRecipeIngredient> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandDeleteCookedRecipeIngredient> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandDeleteProduct> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandDeleteProduct> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandDeleteRecipe> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandDeleteRecipe> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandDeleteRecipeIngredient> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandDeleteRecipeIngredient> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandEditCookedRecipeIngredientUnitType> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandEditCookedRecipeIngredientUnitType> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandEditProductUnitType> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandEditProductUnitType> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandEditRecipeIngredientUnitType> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandEditRecipeIngredientUnitType> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandRecipeSubstituteIngredient> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject <ChatAICommandRecipeSubstituteIngredient> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            CreateMap < ConsumeChatCommand, ConsumeChatCommandDeleteCookedRecipe> ()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject < ChatAICommandDeleteCookedRecipe> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
+            //CreateMap < ConsumeChatCommand, ConsumeChatCommand$$$$$> ()
+            //    .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject < ChatAICommand$$$$$> (s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
 
         }
     }

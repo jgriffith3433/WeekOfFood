@@ -46,7 +46,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   private http: HttpClient;
   private baseUrl: string;
   protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-  mediaRecorder: any;
+  mediaRecorder: MediaRecorder;
   keepRecording: boolean = false;
   lastTimeDetected: number;
   timeSinceDetected: number;
@@ -388,6 +388,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         navigateToPage: undefined
       } as GetChatResponseVm);
     }
+    this.timeSinceDetected = 0;
+    this.lastTimeDetected = performance.now();
     this.keepRecording = this.visible;
     console.log("recording");
     const MIN_DECIBELS = -45;
@@ -400,20 +402,29 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       this.mediaRecorder.start(3000);
 
       let audioChunks: any[] = [];
-      this.mediaRecorder.addEventListener("dataavailable", (event: { data: any; }) => {
+      this.mediaRecorder.ondataavailable = (event: { data: any; }) => {
         audioChunks.push(event.data);
         const audioBlob = new Blob(audioChunks);
         console.log("dataavailable");
-        //console.log("end silence detected: " + this.endSilenceDetected);
-        //if (this.soundDetected && this.endSilenceDetected) {
         if (this.soundWasDetected) {
           if (this.timeSinceDetected > 1) {
             this.soundDetectedSendToServer = true;
             this.soundWasDetected = false;
             this.mediaRecorder.stop();
           }
+        } else {
+          if (this.timeSinceDetected > 10) {
+            this.keepRecording = false;
+            this.timeSinceDetected = 0;
+            this.lastTimeDetected = 0;
+            this.soundDetectedSendToServer = false;
+            this.mediaRecorder.stop();
+          }
+          if (this.mediaRecorder.state == "inactive") {
+            this.mediaRecorder.stop();
+          }
         }
-      });
+      };
 
       const audioContext = new AudioContext();
       const audioStreamSource = audioContext.createMediaStreamSource(stream);

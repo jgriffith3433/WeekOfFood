@@ -27,7 +27,7 @@ namespace ContainerNinja.Core.Validators
 
             RuleFor(v => v.CurrentSystemToAssistantChatCalls)
                 .GreaterThan(0).WithMessage("CurrentSystemToAssistantChatCalls must be greater than 0.")
-                .LessThan(4).WithMessage("CurrentSystemToAssistantChatCalls must be less than 4.");
+                .LessThan(7).WithMessage("CurrentSystemToAssistantChatCalls must be less than 7.");
 
             /*
             0 = unknown cmd: edit-recipe-ingredient
