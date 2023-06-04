@@ -2,28 +2,40 @@ import { Injectable } from "@angular/core";
 import { AuthToken } from "../models/AuthToken";
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root'
 })
 export class TokenService {
-    constructor() { }
+  constructor() { }
 
-    getToken() {
-        let tokenObj = localStorage.getItem('auth_token');
-        if (tokenObj === null) return null;
+  getToken() {
+    let tokenObj = localStorage.getItem('auth_token');
+    if (tokenObj === null) return null;
 
-        let parsed: AuthToken = JSON.parse(tokenObj);
-        return parsed.accessToken;
-    }
+    let parsed: AuthToken = JSON.parse(tokenObj);
+    return parsed.accessToken;
+  }
 
-    setToken(authToken: AuthToken) {
-        localStorage.setItem('auth_token', JSON.stringify(authToken));
-    }
+  getPico() {
+    let tokenObj = localStorage.getItem('auth_token');
+    if (tokenObj === null) return null;
 
-    clearToken() {
-        localStorage.removeItem('auth_token');
-    }
+    let parsed: AuthToken = JSON.parse(tokenObj);
+    return parsed.picoToken;
+  }
 
-    public get IsAuthenticated(): boolean {
-        return this.getToken() !== null;
-    }
+  setToken(authToken: AuthToken) {
+    localStorage.setItem('auth_token', JSON.stringify(authToken));
+  }
+
+  clearToken() {
+    localStorage.removeItem('auth_token');
+  }
+
+  public get IsAuthenticated(): boolean {
+    return this.getToken() !== null;
+  }
+
+  public get IsPicoAuthenticated(): boolean {
+    return this.getPico() !== null;
+  }
 }

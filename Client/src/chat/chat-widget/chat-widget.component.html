@@ -2,15 +2,6 @@
   <div class="chat-box" *ngIf="visible" [@fadeInOut]="visible">
     <div class="chat-box-header">
       <div class="">
-        <select id="voice-control" name="voice" class="form-control item-input-control" value="{{selectedVoiceName}}" (change)="demoSelectedVoice($event)">
-          <option value="">- Select a voice -</option>
-          <option value="{{voice.name}}" *ngFor="let voice of voices">
-            {{ voice.name }}
-            <ng-template [ngIf]="recommendedVoices[ voice.name ]">
-              &larr; Recommended
-            </ng-template>
-          </option>
-        </select>
         <div class="system-status">
           {{system.status}}
           <span class="system-status-online">●</span>
@@ -43,16 +34,17 @@
     </div>
     <div class="chat-box-footer">
       <chat-input (send)="sendMessage($event)" (dismiss)="toggleChat()"></chat-input>
-      <button class="chat-button" (click)="record()">Record</button>
-      <button class="chat-button" (click)="stopRecording()" style="right:-20px;">Stop</button>
+      <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
     </div>
   </div>
   <button class="chat-button" (click)="toggleChat()">
     <span [@fadeIn] *ngIf="visible">✕</span>
     <span [@fadeIn] *ngIf="!visible">?</span>
   </button>
-  <button class="chat-button" (click)="toggleSpeechSynthesis()">Synth</button>
-  <span>{{soundWasDetected ? 'Sound Was Detected' : ''}}</span>
-  <br />
-  <span>{{'Last Time Detected: ' + timeSinceDetected}}</span>
+  <audio [src]="audioSource" id="audio" controls #audio></audio>
+  <div style="left: 20px; margin-top: 40px;">
+    <span>{{soundWasDetected ? 'Sound Was Detected' : ''}}</span>
+    <br />
+    <span>{{'Last Time Detected: ' + timeSinceDetected}}</span>
+  </div>
 </div>

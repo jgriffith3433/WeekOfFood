@@ -3,6 +3,7 @@
     public class AuthTokenDTO
     {
         public string AccessToken { get; set; }
+        public string PicoToken { get; set; }
         public int ExpiresIn { get; set; }
     }
 }

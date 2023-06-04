@@ -5,6 +5,7 @@ import { LoginDTO } from 'src/app/models/LoginDTO';
 import { AuthService } from 'src/app/providers/auth.service';
 import { Location } from '@angular/common';
 import { TokenService } from 'src/app/providers/token.service';
+import { PicoService } from '../../../../chat/providers/pico.service';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ export class LoginComponent implements OnInit {
     private formBuilder: UntypedFormBuilder,
     private authService: AuthService,
     private router: Router,
+    private picoService: PicoService,
     private location: Location, private tokenService: TokenService) {
     this.form = this.formBuilder.group({
       emailAddress: new UntypedFormControl([], [Validators.required, Validators.email]),
@@ -37,7 +39,14 @@ export class LoginComponent implements OnInit {
     console.log(this.form.value);
     this.authService.login(<LoginDTO>this.form.value).subscribe({
       next: (response) => {
-        this.router.navigate(['items']);
+        this.router.navigate(['home']);
+        if (!this.picoService.isLoaded) {
+          this.picoService.autoStart = true;
+          this.picoService.load();
+        }
+        else {
+          this.picoService.start();
+        }
       },
       error: (err) => {
         if (err.status === 401) {

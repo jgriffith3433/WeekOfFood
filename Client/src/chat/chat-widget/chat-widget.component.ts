@@ -1,8 +1,8 @@
-import { Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core'
+import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core'
 import { fadeIn, fadeInOut } from '../animations'
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { mergeMap as _observableMergeMap, catchError as _observableCatch } from 'rxjs/operators';
-import { Observable, Subject, throwError as _observableThrow, of as _observableOf } from 'rxjs';
+import { Observable, Subject, throwError as _observableThrow, of as _observableOf, Subscription } from 'rxjs';
 import { Injectable, Inject, Optional, InjectionToken } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angular/common/http';
 import { ChatService } from '../providers/chat.service'
@@ -16,6 +16,9 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 import { ChatMessageVm } from '../models/ChatMessageVm'
 import { GetChatResponseQuery } from '../models/GetChatResponseQuery'
 import { GetChatTextFromSpeechVm } from '../models/GetChatTextFromSpeechVm';
+import { TokenService } from '../../app/providers/token.service';
+import { PicoService } from '../providers/pico.service';
+import { GetChatResponseVm } from '../models/GetChatResponseVm';
 
 //read online that maybe you want to use this instead?
 //import { Blob } from 'buffer';
@@ -29,8 +32,9 @@ const rand = (max: number) => Math.floor(Math.random() * max)
   styleUrls: ['./chat-widget.component.css'],
   animations: [fadeInOut, fadeIn],
 })
-export class ChatWidgetComponent implements OnInit {
+export class ChatWidgetComponent implements OnInit, OnDestroy {
   @ViewChild('bottom') bottom: ElementRef;
+  @ViewChild('audio') audioPlayerRef: ElementRef;
   @Input() public theme: 'blue' | 'grey' | 'red' = 'blue';
   public _visible = false;
   public _refreshing = false;
@@ -49,20 +53,17 @@ export class ChatWidgetComponent implements OnInit {
   soundDetectedSendToServer: boolean = false;
   soundWasDetected: boolean = false;
   //endSilenceDetected: boolean = false;
-  public sayCommand: string;
-  public recommendedVoices: RecommendedVoices;
-  public rates: number[];
-  public selectedRate: number;
-  public selectedVoiceName: string;
-  public selectedVoice: SpeechSynthesisVoice | null;
-  public text: string;
-  public voices: SpeechSynthesisVoice[];
   public speechSynthesisOn: boolean = true;
-  public normalConversation: boolean = true;
+  public normalConversation: boolean = false;
+  audioSource = '';
+  private keywordSubscription: Subscription;
+  private errorSubscription: Subscription;
 
   constructor(
     private chatService: ChatService,
     private router: Router,
+    private tokenService: TokenService,
+    private picoService: PicoService,
     @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string
   ) {
     this.http = http;
@@ -101,7 +102,8 @@ export class ChatWidgetComponent implements OnInit {
               while (this.chatMessages.length > 0) {
                 this.chatMessages.pop();
               }
-              this.greeting = 'How can I help you manage your ' + this.getCurrentPageName();
+              //this.greeting = 'How can I help you manage your ' + this.getCurrentPageName();
+              this.greeting = 'Try saying: bumblebee';
             }
             if (this._botNavigating) {
               this._botNavigating = false;
@@ -110,34 +112,6 @@ export class ChatWidgetComponent implements OnInit {
         }
       }
     });
-
-    this.voices = [];
-    this.rates = [.25, .5, .75, 1, 1.25, 1.5, 1.75, 2];
-    this.selectedVoiceName = "Google UK English Female";
-    this.selectedVoice = null;
-    this.selectedRate = 1;
-    // Dirty Dancing for the win!
-    this.sayCommand = "";
-
-    // These are "recommended" in so much as that these are the voices that I (Ben)
-    // could understand most clearly.
-    this.recommendedVoices = Object.create(null);
-    this.recommendedVoices["Alex"] = true;
-    this.recommendedVoices["Alva"] = true;
-    this.recommendedVoices["Damayanti"] = true;
-    this.recommendedVoices["Daniel"] = true;
-    this.recommendedVoices["Fiona"] = true;
-    this.recommendedVoices["Fred"] = true;
-    this.recommendedVoices["Karen"] = true;
-    this.recommendedVoices["Mei-Jia"] = true;
-    this.recommendedVoices["Melina"] = true;
-    this.recommendedVoices["Moira"] = true;
-    this.recommendedVoices["Rishi"] = true;
-    this.recommendedVoices["Samantha"] = true;
-    this.recommendedVoices["Tessa"] = true;
-    this.recommendedVoices["Veena"] = true;
-    this.recommendedVoices["Victoria"] = true;
-    this.recommendedVoices["Yuri"] = true;
   }
 
   public get visible() {
@@ -177,107 +151,6 @@ export class ChatWidgetComponent implements OnInit {
   public messages: any[] = [];
 
 
-  // I demo the currently-selected voice.
-  public demoSelectedVoice(selectList: any): void {
-    this.selectedVoiceName = selectList.currentTarget.value;
-    for (var v of this.voices) {
-      if (v.name == this.selectedVoiceName) {
-        this.selectedVoice = v;
-        break;
-      }
-    }
-    if (!this.selectedVoice) {
-
-      console.warn("Expected a voice, but none was selected.");
-      return;
-
-    }
-
-    var demoText = "Best wishes and warmest regards.";
-
-    this.stopSpeaking();
-    this.synthesizeSpeechFromText(this.selectedVoice, this.selectedRate, demoText);
-
-  }
-
-  // I synthesize speech from the current text for the currently-selected voice.
-  public speak(): void {
-
-    if (!this.selectedVoice || !this.text) {
-
-      return;
-
-    }
-
-    this.stopSpeaking();
-    this.synthesizeSpeechFromText(this.selectedVoice, this.selectedRate, this.text);
-
-  }
-
-
-  // I stop any current speech synthesis.
-  public stopSpeaking(): void {
-
-    if (speechSynthesis.speaking) {
-
-      speechSynthesis.cancel();
-
-    }
-
-  }
-
-
-  // I update the "say" command that can be used to generate the a sound file from the
-  // current speech synthesis configuration.
-  public updateSayCommand(): void {
-
-    if (!this.selectedVoice || !this.text) {
-
-      return;
-
-    }
-
-    // With the say command, the rate is the number of words-per-minute. As such, we
-    // have to finagle the SpeechSynthesis rate into something roughly equivalent for
-    // the terminal-based invocation.
-    var sanitizedRate = Math.floor(200 * this.selectedRate);
-    var sanitizedText = this.text
-      .replace(/[\r\n]/g, " ")
-      .replace(/(["'\\\\/])/g, "\\$1")
-      ;
-
-    this.sayCommand = `say --voice ${this.selectedVoice.name} --rate ${sanitizedRate} --output-file=demo.aiff "${sanitizedText}"`;
-
-  }
-
-  // ---
-  // PRIVATE METHODS.
-  // ---
-
-  // I perform the low-level speech synthesis for the given voice, rate, and text.
-  private synthesizeSpeechFromText(
-    voice: SpeechSynthesisVoice,
-    rate: number,
-    text: string
-  ): void {
-
-    var utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = this.selectedVoice;
-    utterance.rate = rate;
-
-    speechSynthesis.speak(utterance);
-    function myTimer() {
-      speechSynthesis.pause();
-      speechSynthesis.resume();
-      (window as any).myTimeout = window.setTimeout(myTimer, 3000);
-    }
-    if ((window as any).myTimeout) {
-      window.clearTimeout((window as any).myTimeout);
-    }
-    (window as any).myTimeout = window.setTimeout(myTimer, 3000);
-  }
-
-
   public getAvatarForRole(role: string | undefined): string {
     if (role == 'user') {
       return this.user.avatar;
@@ -305,41 +178,53 @@ export class ChatWidgetComponent implements OnInit {
   //  this.focus.next(true)
   //}
 
-  ngOnInit() {
-    this.voices = speechSynthesis.getVoices();
-    for (let v of this.voices) {
-      if (this.selectedVoiceName == v.name) {
-        this.selectedVoice = v;
-        break;
+  async ngOnInit() {
+    this.keywordSubscription = this.picoService.keywordDetectionListener.subscribe(porcupineSubscription => {
+      console.log('wake word: ' + porcupineSubscription.label);
+      if (!this.visible) {
+        this.visible = true;
       }
-    }
-    this.updateSayCommand();
+      this.record(true);
+    });
+    this.errorSubscription = this.picoService.errorListener.subscribe(error => {
+      if (error) {
+        console.error(error);
+      }
+    });
+    this.picoService.autoStart = true;
+    this.picoService.load();
+  }
 
-    // The voices aren't immediately available (or so it seems). As such, if no
-    // voices came back, let's assume they haven't loaded yet and we need to wait for
-    // the "voiceschanged" event to fire before we can access them.
-    if (!this.voices.length) {
-
-      speechSynthesis.addEventListener(
-        "voiceschanged",
-        () => {
-          this.voices = speechSynthesis.getVoices();
-          for (let v of this.voices) {
-            if (this.selectedVoiceName == v.name) {
-              this.selectedVoice = v;
-              break;
-            }
-          }
-          this.updateSayCommand();
-
-        }
-      );
-    }
-    setTimeout(() => this.visible = true, 2000);
+  ngOnDestroy(): void {
+    this.keywordSubscription.unsubscribe();
+    this.errorSubscription.unsubscribe();
   }
 
   public toggleChat() {
-    this.visible = !this.visible
+    if (!this.tokenService.IsAuthenticated) {
+      this.router.navigate(['login']);
+      return;
+    }
+    this.visible = !this.visible;
+    if (this.visible) {
+      if (this.tokenService.IsPicoAuthenticated) {
+        if (!this.picoService.isLoaded) {
+          this.picoService.autoStart = true;
+          this.picoService.load();
+        }
+        else {
+          if (!this.picoService.isListening) {
+            this.picoService.start();
+          }
+        }
+      }
+      this.record(true);
+    }
+    else {
+      if (this.mediaRecorder && this.mediaRecorder.state == "recording") {
+        this.stopRecording();
+      }
+    }
   }
 
   getCurrentPageName() {
@@ -366,159 +251,89 @@ export class ChatWidgetComponent implements OnInit {
       currentUrl: this.getCurrentPageName(),
     };
 
-    if (this.normalConversation) {
-      this.chatService.getNormalChatResponse(query).subscribe(
-        result => {
-          let newChatMessages: ChatMessageVm[] = [];
-          if (result.chatMessages) {
-            for (let i = this.chatMessages.length; i < result.chatMessages.length; i++) {
-              newChatMessages.push(result.chatMessages[i]);
-            }
-          }
-          if (this.speechSynthesisOn) {
-            let textToSpeak = "";
-            for (let c of newChatMessages) {
-              if (c.content && c.role == this.assistant.name) {
-                textToSpeak += c.content + '...';
-              }
-            }
-            if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
-              this.text = textToSpeak;
-              this.speak();
-            }
-          }
-          if (result.createNewChat) {
-            if (result.error) {
-              this.greeting = 'Something went wrong, creating new chat instance';
-              setTimeout(() => {
-                this._chatConversationId = -1;
-                while (this.chatMessages.length > 0) {
-                  this.chatMessages.pop();
-                }
-                this.router.navigateByUrl(this.router.url);
-              }, 2000);
-            }
-            else {
-              this._botNavigating = true;
-              for (let newChatMessage of newChatMessages) {
-                this.addMessage(newChatMessage);
-              }
-              this.scrollToBottom();
-              setTimeout(() => {
-                this._chatConversationId = -1;
-                while (this.chatMessages.length > 0) {
-                  this.chatMessages.pop();
-                }
-                this.router.navigateByUrl(result.navigateToPage || '/');
-              }, 2000);
-            }
-          }
-          else {
-            this._chatConversationId = result.chatConversationId || -1;
-            for (let newChatMessage of newChatMessages) {
-              this.addMessage(newChatMessage);
-            }
+    this.chatService.getChatResponse(this.normalConversation, query).subscribe(
+      result => this.receiveMessage(result),
+      error => {
+        console.error(error);
+        setTimeout(() => {
+          if (this.getCurrentPageName() != 'login') {
+            this.addMessage({
+              content: 'An error occured.',
+              rawContent: 'An error occured.',
+              name: this.system.name,
+              role: this.system.name
+            } as ChatMessageVm);
             this.scrollToBottom();
-
-            if (result.dirty) {
-              this._refreshing = true;
-              this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
-              this.router.navigateByUrl(this.router.url);
-            }
           }
-        },
-        error => {
-          console.error(error);
-          setTimeout(() => {
-            if (this.getCurrentPageName() != 'login') {
-              this.addMessage({
-                content: 'An error occured.',
-                rawContent: 'An error occured.',
-                name: this.system.name,
-                role: this.system.name
-              } as ChatMessageVm);
-              this.scrollToBottom();
-            }
-          }, 500);
+        }, 500);
+      }
+    );
+  }
+
+  receiveMessage(response: GetChatResponseVm) {
+    let newChatMessages: ChatMessageVm[] = [];
+    if (response.chatMessages) {
+      for (let i = this.chatMessages.length; i < response.chatMessages.length; i++) {
+        newChatMessages.push(response.chatMessages[i]);
+      }
+    }
+    if (this.speechSynthesisOn) {
+      let textToSpeak = "";
+      for (let c of newChatMessages) {
+        if (c.content && c.role == this.assistant.name) {
+          textToSpeak += c.content + '...';
         }
-      );
+      }
+      if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
+        this.chatService.getChatTextToSpeech(textToSpeak).subscribe(
+          result => {
+            this.audioSource = result;
+            let audioPlayer = this.audioPlayerRef.nativeElement;
+            audioPlayer.crossOrigin = "anonymous";
+            audioPlayer.addEventListener("canplaythrough", function () {
+              audioPlayer.play();
+            })
+          });
+      }
+    }
+    if (response.createNewChat) {
+      if (response.error) {
+        this.greeting = 'Something went wrong, creating new chat instance';
+        setTimeout(() => {
+          this._chatConversationId = -1;
+          while (this.chatMessages.length > 0) {
+            this.chatMessages.pop();
+          }
+          this.router.navigateByUrl(this.router.url);
+        }, 2000);
+      }
+      else {
+        this._botNavigating = true;
+        for (let newChatMessage of newChatMessages) {
+          this.addMessage(newChatMessage);
+        }
+        this.scrollToBottom();
+        setTimeout(() => {
+          this._chatConversationId = -1;
+          while (this.chatMessages.length > 0) {
+            this.chatMessages.pop();
+          }
+          this.router.navigateByUrl(response.navigateToPage || '/');
+        }, 2000);
+      }
     }
     else {
-      this.chatService.getChatResponse(query).subscribe(
-        result => {
-          let newChatMessages: ChatMessageVm[] = [];
-          if (result.chatMessages) {
-            for (let i = this.chatMessages.length; i < result.chatMessages.length; i++) {
-              newChatMessages.push(result.chatMessages[i]);
-            }
-          }
-          if (this.speechSynthesisOn) {
-            let textToSpeak = "";
-            for (let c of newChatMessages) {
-              if (c.content && c.role == this.assistant.name) {
-                textToSpeak += c.content + '...';
-              }
-            }
-            if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
-              this.text = textToSpeak;
-              this.speak();
-            }
-          }
-          if (result.createNewChat) {
-            if (result.error) {
-              this.greeting = 'Something went wrong, creating new chat instance';
-              setTimeout(() => {
-                this._chatConversationId = -1;
-                while (this.chatMessages.length > 0) {
-                  this.chatMessages.pop();
-                }
-                this.router.navigateByUrl(this.router.url);
-              }, 2000);
-            }
-            else {
-              this._botNavigating = true;
-              for (let newChatMessage of newChatMessages) {
-                this.addMessage(newChatMessage);
-              }
-              this.scrollToBottom();
-              setTimeout(() => {
-                this._chatConversationId = -1;
-                while (this.chatMessages.length > 0) {
-                  this.chatMessages.pop();
-                }
-                this.router.navigateByUrl(result.navigateToPage || '/');
-              }, 2000);
-            }
-          }
-          else {
-            this._chatConversationId = result.chatConversationId || -1;
-            for (let newChatMessage of newChatMessages) {
-              this.addMessage(newChatMessage);
-            }
-            this.scrollToBottom();
+      this._chatConversationId = response.chatConversationId || -1;
+      for (let newChatMessage of newChatMessages) {
+        this.addMessage(newChatMessage);
+      }
+      this.scrollToBottom();
 
-            if (result.dirty) {
-              this._refreshing = true;
-              this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
-              this.router.navigateByUrl(this.router.url);
-            }
-          }
-        },
-        error => {
-          console.error(error);
-          setTimeout(() => {
-            if (this.getCurrentPageName() != 'login') {
-              this.addMessage({
-                content: 'An error occured.',
-                rawContent: 'An error occured.',
-                name: this.system.name,
-                role: this.system.name
-              } as ChatMessageVm);
-              this.scrollToBottom();
-            }
-          }, 500);
-        }
-      );
+      if (response.dirty) {
+        this._refreshing = true;
+        this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
+        this.router.navigateByUrl(this.router.url);
+      }
     }
   }
 
@@ -528,7 +343,7 @@ export class ChatWidgetComponent implements OnInit {
       //this.focusMessage()
     }
     if (event.key === '?' && !this._visible) {
-      this.toggleChat()
+      this.toggleChat();
     }
   }
 
@@ -557,9 +372,24 @@ export class ChatWidgetComponent implements OnInit {
     this.mediaRecorder.stop();
   }
 
-  record() {
+  record(respond: boolean = false) {
+    if (respond) {
+      this.receiveMessage({
+        chatConversationId: this._chatConversationId,
+        chatMessages: [...this.chatMessages, {
+          content: 'How can I help you manage your ' + this.getCurrentPageName(),
+          rawContent: 'How can I help you manage your ' + this.getCurrentPageName(),
+          name: this.assistant.name,
+          role: this.assistant.name
+        }],
+        createNewChat: false,
+        dirty: false,
+        error: false,
+        navigateToPage: undefined
+      } as GetChatResponseVm);
+    }
+    this.keepRecording = this.visible;
     console.log("recording");
-    this.keepRecording = true;
     const MIN_DECIBELS = -45;
 
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
@@ -646,6 +476,7 @@ export class ChatWidgetComponent implements OnInit {
       //window.requestAnimationFrame(detectEndSilence);
 
       this.mediaRecorder.addEventListener("stop", () => {
+        console.log("Recording ended.");
         const audioBlob = new Blob(audioChunks);
         if (this.soundDetectedSendToServer) {
           this.soundDetectedSendToServer = false;
@@ -655,7 +486,7 @@ export class ChatWidgetComponent implements OnInit {
           }
         }
         else {
-          console.log("no sound detected");
+          console.log("No sound detected. Nothing sent to server");
         }
       });
     });

@@ -2,6 +2,7 @@ using ContainerNinja.Contracts.Constants;
 using ContainerNinja.Contracts.DTO;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Handlers.Queries;
+using Google.Cloud.TextToSpeech.V1;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -84,7 +85,7 @@ namespace ContainerNinja.Controllers.V1
         }
 
         [MapToApiVersion("1.0")]
-        [HttpPost("speech")]
+        [HttpPost("Speech")]
         [ProducesResponseType(typeof(GetChatTextFromSpeechVm), (int)HttpStatusCode.Created)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<GetChatTextFromSpeechVm>> Speech([FromForm] IFormFile speech)
@@ -106,6 +107,18 @@ namespace ContainerNinja.Controllers.V1
             {
                 Speech = ConvertToByteArrayContent(speech)
             });
+        }
+
+
+        [MapToApiVersion("1.0")]
+        [HttpGet("TextToSpeech")]
+        [ProducesResponseType(typeof(FileResult), (int)HttpStatusCode.Created)]
+        [ProducesErrorResponseType(typeof(BaseResponseDTO))]
+        public async Task<FileResult> TextToSpeech([FromQuery] GetChatTextToSpeechQuery query)
+        {
+            var bytes = await _mediator.Send(query);
+
+            return File(bytes, System.Net.Mime.MediaTypeNames.Application.Octet, "text-to-speech.mp3");
         }
 
         private byte[] ConvertToByteArrayContent(IFormFile audofile)

@@ -11,10 +11,12 @@ namespace ContainerNinja.Core.Services.Jwt
     public class TokenService : ITokenService
     {
         private readonly JwtTokenConfig _config;
+        private readonly string _picoAPI;
 
         public TokenService(JwtTokenConfig tokenConfig)
         {
             _config = tokenConfig;
+            _picoAPI = Environment.GetEnvironmentVariable("PicoAPI");
         }
 
         public AuthTokenDTO Generate(User user)
@@ -39,6 +41,7 @@ namespace ContainerNinja.Core.Services.Jwt
             return new AuthTokenDTO
             {
                 AccessToken = accessToken,
+                PicoToken = _picoAPI,
                 ExpiresIn = _config.ExpiryInMinutes
             };
         }
