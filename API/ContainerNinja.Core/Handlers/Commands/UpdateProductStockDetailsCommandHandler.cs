@@ -40,22 +40,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<ProductStockDetailsDTO> IRequestHandler<UpdateProductStockDetailsCommand, ProductStockDetailsDTO>.Handle(UpdateProductStockDetailsCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).FirstOrDefault(ps => ps.Id == request.Id);
 
             if (productStockEntity == null)
             {
-                throw new EntityNotFoundException($"No Product Stock found for the Id {request.Id}");
+                throw new NotFoundException($"No Product Stock found for the Id {request.Id}");
             }
 
             if (productStockEntity.Product == null || request.ProductId != productStockEntity.Product.Id)
@@ -80,7 +69,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                     var productEntity = _repository.Products.Get(request.ProductId);
                     if (productStockEntity == null)
                     {
-                        throw new EntityNotFoundException($"No Product Stock found for the Id {request.ProductId}");
+                        throw new NotFoundException($"No Product Stock found for the Id {request.ProductId}");
                     }
                     productStockEntity.Product = productEntity;
                 }

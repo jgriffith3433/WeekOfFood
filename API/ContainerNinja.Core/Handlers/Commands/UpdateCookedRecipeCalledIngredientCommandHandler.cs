@@ -41,22 +41,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CookedRecipeCalledIngredientDTO> IRequestHandler<UpdateCookedRecipeCalledIngredientCommand, CookedRecipeCalledIngredientDTO>.Handle(UpdateCookedRecipeCalledIngredientCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var cookedRecipeCalledIngredientEntity = _repository.CookedRecipeCalledIngredients.Include<CookedRecipeCalledIngredient, CalledIngredient>(crci => crci.CalledIngredient).Include(crci => crci.ProductStock).FirstOrDefault(co => co.Id == request.Id);
 
             if (cookedRecipeCalledIngredientEntity == null)
             {
-                throw new EntityNotFoundException($"No CookedRecipeCalledIngredient found for the Id {request.Id}");
+                throw new NotFoundException($"No CookedRecipeCalledIngredient found for the Id {request.Id}");
             }
 
             cookedRecipeCalledIngredientEntity.Name = request.Name;
@@ -68,7 +57,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
                 if (productStock == null)
                 {
-                    throw new EntityNotFoundException($"No ProductStock found for the Id {request.ProductStockId}");
+                    throw new NotFoundException($"No ProductStock found for the Id {request.ProductStockId}");
                 }
                 cookedRecipeCalledIngredientEntity.ProductStock = productStock;
             }

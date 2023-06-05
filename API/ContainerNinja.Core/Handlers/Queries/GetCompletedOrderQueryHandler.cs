@@ -35,7 +35,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
                 if (completedOrderEntity == null)
                 {
-                    throw new EntityNotFoundException($"No CompletedOrder found for the Id {request.Id}");
+                    throw new NotFoundException($"No CompletedOrder found for the Id {request.Id}");
                 }
 
                 completedOrderDTO = _mapper.Map<CompletedOrderDTO>(completedOrderEntity);

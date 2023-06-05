@@ -504,6 +504,52 @@ namespace ContainerNinja.Migrations.Migrations
                     b.ToTable("Recipes");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Done")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ListId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Reminder")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ListId");
+
+                    b.ToTable("TodoItems");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoList", b =>
                 {
                     b.Property<int>("Id")
@@ -653,6 +699,17 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoItem", b =>
+                {
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.TodoList", "List")
+                        .WithMany("Items")
+                        .HasForeignKey("ListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("List");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ChatConversation", b =>
                 {
                     b.Navigation("ChatCommands");
@@ -681,6 +738,11 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("CalledIngredients");
 
                     b.Navigation("CookedRecipes");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoList", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,6 +8,8 @@ using ContainerNinja.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using ContainerNinja.API.Filters;
+using ContainerNinja.Core.Common;
+using MediatR;
 
 namespace ContainerNinja
 {
@@ -37,11 +39,14 @@ namespace ContainerNinja
 
             services.AddJwtBearerAuthentication();
 
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+
             //services.AddResponseCaching();
 
             services.AddControllers(options =>
             {
                 options.Filters.Add<AddHandlerHostHeaderResponseFilter>();
+                options.Filters.Add<ApiExceptionFilterAttribute>();
             });
 
             services.AddSwaggerWithVersioning();

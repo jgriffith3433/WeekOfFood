@@ -43,7 +43,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             var item = await Task.FromResult(_repository.Items.Get(request.ItemId));
             if (item == null)
             {
-                throw new EntityNotFoundException($"No Item found for Id {request.ItemId}");
+                throw new NotFoundException($"No Item found for Id {request.ItemId}");
             }
 
             var result = _mapper.Map<ItemDTO>(item);

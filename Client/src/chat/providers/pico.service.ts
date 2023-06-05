@@ -59,21 +59,50 @@ export class PicoService implements OnDestroy {
   }
 
   public async load() {
-    if (this.isLoaded) {
-      await this.porcupineService.release();
-    }
-    try {
-      await this.porcupineService.init(
-        this.tokenService.getPico() as string,
-        // @ts-ignore
-        this.keywords[0],
-        PicoModels.porcupineModel
-      );
-    }
-    catch (error: any) {
-      if (error) {
-        console.error(error);
+    if (this.tokenService.IsPicoAuthenticated) {
+      if (this.isLoaded) {
+        await this.porcupineService.release();
       }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        console.log("This browser does not support the API yet");
+      }
+
+      let hasMicrophone = false;
+      navigator.mediaDevices.enumerateDevices().then((devices) => {
+        devices.forEach((device) => {
+          if (device.kind == 'audioinput') {
+            hasMicrophone = false;
+          }
+        });
+      }).catch(function (err) {
+        console.log(err.name + ": " + err.message);
+      }).then(() => {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+          if (hasMicrophone) {
+            if (stream.getVideoTracks().length > 0 && stream.getAudioTracks().length > 0) {
+              console.log('asdf1');
+              try {
+                this.porcupineService.init(
+                  this.tokenService.getPico() as string,
+                  // @ts-ignore
+                  this.keywords[0],
+                  PicoModels.porcupineModel
+                );
+              }
+              catch (error: any) {
+                if (error) {
+                  console.error(error);
+                }
+              }
+            }
+            else {
+              console.log('asdf2');
+            }
+          }
+        }, error => {
+          console.log(error);
+        });
+      });
     }
   }
 

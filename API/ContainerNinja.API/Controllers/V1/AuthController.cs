@@ -1,6 +1,5 @@
 ﻿using ContainerNinja.Contracts.Constants;
 using ContainerNinja.Contracts.DTO;
-using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Handlers.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -29,20 +28,9 @@ namespace ContainerNinja.API.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> CreateAsync([FromBody] CreateOrUpdateUserDTO model)
         {
-            try
-            {
-                var request = new CreateUserCommand(model);
-                var result = await _mediator.Send(request);
-                return StatusCode((int)HttpStatusCode.Created, result);
-            }
-            catch (InvalidRequestBodyException ex)
-            {
-                return BadRequest(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = ex.Errors
-                });
-            }
+            var request = new CreateUserCommand(model);
+            var result = await _mediator.Send(request);
+            return StatusCode((int)HttpStatusCode.Created, result);
         }
 
         [AllowAnonymous]
@@ -52,28 +40,9 @@ namespace ContainerNinja.API.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> ValidateAsync([FromBody] ValidateUserDTO model)
         {
-            try
-            {
-                var request = new ValidateUserCommand(model);
-                var result = await _mediator.Send(request);
-                return Ok(result);
-            }
-            catch (InvalidRequestBodyException ex)
-            {
-                return BadRequest(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = ex.Errors
-                });
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return Unauthorized(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = new string[] { ex.Message }
-                });
-            }
+            var request = new ValidateUserCommand(model);
+            var result = await _mediator.Send(request);
+            return Ok(result);
         }
     }
 }

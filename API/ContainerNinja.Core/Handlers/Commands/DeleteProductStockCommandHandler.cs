@@ -28,7 +28,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             if (productStockEntity == null)
             {
-                throw new EntityNotFoundException($"No Product Stock found for the Id {request.Id}");
+                throw new NotFoundException($"No Product Stock found for the Id {request.Id}");
             }
 
             _cache.RemoveItem("products");

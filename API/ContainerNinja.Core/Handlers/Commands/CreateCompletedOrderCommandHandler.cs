@@ -35,20 +35,6 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateCompletedOrderCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
-
             var completedOrderEntity = new CompletedOrder();
             completedOrderEntity.Name = request.Name;
 

@@ -43,20 +43,9 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Post([FromBody] CreateOrUpdateItemDTO model)
         {
-            try
-            {
-                var command = new CreateItemCommand(model);
-                var response = await _mediator.Send(command);
-                return StatusCode((int)HttpStatusCode.Created, response);
-            }
-            catch (InvalidRequestBodyException ex)
-            {
-                return BadRequest(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = ex.Errors
-                });
-            }
+            var command = new CreateItemCommand(model);
+            var response = await _mediator.Send(command);
+            return StatusCode((int)HttpStatusCode.Created, response);
         }
 
         [MapToApiVersion("1.0")]
@@ -80,28 +69,9 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Update(int id, [FromBody] CreateOrUpdateItemDTO model)
         {
-            try
-            {
-                var command = new UpdateItemCommand(id, model);
-                var response = await _mediator.Send(command);
-                return Ok(response);
-            }
-            catch (InvalidRequestBodyException ex)
-            {
-                return BadRequest(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = ex.Errors
-                });
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return NotFound(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = new string[] { ex.Message }
-                });
-            }
+            var command = new UpdateItemCommand(id, model);
+            var response = await _mediator.Send(command);
+            return Ok(response);
         }
 
         [MapToApiVersion("1.0")]
@@ -113,20 +83,9 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var query = new GetItemByIdQuery(id);
-                var response = await _mediator.Send(query);
-                return Ok(response);
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return NotFound(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = new string[] { ex.Message }
-                });
-            }
+            var query = new GetItemByIdQuery(id);
+            var response = await _mediator.Send(query);
+            return Ok(response);
         }
     }
 }

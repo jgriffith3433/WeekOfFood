@@ -28,7 +28,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             if (completedOrderProductEntity == null)
             {
-                throw new EntityNotFoundException($"No Completed Order Product found for the Id {request.Id}");
+                throw new NotFoundException($"No Completed Order Product found for the Id {request.Id}");
             }
 
             _cache.RemoveItem($"completed_order_product_{completedOrderProductEntity.Id}");

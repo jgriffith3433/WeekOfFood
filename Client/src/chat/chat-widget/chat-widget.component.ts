@@ -391,115 +391,138 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.timeSinceDetected = 0;
     this.lastTimeDetected = performance.now();
     this.keepRecording = this.visible;
-    console.log("recording");
     const MIN_DECIBELS = -45;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+      console.log("This browser does not support the API yet");
+    }
 
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      //this.endSilenceDetected = false;
-      this.soundDetectedSendToServer = false;
-      this.soundWasDetected = false;
-      this.mediaRecorder = new MediaRecorder(stream);
-      this.mediaRecorder.start(3000);
-
-      let audioChunks: any[] = [];
-      this.mediaRecorder.ondataavailable = (event: { data: any; }) => {
-        audioChunks.push(event.data);
-        const audioBlob = new Blob(audioChunks);
-        console.log("dataavailable");
-        if (this.soundWasDetected) {
-          if (this.timeSinceDetected > 1) {
-            this.soundDetectedSendToServer = true;
-            this.soundWasDetected = false;
-            this.mediaRecorder.stop();
-          }
-        } else {
-          if (this.timeSinceDetected > 10) {
-            this.keepRecording = false;
-            this.timeSinceDetected = 0;
-            this.lastTimeDetected = 0;
-            this.soundDetectedSendToServer = false;
-            this.mediaRecorder.stop();
-          }
-          if (this.mediaRecorder.state == "inactive") {
-            this.mediaRecorder.stop();
-          }
-        }
-      };
-
-      const audioContext = new AudioContext();
-      const audioStreamSource = audioContext.createMediaStreamSource(stream);
-      const analyser = audioContext.createAnalyser();
-      analyser.minDecibels = MIN_DECIBELS;
-      audioStreamSource.connect(analyser);
-
-      const bufferLength = analyser.frequencyBinCount;
-      const domainData = new Uint8Array(bufferLength);
-
-
-      const detectSound = () => {
-
-        analyser.getByteFrequencyData(domainData);
-        let detected = false;
-        for (let i = 0; i < bufferLength; i++) {
-          const value = domainData[i];
-
-          if (domainData[i] > 0) {
-            detected = true;
-            break;
-          }
-        }
-        if (detected) {
-          this.lastTimeDetected = performance.now();
-          this.soundWasDetected = true;
-        }
-        else {
-          this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
-        }
-
-        if (this.mediaRecorder.state == "recording") {
-          window.requestAnimationFrame(detectSound);
-        }
-      };
-      window.requestAnimationFrame(detectSound);
-
-
-      //const detectEndSilence = () => {
-      //  analyser.getByteFrequencyData(domainData);
-
-      //  let endSoundDetected = false;
-      //  for (let i = bufferLength - 1; i >= 0; i--) {
-      //    const value = domainData[i];
-
-      //    if (domainData[i] > 0) {
-      //      endSoundDetected = true;
-      //    }
-      //    if (i < 500) {
-      //      if (endSoundDetected == false) {
-      //        this.endSilenceDetected = true;
-      //      }
-      //    }
-      //  }
-
-      //  if (this.mediaRecorder.state == "recording") {
-      //    window.requestAnimationFrame(detectEndSilence);
-      //  }
-      //};
-      //window.requestAnimationFrame(detectEndSilence);
-
-      this.mediaRecorder.addEventListener("stop", () => {
-        console.log("Recording ended.");
-        const audioBlob = new Blob(audioChunks);
-        if (this.soundDetectedSendToServer) {
-          this.soundDetectedSendToServer = false;
-          this.sendSpeech(audioBlob);
-          if (this.keepRecording) {
-            this.record();
-          }
-        }
-        else {
-          console.log("No sound detected. Nothing sent to server");
+    let hasMicrophone = false;
+    navigator.mediaDevices.enumerateDevices().then((devices) => {
+      devices.forEach((device) => {
+        if (device.kind == 'audioinput') {
+          hasMicrophone = false;
         }
       });
+    }).catch(function (err) {
+      console.log(err.name + ": " + err.message);
+    }).then(() => {
+      if (hasMicrophone) {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+          if (stream.getVideoTracks().length > 0 && stream.getAudioTracks().length > 0) {
+            console.log("recording");
+            console.log('asdf1');
+            //this.endSilenceDetected = false;
+            this.soundDetectedSendToServer = false;
+            this.soundWasDetected = false;
+            this.mediaRecorder = new MediaRecorder(stream);
+            this.mediaRecorder.start(3000);
+
+            let audioChunks: any[] = [];
+            this.mediaRecorder.ondataavailable = (event: { data: any; }) => {
+              audioChunks.push(event.data);
+              const audioBlob = new Blob(audioChunks);
+              console.log("dataavailable");
+              if (this.soundWasDetected) {
+                if (this.timeSinceDetected > 1) {
+                  this.soundDetectedSendToServer = true;
+                  this.soundWasDetected = false;
+                  this.mediaRecorder.stop();
+                }
+              } else {
+                if (this.timeSinceDetected > 10) {
+                  this.keepRecording = false;
+                  this.timeSinceDetected = 0;
+                  this.lastTimeDetected = 0;
+                  this.soundDetectedSendToServer = false;
+                  this.mediaRecorder.stop();
+                }
+                if (this.mediaRecorder.state == "inactive") {
+                  this.mediaRecorder.stop();
+                }
+              }
+            };
+
+            const audioContext = new AudioContext();
+            const audioStreamSource = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.minDecibels = MIN_DECIBELS;
+            audioStreamSource.connect(analyser);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const domainData = new Uint8Array(bufferLength);
+
+
+            const detectSound = () => {
+
+              analyser.getByteFrequencyData(domainData);
+              let detected = false;
+              for (let i = 0; i < bufferLength; i++) {
+                const value = domainData[i];
+
+                if (domainData[i] > 0) {
+                  detected = true;
+                  break;
+                }
+              }
+              if (detected) {
+                this.lastTimeDetected = performance.now();
+                this.soundWasDetected = true;
+              }
+              else {
+                this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
+              }
+
+              if (this.mediaRecorder.state == "recording") {
+                window.requestAnimationFrame(detectSound);
+              }
+            };
+            window.requestAnimationFrame(detectSound);
+
+            //const detectEndSilence = () => {
+            //  analyser.getByteFrequencyData(domainData);
+
+            //  let endSoundDetected = false;
+            //  for (let i = bufferLength - 1; i >= 0; i--) {
+            //    const value = domainData[i];
+
+            //    if (domainData[i] > 0) {
+            //      endSoundDetected = true;
+            //    }
+            //    if (i < 500) {
+            //      if (endSoundDetected == false) {
+            //        this.endSilenceDetected = true;
+            //      }
+            //    }
+            //  }
+
+            //  if (this.mediaRecorder.state == "recording") {
+            //    window.requestAnimationFrame(detectEndSilence);
+            //  }
+            //};
+            //window.requestAnimationFrame(detectEndSilence);
+
+            this.mediaRecorder.addEventListener("stop", () => {
+              console.log("Recording ended.");
+              const audioBlob = new Blob(audioChunks);
+              if (this.soundDetectedSendToServer) {
+                this.soundDetectedSendToServer = false;
+                this.sendSpeech(audioBlob);
+                if (this.keepRecording) {
+                  this.record();
+                }
+              }
+              else {
+                console.log("No sound detected. Nothing sent to server");
+              }
+            });
+          }
+          else {
+            console.log('asdf2');
+          }
+        }, function (error) {
+          console.log(error);
+        });
+      }
     });
   }
 

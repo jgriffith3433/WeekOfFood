@@ -22,6 +22,7 @@ namespace ContainerNinja.Core.Data
 
         public IItemRepository Items => new ItemRepository(_context);
         public ITodoListRepository TodoLists => new TodoListRepository(_context);
+        public ITodoItemRepository TodoItems => new TodoItemRepository(_context);
         public IUserRepository Users => new UserRepository(_context);
         public IChatCommandRepository ChatCommands => new ChatCommandRepository(_context);
         public IChatConversationRepository ChatConversations => new ChatConversationRepository(_context);

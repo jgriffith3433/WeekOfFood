@@ -68,7 +68,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                 if (!result.IsValid)
                 {
-                    throw new ValidationException(result.Errors);
+                    throw new ApiValidationException(result.Errors);
                 }
 
                 switch (request.ChatAICommand.Cmd.ToLower())

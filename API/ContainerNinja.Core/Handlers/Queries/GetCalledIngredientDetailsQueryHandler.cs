@@ -36,7 +36,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
                 if (calledIngredientEntity == null)
                 {
-                    throw new EntityNotFoundException($"No CalledIngredient found for the Id {request.Id}");
+                    throw new NotFoundException($"No CalledIngredient found for the Id {request.Id}");
                 }
 
                 calledIngredientDTO = _mapper.Map<CalledIngredientDTO>(calledIngredientEntity);

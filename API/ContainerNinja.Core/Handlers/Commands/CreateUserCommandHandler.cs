@@ -34,17 +34,6 @@ namespace ContainerNinja.Core.Handlers.Commands
         public async Task<AuthTokenDTO> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var model = request.Model;
-            var result = _validator.Validate(model);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var user = new User
             {
                 EmailAddress = model.EmailAddress,

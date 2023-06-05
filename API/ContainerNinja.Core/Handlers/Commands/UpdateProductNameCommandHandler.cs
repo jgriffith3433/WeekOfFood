@@ -40,22 +40,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<ProductDTO> IRequestHandler<UpdateProductNameCommand, ProductDTO>.Handle(UpdateProductNameCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.Id == request.Id);
 
             if (productEntity == null)
             {
-                throw new EntityNotFoundException($"No Product found for the Id {request.Id}");
+                throw new NotFoundException($"No Product found for the Id {request.Id}");
             }
 
             if (productEntity.Name != request.Name && productEntity.WalmartId == null)

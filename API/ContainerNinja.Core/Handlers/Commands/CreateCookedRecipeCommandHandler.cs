@@ -36,24 +36,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<CookedRecipeDTO> Handle(CreateCookedRecipeCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var recipeEntity = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(p => p.CalledIngredients).ThenInclude(ci => ci.ProductStock).Include(r => r.CookedRecipes).FirstOrDefault(r => r.Id == request.RecipeId);
 
             if (recipeEntity == null)
             {
-                throw new EntityNotFoundException($"No Recipe found for the Id {request.RecipeId}");
+                throw new NotFoundException($"No Recipe found for the Id {request.RecipeId}");
             }
 
             var cookedRecipeEntity = new CookedRecipe();

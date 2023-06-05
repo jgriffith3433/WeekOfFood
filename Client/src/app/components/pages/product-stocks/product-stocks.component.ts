@@ -90,7 +90,7 @@ export class ProductStocksComponent implements OnInit {
         this.newProductStockEditor = {};
       },
       error => {
-        const errors = JSON.parse(error.response);
+        const errors = error.errors;
 
         if (errors && errors.Title) {
           this.newProductStockEditor.error = errors.Title[0];
@@ -221,7 +221,7 @@ export class ProductStocksComponent implements OnInit {
         }
       },
       error => {
-        const errors = JSON.parse(error.response);
+        const errors = error.errors;
 
         if (errors && errors.Title) {
           this.productStockEditor.error = errors.Title[0];

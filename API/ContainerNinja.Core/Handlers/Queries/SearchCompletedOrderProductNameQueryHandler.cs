@@ -36,7 +36,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             var completedOrderProductEntity = _repository.CompletedOrderProducts.Include<CompletedOrderProduct, CompletedOrder>(cop => cop.CompletedOrder).FirstOrDefault(cop => cop.Id == request.Id);
             if (completedOrderProductEntity == null)
             {
-                throw new EntityNotFoundException($"No CompletedOrderProduct found for the Id {request.Id}");
+                throw new NotFoundException($"No CompletedOrderProduct found for the Id {request.Id}");
             }
 
             var searchResponse = await _walmartService.Search(request.Name);

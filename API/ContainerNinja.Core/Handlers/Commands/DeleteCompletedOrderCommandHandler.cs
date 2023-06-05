@@ -28,7 +28,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             if (completedOrderEntity == null)
             {
-                throw new EntityNotFoundException($"No Completed Order found for the Id {request.Id}");
+                throw new NotFoundException($"No Completed Order found for the Id {request.Id}");
             }
 
             foreach(var completedOrderProduct in completedOrderEntity.CompletedOrderProducts)

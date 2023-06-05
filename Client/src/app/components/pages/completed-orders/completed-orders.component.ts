@@ -95,7 +95,7 @@ export class CompletedOrdersComponent implements OnInit {
         );
       },
       error => {
-        const errors = JSON.parse(error.response);
+        const errors = error.errors;
 
         if (errors && errors.Title) {
           this.newCompletedOrderEditor.error = errors.Title[0];
@@ -220,7 +220,7 @@ export class CompletedOrdersComponent implements OnInit {
         }
       },
       error => {
-        const errors = JSON.parse(error.response);
+        const errors = error.errors;
 
         if (errors && errors.Title) {
           this.completedOrderProductDetailsEditor.error = errors.Title[0];

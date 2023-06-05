@@ -44,17 +44,6 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CalledIngredientDetailsDTO> IRequestHandler<UpdateCalledIngredientDetailsCommand, CalledIngredientDetailsDTO>.Handle(UpdateCalledIngredientDetailsCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var calledIngredientEntity = _repository.CalledIngredients
                 .Include<CalledIngredient, ProductStock>(ci => ci.ProductStock)
                 .Include<CalledIngredient, Recipe>(ci => ci.Recipe)
@@ -62,7 +51,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             if (calledIngredientEntity == null)
             {
-                throw new EntityNotFoundException($"No CalledIngredient found for the Id {request.Id}");
+                throw new NotFoundException($"No CalledIngredient found for the Id {request.Id}");
             }
 
             calledIngredientEntity.Name = request.Name;

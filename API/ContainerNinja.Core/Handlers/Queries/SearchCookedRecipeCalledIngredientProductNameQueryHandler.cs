@@ -37,7 +37,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
                 if (cookedRecipeCalledIngredientEntity == null)
                 {
-                    throw new EntityNotFoundException($"No CookedRecipeCalledIngredient found for the Id {request.Id}");
+                    throw new NotFoundException($"No CookedRecipeCalledIngredient found for the Id {request.Id}");
                 }
 
                 cookedRecipeCalledIngredientDTO = _mapper.Map<CookedRecipeCalledIngredientDTO>(cookedRecipeCalledIngredientEntity);

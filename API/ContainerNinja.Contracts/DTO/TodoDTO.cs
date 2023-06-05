@@ -1,5 +1,4 @@
-﻿using ContainerNinja.Contracts.Data.Entities;
-
+﻿
 namespace ContainerNinja.Contracts.DTO
 {
     public class TodoListDTO
@@ -8,6 +7,6 @@ namespace ContainerNinja.Contracts.DTO
         public string Title { get; set; }
         public string Color { get; set; }
 
-        //public IList<TodoItemDto> Items { get; set; }
+        public IList<TodoItemDTO> Items { get; set; } = new List<TodoItemDTO>();
     }
 }

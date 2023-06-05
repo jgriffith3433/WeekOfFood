@@ -28,7 +28,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             if (cookedRecipeEntity == null)
             {
-                throw new EntityNotFoundException($"No CookedRecipe found for the Id {request.Id}");
+                throw new NotFoundException($"No CookedRecipe found for the Id {request.Id}");
             }
 
             foreach(var cookedRecipeCalledIngredient in cookedRecipeEntity.CookedRecipeCalledIngredients)

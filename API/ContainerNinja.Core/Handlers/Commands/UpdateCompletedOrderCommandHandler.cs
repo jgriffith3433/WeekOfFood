@@ -37,22 +37,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CompletedOrderDTO> IRequestHandler<UpdateCompletedOrderCommand, CompletedOrderDTO>.Handle(UpdateCompletedOrderCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var completedOrderEntity = _repository.CompletedOrders.Get(request.Id);
 
             if (completedOrderEntity == null)
             {
-                throw new EntityNotFoundException($"No Completed Order found for the Id {request.Id}");
+                throw new NotFoundException($"No Completed Order found for the Id {request.Id}");
             }
 
             completedOrderEntity.Name = request.Name;

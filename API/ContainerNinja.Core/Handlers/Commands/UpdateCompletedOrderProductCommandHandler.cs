@@ -42,22 +42,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CompletedOrderProductDTO> IRequestHandler<UpdateCompletedOrderProductCommand, CompletedOrderProductDTO>.Handle(UpdateCompletedOrderProductCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var completedOrderProductEntity = _repository.CompletedOrderProducts.Include<CompletedOrderProduct, Product>(cop => cop.Product).FirstOrDefault(cop => cop.Id == request.Id);
 
             if (completedOrderProductEntity == null)
             {
-                throw new EntityNotFoundException($"No Completed Order Product found for the Id {request.Id}");
+                throw new NotFoundException($"No Completed Order Product found for the Id {request.Id}");
             }
 
             if (completedOrderProductEntity.Name != request.Name && completedOrderProductEntity.WalmartId == null)

@@ -38,24 +38,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateCompletedOrderProductCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var completedOrderEntity = _repository.CompletedOrders.Include<CompletedOrder, IList<CompletedOrderProduct>>(co => co.CompletedOrderProducts).FirstOrDefault(co => co.Id == request.CompletedOrderId);
 
             if (completedOrderEntity == null)
             {
-                throw new EntityNotFoundException($"No CompletedOrder found for the Id {request.CompletedOrderId}");
+                throw new NotFoundException($"No CompletedOrder found for the Id {request.CompletedOrderId}");
             }
 
             var completedOrderProductEntity = new CompletedOrderProduct

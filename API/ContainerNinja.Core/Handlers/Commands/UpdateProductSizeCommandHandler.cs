@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             if (productEntity == null)
             {
-                throw new EntityNotFoundException($"No Product found for the Id {request.Id}");
+                throw new NotFoundException($"No Product found for the Id {request.Id}");
             }
 
             productEntity.Size = request.Size;

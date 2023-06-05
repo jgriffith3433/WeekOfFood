@@ -36,22 +36,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<ProductStockDTO> IRequestHandler<UpdateProductStockCommand, ProductStockDTO>.Handle(UpdateProductStockCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).FirstOrDefault(ps => ps.Id == request.Id);
 
             if (productStockEntity == null)
             {
-                throw new EntityNotFoundException($"No Product Stock found for the Id {request.Id}");
+                throw new NotFoundException($"No Product Stock found for the Id {request.Id}");
             }
 
             productStockEntity.Units = request.Units;

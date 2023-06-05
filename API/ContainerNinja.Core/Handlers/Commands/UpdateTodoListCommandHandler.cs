@@ -6,30 +6,26 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
     public class UpdateTodoListCommand : IRequest<TodoListDTO>
     {
-        public int TodoListId { get; set; }
-        public CreateOrUpdateTodoListDTO Model { get; }
+        public int Id { get; init; }
 
-        public UpdateTodoListCommand(int todoListId, CreateOrUpdateTodoListDTO model)
-        {
-            this.TodoListId = todoListId;
-            this.Model = model;
-        }
+        public string? Title { get; init; }
     }
 
     public class UpdateTodoListCommandHandler : IRequestHandler<UpdateTodoListCommand, TodoListDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateOrUpdateTodoListDTO> _validator;
+        private readonly IValidator<UpdateTodoListCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateTodoListCommandHandler> _logger;
 
-        public UpdateTodoListCommandHandler(ILogger<UpdateTodoListCommandHandler> logger, IUnitOfWork repository, IValidator<CreateOrUpdateTodoListDTO> validator, IMapper mapper, ICachingService cache)
+        public UpdateTodoListCommandHandler(ILogger<UpdateTodoListCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateTodoListCommand> validator, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
             _validator = validator;
@@ -40,39 +36,22 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<TodoListDTO> IRequestHandler<UpdateTodoListCommand, TodoListDTO>.Handle(UpdateTodoListCommand request, CancellationToken cancellationToken)
         {
-            CreateOrUpdateTodoListDTO model = request.Model;
-            int todoListId = request.TodoListId;
+            var todoListEntity = _repository.TodoLists.Include<TodoList, IList<TodoItem>>(tdl => tdl.Items).FirstOrDefault(tdl => tdl.Id == request.Id);
 
-            var result = _validator.Validate(model);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
+            if (todoListEntity == null)
             {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
+                throw new NotFoundException($"No TodoList found for the Id {request.Id}");
             }
 
-            var dbEntity = _repository.TodoLists.Get(todoListId);
+            todoListEntity.Title = request.Title;
 
-            if (dbEntity == null)
-            {
-                throw new EntityNotFoundException($"No TodoList found for the Id {todoListId}");
-            }
-
-            dbEntity.Title = model.Title;
-            dbEntity.Color = model.Color;
-
-            _repository.TodoLists.Update(dbEntity);
+            _repository.TodoLists.Update(todoListEntity);
             await _repository.CommitAsync();
 
-            var updatedTodoList = _mapper.Map<TodoListDTO>(dbEntity);
-            _cache.SetItem($"todo_list_{todoListId}", updatedTodoList);
+            var todoListDTO = _mapper.Map<TodoListDTO>(todoListEntity);
+            _cache.SetItem($"todo_list_{request.Id}", todoListDTO);
             _cache.RemoveItem("todo_lists");
-            return updatedTodoList;
+            return todoListDTO;
         }
     }
 }

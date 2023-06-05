@@ -6,12 +6,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 {
     public class DeleteTodoListCommand : IRequest<int>
     {
-        public int TodoListId { get; }
-
-        public DeleteTodoListCommand(int todoListId)
-        {
-            TodoListId = todoListId;
-        }
+        public int Id { get; set; }
     }
 
     public class DeleteTodoListCommandHandler : IRequestHandler<DeleteTodoListCommand, int>
@@ -27,11 +22,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(DeleteTodoListCommand request, CancellationToken cancellationToken)
         {
-            _repository.TodoLists.Delete(request.TodoListId);
+            _repository.TodoLists.Delete(request.Id);
             await _repository.CommitAsync();
             _cache.RemoveItem("todo_lists");
-            _cache.RemoveItem($"todo_list_{request.TodoListId}");
-            return request.TodoListId;
+            _cache.RemoveItem($"todo_list_{request.Id}");
+            return request.Id;
         }
     }
 }

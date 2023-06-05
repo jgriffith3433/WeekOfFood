@@ -5,6 +5,7 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -40,10 +41,10 @@ namespace ContainerNinja.Core.Handlers.Queries
                 return cachedTodoList;
             }
 
-            var todoList = await Task.FromResult(_repository.TodoLists.Get(request.TodoListId));
+            var todoList = await Task.FromResult(_repository.TodoLists.Include<TodoList, IList<TodoItem>>(tdl => tdl.Items).FirstOrDefault(tdl => tdl.Id == request.TodoListId));
             if (todoList == null)
             {
-                throw new EntityNotFoundException($"No TodoList found for Id {request.TodoListId}");
+                throw new NotFoundException($"No TodoList found for Id {request.TodoListId}");
             }
 
             var result = _mapper.Map<TodoListDTO>(todoList);

@@ -38,7 +38,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
                 if (productStockEntity == null)
                 {
-                    throw new EntityNotFoundException($"No Product Stock found for the Id {request.Id}");
+                    throw new NotFoundException($"No Product Stock found for the Id {request.Id}");
                 }
 
                 productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);

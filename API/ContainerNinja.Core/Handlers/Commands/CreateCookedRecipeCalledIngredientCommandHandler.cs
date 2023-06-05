@@ -37,24 +37,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateCookedRecipeCalledIngredientCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var cookedRecipeEntity = _repository.CookedRecipes.Get(request.CookedRecipeId);
 
             if (cookedRecipeEntity == null)
             {
-                throw new EntityNotFoundException($"No CookedRecipe found for the Id {request.CookedRecipeId}");
+                throw new NotFoundException($"No CookedRecipe found for the Id {request.CookedRecipeId}");
             }
 
             var cookedRecipeCalledIngredientEntity = new CookedRecipeCalledIngredient
@@ -69,7 +56,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
                 if (productStock == null)
                 {
-                    throw new EntityNotFoundException($"No ProductStock found for the Id {request.ProductStockId}");
+                    throw new NotFoundException($"No ProductStock found for the Id {request.ProductStockId}");
                 }
 
                 cookedRecipeCalledIngredientEntity.ProductStock = productStock;

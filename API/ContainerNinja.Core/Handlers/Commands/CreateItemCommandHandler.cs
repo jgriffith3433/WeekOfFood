@@ -40,19 +40,6 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             CreateOrUpdateItemDTO model = request.Model;
 
-            var result = _validator.Validate(model);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var entity = new Item
             {
                 Name = model.Name,

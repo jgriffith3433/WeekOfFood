@@ -8,6 +8,7 @@ namespace ContainerNinja.Contracts.Data
         ChangeTracker ChangeTracker { get; }
         IItemRepository Items { get; }
         ITodoListRepository TodoLists { get; }
+        ITodoItemRepository TodoItems { get; }
         IUserRepository Users { get; }
         IChatCommandRepository ChatCommands { get; }
         IChatConversationRepository ChatConversations { get; }

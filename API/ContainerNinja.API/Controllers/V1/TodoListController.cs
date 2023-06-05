@@ -32,20 +32,12 @@ namespace ContainerNinja.API.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Post([FromBody] CreateOrUpdateTodoListDTO model)
         {
-            try
+            var response = await _mediator.Send(new CreateTodoListCommand
             {
-                var command = new CreateTodoListCommand(model);
-                var response = await _mediator.Send(command);
-                return StatusCode((int)HttpStatusCode.Created, response);
-            }
-            catch (InvalidRequestBodyException ex)
-            {
-                return BadRequest(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = ex.Errors
-                });
-            }
+                Color = model.Color,
+                Title = model.Title,
+            });
+            return StatusCode((int)HttpStatusCode.Created, response);
         }
 
         [MapToApiVersion("1.0")]
@@ -53,11 +45,12 @@ namespace ContainerNinja.API.Controllers.V1
         [Route("{id}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<ActionResult<int>> Delete(int id)
         {
-            var command = new DeleteTodoListCommand(id);
-            await _mediator.Send(command);
-            return Ok();
+            return await _mediator.Send(new DeleteTodoListCommand
+            {
+                Id = id
+            });
         }
 
         [MapToApiVersion("1.0")]
@@ -67,28 +60,13 @@ namespace ContainerNinja.API.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> Update(int id, [FromBody] CreateOrUpdateTodoListDTO model)
         {
-            try
+            var command = new UpdateTodoListCommand
             {
-                var command = new UpdateTodoListCommand(id, model);
-                var response = await _mediator.Send(command);
-                return Ok(response);
-            }
-            catch (InvalidRequestBodyException ex)
-            {
-                return BadRequest(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = ex.Errors
-                });
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return NotFound(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = new string[] { ex.Message }
-                });
-            }
+                Id = id,
+                Title = model.Title,
+            };
+            var response = await _mediator.Send(command);
+            return Ok(response);
         }
 
         [MapToApiVersion("1.0")]
@@ -98,20 +76,9 @@ namespace ContainerNinja.API.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var query = new GetTodoListByIdQuery(id);
-                var response = await _mediator.Send(query);
-                return Ok(response);
-            }
-            catch (EntityNotFoundException ex)
-            {
-                return NotFound(new BaseResponseDTO
-                {
-                    IsSuccess = false,
-                    Errors = new string[] { ex.Message }
-                });
-            }
+            var query = new GetTodoListByIdQuery(id);
+            var response = await _mediator.Send(query);
+            return Ok(response);
         }
     }
 }

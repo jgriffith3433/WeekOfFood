@@ -35,22 +35,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<RecipeDTO> IRequestHandler<UpdateRecipeServesCommand, RecipeDTO>.Handle(UpdateRecipeServesCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
-            if (!result.IsValid)
-            {
-                var errors = result.Errors.Select(x => x.ErrorMessage).ToArray();
-                throw new InvalidRequestBodyException
-                {
-                    Errors = errors
-                };
-            }
-
             var recipeEntity = _repository.Recipes.Get(request.Id);
 
             if (recipeEntity == null)
             {
-                throw new EntityNotFoundException($"No Recipe found for the Id {request.Id}");
+                throw new NotFoundException($"No Recipe found for the Id {request.Id}");
             }
 
             if (recipeEntity.Serves != request.Serves)

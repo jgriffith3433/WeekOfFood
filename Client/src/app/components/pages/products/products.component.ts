@@ -86,7 +86,7 @@ export class ProductsComponent implements OnInit {
         this.newProductEditor = {};
       },
       error => {
-        const errors = JSON.parse(error.response);
+        const errors = error.errors;
 
         if (errors && errors.Title) {
           this.newProductEditor.error = errors.Title[0];

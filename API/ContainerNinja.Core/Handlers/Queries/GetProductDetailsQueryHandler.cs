@@ -34,7 +34,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
                 if (productEntity == null)
                 {
-                    throw new EntityNotFoundException($"No Product found for the Id {request.Id}");
+                    throw new NotFoundException($"No Product found for the Id {request.Id}");
                 }
 
                 productDTO = _mapper.Map<ProductDTO>(productEntity);
