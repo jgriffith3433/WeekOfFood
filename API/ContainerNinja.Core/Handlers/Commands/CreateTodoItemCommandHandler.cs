@@ -20,15 +20,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemCommand, int>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateTodoItemCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateTodoItemCommandHandler> _logger;
         private readonly ICachingService _cache;
 
-        public CreateTodoItemCommandHandler(ILogger<CreateTodoItemCommandHandler> logger, IUnitOfWork repository, IValidator<CreateTodoItemCommand> validator, IMapper mapper, ICachingService cache)
+        public CreateTodoItemCommandHandler(ILogger<CreateTodoItemCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;

@@ -12,6 +12,8 @@ using ContainerNinja.Contracts.Data.Entities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using LinqKit;
+using ContainerNinja.Core.Exceptions;
+using FluentValidation.Results;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -33,9 +35,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandDeleteProduct> _validator;
 
-        public ConsumeChatCommandDeleteProductHandler(ILogger<ConsumeChatCommandDeleteProductHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandDeleteProduct> validator)
+        public ConsumeChatCommandDeleteProductHandler(ILogger<ConsumeChatCommandDeleteProductHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -43,7 +44,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteProduct request, CancellationToken cancellationToken)
@@ -52,92 +52,35 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
             };
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
+            var predicate = PredicateBuilder.New<Product>();
+            var searchTerms = string.Join(' ', request.Command.Product.ToLower().Split('-')).Split(' ');
+            foreach (var searchTerm in searchTerms)
             {
-                foreach (var error in result.Errors)
-                {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
+                predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
+            }
+            var query = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock)
+                .AsNoTracking()
+                .AsExpandable()
+                .Where(predicate).ToList();
+
+            if (query.Count == 0)
+            {
+                var systemResponse = "Error: Could not find product by name: " + request.Command.Product;
+                throw new ChatAIException(systemResponse);
             }
             else
             {
-                //Command logic
-                var predicate = PredicateBuilder.New<Product>();
-                var searchTerms = string.Join(' ', request.Command.Product.ToLower().Split('-')).Split(' ');
-                foreach (var searchTerm in searchTerms)
+                if (query.Count == 1 && query[0].Name.ToLower() == request.Command.Product.ToLower())
                 {
-                    predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
-                }
-                var query = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock)
-                    .AsNoTracking()
-                    .AsExpandable()
-                    .Where(predicate).ToList();
-
-                if (query.Count == 0)
-                {
-                    var systemResponse = "Error: Could not find product by name: " + request.Command.Product;
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = systemResponse,
-                        RawContent = systemResponse,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
+                    //exact match, go ahead and delete
+                    _repository.Products.Delete(query[0].Id);
                 }
                 else
                 {
-                    if (query.Count == 1 && query[0].Name.ToLower() == request.Command.Product.ToLower())
-                    {
-                        //exact match, go ahead and delete
-                        _repository.Products.Delete(query[0].Id);
-                    }
-                    else
-                    {
-                        //unsure, ask user
-                        var productNames = query.Select(p => p.Name).ToList();
-                        var systemResponse = "Which product are you referring to?\n" + string.Join(", ", productNames);
-                        chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                        {
-                            Content = systemResponse,
-                            RawContent = systemResponse,
-                            Name = StaticValues.ChatMessageRoles.System,
-                            Role = StaticValues.ChatMessageRoles.System,
-                        });
-                        chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                        {
-                            ChatMessages = chatResponseVM.ChatMessages,
-                            ChatConversation = request.ChatConversation,
-                            CurrentUrl = request.CurrentUrl,
-                            SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                            CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                        });
-                    }
+                    //unsure, ask user
+                    var productNames = query.Select(p => p.Name).ToList();
+                    var systemResponse = "Which product are you referring to?\n" + string.Join(", ", productNames);
+                    throw new ChatAIException(systemResponse);
                 }
             }
             return chatResponseVM;

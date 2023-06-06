@@ -20,16 +20,14 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class CreateCompletedOrderProductCommandHandler : IRequestHandler<CreateCompletedOrderProductCommand, int>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateCompletedOrderProductCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateCompletedOrderProductCommandHandler> _logger;
         private readonly ICachingService _cache;
         private readonly IWalmartService _walmartService;
 
-        public CreateCompletedOrderProductCommandHandler(ILogger<CreateCompletedOrderProductCommandHandler> logger, IUnitOfWork repository, IValidator<CreateCompletedOrderProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
+        public CreateCompletedOrderProductCommandHandler(ILogger<CreateCompletedOrderProductCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;

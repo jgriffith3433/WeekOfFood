@@ -13,6 +13,8 @@ using ContainerNinja.Contracts.ChatAI;
 using ContainerNinja.Contracts.ViewModels;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
+using ContainerNinja.Core.Handlers.Queries;
+using OpenAI.ObjectModels.ResponseModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -29,17 +31,15 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
     public class ConsumeChatCommandHandler : IRequestHandler<ConsumeChatCommand, ChatResponseVM>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<ConsumeChatCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<ConsumeChatCommandHandler> _logger;
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
 
-        public ConsumeChatCommandHandler(ILogger<ConsumeChatCommandHandler> logger, IUnitOfWork repository, IValidator<ConsumeChatCommand> validator, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
+        public ConsumeChatCommandHandler(ILogger<ConsumeChatCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;
@@ -62,20 +62,18 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             ChatResponseVM chatResponseVM;
             try
             {
-                var result = _validator.Validate(request);
-
-                _logger.LogInformation($"Validation result: {result}");
-
-                if (!result.IsValid)
+                switch (string.Join("_", request.ChatAICommand.Cmd.ToLower().Split(" ")))
                 {
-                    throw new ApiValidationException(result.Errors);
-                }
-
-                switch (request.ChatAICommand.Cmd.ToLower())
-                {
-                    case "go-to-page":
+                    case "go_to":
+                    case "go_to_page":
+                    case "navigate":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandGoToPage>(request));
+                        }
+                        break;
+                    case "go_to_recipes":
+                        {
+                            chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandGoToRecipes>(request));
                         }
                         break;
                     case "order":
@@ -83,77 +81,77 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandOrder>(request));
                         }
                         break;
-                    case "edit-recipe-name":
+                    case "edit_recipe_name":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandEditRecipeName>(request));
                         }
                         break;
-                    case "substitute-recipe-ingredient":
+                    case "substitute_recipe_ingredient":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandRecipeSubstituteIngredient>(request));
                         }
                         break;
-                    case "substitute-cooked-recipe-ingredient":
+                    case "substitute_cooked_recipe_ingredient":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandCookedRecipeSubstituteIngredient>(request));
                         }
                         break;
-                    case "add-recipe-ingredient":
+                    case "add_recipe_ingredient":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandAddRecipeIngredient>(request));
                         }
                         break;
-                    case "add-cooked-recipe-ingredient":
+                    case "add_cooked_recipe_ingredient":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandAddCookedRecipeIngredient>(request));
                         }
                         break;
-                    case "remove-recipe-ingredient":
+                    case "remove_recipe_ingredient":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandDeleteRecipeIngredient>(request));
                         }
                         break;
-                    case "remove-cooked-recipe-ingredient":
+                    case "remove_cooked_recipe_ingredient":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandDeleteCookedRecipeIngredient>(request));
                         }
                         break;
-                    case "edit-recipe-ingredient-unittype":
+                    case "edit_recipe_ingredient_unittype":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandEditRecipeIngredientUnitType>(request));
                         }
                         break;
-                    case "edit-cooked-recipe-ingredient-unittype":
+                    case "edit_cooked_recipe_ingredient_unittype":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandEditCookedRecipeIngredientUnitType>(request));
                         }
                         break;
-                    case "edit-product-unit-type":
+                    case "edit_product_unit_type":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandEditProductUnitType>(request));
                         }
                         break;
-                    case "create-product":
+                    case "create_product":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandCreateProduct>(request));
                         }
                         break;
-                    case "delete-product":
+                    case "delete_product":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandDeleteProduct>(request));
                         }
                         break;
-                    case "create-recipe":
+                    case "create_recipe":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandCreateRecipe>(request));
                         }
                         break;
-                    case "delete-recipe":
+                    case "delete_recipe":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandDeleteRecipe>(request));
                         }
                         break;
-                    case "create-cooked-recipe":
+                    case "create_cooked_recipe":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandCreateCookedRecipe>(request));
                             break;
@@ -163,7 +161,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandNone>(request));
                         }
                         break;
-                    case "delete-cooked-recipe":
+                    case "delete_cooked_recipe":
                         {
                             chatResponseVM = await _mediator.Send(_mapper.Map<ConsumeChatCommandDeleteCookedRecipe>(request));
                         }
@@ -178,11 +176,25 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 chatCommandEntity.ChangedData = chatResponseVM.Dirty;
                 chatCommandEntity.UnknownCommand = chatResponseVM.UnknownCommand;
                 chatCommandEntity.NavigateToPage = chatResponseVM.NavigateToPage;
-                chatResponseVM.CreateNewChat = !string.IsNullOrEmpty(chatResponseVM.NavigateToPage);
+                //chatResponseVM.CreateNewChat = !string.IsNullOrEmpty(chatResponseVM.NavigateToPage);
                 chatResponseVM.ChatConversationId = request.ChatConversation.Id;
                 request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
 
                 await _repository.CommitAsync();
+            }
+            catch (ApiValidationException ex)
+            {
+                chatCommandEntity.Error = FlattenException(ex);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages);
+                await _repository.CommitAsync();
+                throw ex;
+            }
+            catch (ChatAIException ex)
+            {
+                chatCommandEntity.Error = FlattenException(ex);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages);
+                await _repository.CommitAsync();
+                throw ex;
             }
             catch (Exception ex)
             {
@@ -191,7 +203,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     ChatMessages = request.ChatMessages,
                 };
-                chatResponseVM.CreateNewChat = true;
+                //chatResponseVM.CreateNewChat = true;
                 chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 {
                     Content = ex.Message,

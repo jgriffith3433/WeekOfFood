@@ -21,6 +21,9 @@ namespace ContainerNinja.Core.Validators.ChatCommands
 
             RuleFor(v => v.ChatConversation)
                 .NotEmpty().WithMessage("ChatConversation is required.");
+
+            RuleFor(v => v.ChatAICommand.Cmd)
+                .NotEmpty().WithMessage("Cmd is required.");
         }
     }
 }

@@ -43,7 +43,7 @@ namespace ContainerNinja.Core.Validators
                         return false;
                     }
                     return true;
-                });
+                }).WithMessage("Could not negotiate a command");
         }
     }
 }

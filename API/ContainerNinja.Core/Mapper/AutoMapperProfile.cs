@@ -81,6 +81,9 @@ namespace ContainerNinja.Core.Mapper
             CreateMap<ConsumeChatCommand, ConsumeChatCommandGoToPage>()
                 .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandGoToPage>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
 
+            CreateMap<ConsumeChatCommand, ConsumeChatCommandGoToRecipes>()
+                .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandGoToRecipes>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
+
             CreateMap<ConsumeChatCommand, ConsumeChatCommandOrder>()
                 .ForMember(x => x.Command, opt => opt.MapFrom(s => JsonConvert.DeserializeObject<ChatAICommandOrder>(s.RawChatAICommand.Substring(s.RawChatAICommand.IndexOf('{'), s.RawChatAICommand.LastIndexOf('}') - s.RawChatAICommand.IndexOf('{') + 1))));
 

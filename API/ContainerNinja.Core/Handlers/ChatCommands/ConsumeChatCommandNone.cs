@@ -31,9 +31,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandNone> _validator;
 
-        public ConsumeChatCommandNoneHandler(ILogger<ConsumeChatCommandNoneHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandNone> validator)
+        public ConsumeChatCommandNoneHandler(ILogger<ConsumeChatCommandNoneHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -41,7 +40,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandNone request, CancellationToken cancellationToken)
@@ -50,38 +48,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
                 ChatConversationId = request.ChatConversation.Id,
+                //Sometimes the AI sends responses back with "none" as the command while communicating
                 UnknownCommand = !string.IsNullOrEmpty(request.Command.Cmd)
             };
-
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
-            {
-                foreach (var error in result.Errors)
-                {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
-            }
-            else
-            {
-                //Sometimes the AI sends responses back with "none" as the command while communicating
-            }
 
             return chatResponseVM;
         }

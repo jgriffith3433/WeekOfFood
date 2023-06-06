@@ -22,16 +22,14 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, ProductDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateProductCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateProductCommandHandler> _logger;
         private readonly IWalmartService _walmartService;
 
-        public UpdateProductCommandHandler(ILogger<UpdateProductCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
+        public UpdateProductCommandHandler(ILogger<UpdateProductCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;

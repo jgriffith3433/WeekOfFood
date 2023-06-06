@@ -10,6 +10,8 @@ using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.Queries;
 using ContainerNinja.Contracts.Data.Entities;
 using FluentValidation;
+using ContainerNinja.Core.Exceptions;
+using FluentValidation.Results;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -31,9 +33,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandEditRecipeName> _validator;
 
-        public ConsumeChatCommandEditRecipeNameHandler(ILogger<ConsumeChatCommandEditRecipeNameHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandEditRecipeName> validator)
+        public ConsumeChatCommandEditRecipeNameHandler(ILogger<ConsumeChatCommandEditRecipeNameHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -41,7 +42,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandEditRecipeName request, CancellationToken cancellationToken)
@@ -50,58 +50,16 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
             };
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
+            var recipe = _repository.Recipes.FirstOrDefault(r => r.Name.ToLower().Contains(request.Command.Original.ToLower()));
+            if (recipe == null)
             {
-                foreach (var error in result.Errors)
-                {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
+                var systemResponse = "Error: Could not find recipe by name: " + request.Command.Original;
+                throw new ChatAIException(systemResponse);
             }
             else
             {
-                var recipe = _repository.Recipes.FirstOrDefault(r => r.Name.ToLower().Contains(request.Command.Original.ToLower()));
-                if (recipe == null)
-                {
-                    var systemResponse = "Error: Could not find recipe by name: " + request.Command.Original;
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = systemResponse,
-                        RawContent = systemResponse,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
-                }
-                else
-                {
-                    recipe.Name = request.Command.New;
-                    _repository.Recipes.Update(recipe);
-                }
+                recipe.Name = request.Command.New;
+                _repository.Recipes.Update(recipe);
             }
             return chatResponseVM;
         }

@@ -11,6 +11,8 @@ using ContainerNinja.Core.Handlers.Queries;
 using ContainerNinja.Contracts.Data.Entities;
 using FluentValidation;
 using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Core.Exceptions;
+using FluentValidation.Results;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -32,9 +34,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandAddCookedRecipeIngredient> _validator;
 
-        public ConsumeChatCommandAddCookedRecipeIngredientHandler(ILogger<ConsumeChatCommandAddCookedRecipeIngredientHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandAddCookedRecipeIngredient> validator)
+        public ConsumeChatCommandAddCookedRecipeIngredientHandler(ILogger<ConsumeChatCommandAddCookedRecipeIngredientHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -42,7 +43,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandAddCookedRecipeIngredient request, CancellationToken cancellationToken)
@@ -51,66 +51,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
             };
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
+            var cookedRecipe = _repository.CookedRecipes.Include<CookedRecipe, IList<CookedRecipeCalledIngredient>>(r => r.CookedRecipeCalledIngredients).OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Name.ToLower() == request.Command.Recipe.ToLower());
+            if (cookedRecipe == null)
             {
-                foreach (var error in result.Errors)
-                {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
+                var systemResponse = "Error: Could not find cooked recipe by name: " + request.Command.Recipe;
+                throw new ChatAIException(systemResponse);
             }
             else
             {
-                //Command logic
-                var cookedRecipe = _repository.CookedRecipes.Include<CookedRecipe, IList<CookedRecipeCalledIngredient>>(r => r.CookedRecipeCalledIngredients).OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Name.ToLower() == request.Command.Recipe.ToLower());
-                if (cookedRecipe == null)
+                var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
                 {
-                    var systemResponse = "Error: Could not find cooked recipe by name: " + request.Command.Recipe;
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = systemResponse,
-                        RawContent = systemResponse,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
-                }
-                else
-                {
-                    var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
-                    {
-                        Name = request.Command.Name,
-                        //CookedRecipe = cookedRecipe,
-                        Units = request.Command.Units,
-                        UnitType = request.Command.UnitType.UnitTypeFromString()
-                    };
-                    cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
-                    _repository.CookedRecipes.Update(cookedRecipe);
-                }
+                    Name = request.Command.Name,
+                    //CookedRecipe = cookedRecipe,
+                    Units = request.Command.Units,
+                    UnitType = request.Command.UnitType.UnitTypeFromString()
+                };
+                cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
+                _repository.CookedRecipes.Update(cookedRecipe);
             }
             return chatResponseVM;
         }

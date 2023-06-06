@@ -19,16 +19,14 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateProductCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateProductCommandHandler> _logger;
         private readonly ICachingService _cache;
         private readonly IWalmartService _walmartService;
 
-        public CreateProductCommandHandler(ILogger<CreateProductCommandHandler> logger, IUnitOfWork repository, IValidator<CreateProductCommand> validator, IMapper mapper, ICachingService cache, IWalmartService walmartService)
+        public CreateProductCommandHandler(ILogger<CreateProductCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IWalmartService walmartService)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;
@@ -37,8 +35,6 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
-            var result = _validator.Validate(request);
-
             var productEntity = new Product
             {
                 Name = request.Name

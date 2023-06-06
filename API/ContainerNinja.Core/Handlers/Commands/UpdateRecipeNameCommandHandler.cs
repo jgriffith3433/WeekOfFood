@@ -19,15 +19,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateRecipeNameCommandHandler : IRequestHandler<UpdateRecipeNameCommand, RecipeDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateRecipeNameCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateRecipeNameCommandHandler> _logger;
 
-        public UpdateRecipeNameCommandHandler(ILogger<UpdateRecipeNameCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateRecipeNameCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateRecipeNameCommandHandler(ILogger<UpdateRecipeNameCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;

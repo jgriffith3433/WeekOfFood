@@ -11,6 +11,8 @@ using ContainerNinja.Core.Handlers.Queries;
 using ContainerNinja.Contracts.Data.Entities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using ContainerNinja.Core.Exceptions;
+using FluentValidation.Results;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -32,9 +34,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandCreateCookedRecipe> _validator;
 
-        public ConsumeChatCommandCreateCookedRecipeHandler(ILogger<ConsumeChatCommandCreateCookedRecipeHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandCreateCookedRecipe> validator)
+        public ConsumeChatCommandCreateCookedRecipeHandler(ILogger<ConsumeChatCommandCreateCookedRecipeHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -42,7 +43,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandCreateCookedRecipe request, CancellationToken cancellationToken)
@@ -51,80 +51,37 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
             };
-            var result = _validator.Validate(request);
+            var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).ThenInclude(ci => ci.ProductStock)
+                .Include(r => r.CookedRecipes)
+                .Where(r => r.Name.ToLower() == request.Command.Name.ToLower())
+                .SingleOrDefaultAsync(cancellationToken).Result;
 
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
+            if (recipe == null)
             {
-                foreach (var error in result.Errors)
-                {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
+                var systemResponse = "Error: Could not find recipe by name: " + request.Command.Name;
+                throw new ChatAIException(systemResponse);
             }
             else
             {
-                //Command logic
-                var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).ThenInclude(ci => ci.ProductStock)
-                    .Include(r => r.CookedRecipes)
-                    .Where(r => r.Name.ToLower() == request.Command.Name.ToLower())
-                    .SingleOrDefaultAsync(cancellationToken).Result;
-
-                if (recipe == null)
+                var cookedRecipe = new CookedRecipe
                 {
-                    var systemResponse = "Error: Could not find recipe by name: " + request.Command.Recipe;
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = systemResponse,
-                        RawContent = systemResponse,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
-                }
-                else
+                    Recipe = recipe
+                };
+                foreach (var calledIngredient in recipe.CalledIngredients)
                 {
-                    var cookedRecipe = new CookedRecipe
+                    var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
                     {
-                        Recipe = recipe
+                        Name = calledIngredient.Name,
+                        CookedRecipe = cookedRecipe,
+                        CalledIngredient = calledIngredient,
+                        ProductStock = calledIngredient.ProductStock,
+                        UnitType = calledIngredient.UnitType,
+                        Units = calledIngredient.Units != null ? calledIngredient.Units.Value : 0
                     };
-                    foreach (var calledIngredient in recipe.CalledIngredients)
-                    {
-                        var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
-                        {
-                            Name = calledIngredient.Name,
-                            CookedRecipe = cookedRecipe,
-                            CalledIngredient = calledIngredient,
-                            ProductStock = calledIngredient.ProductStock,
-                            UnitType = calledIngredient.UnitType,
-                            Units = calledIngredient.Units != null ? calledIngredient.Units.Value : 0
-                        };
-                        cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
-                    }
-                    recipe.CookedRecipes.Add(cookedRecipe);
-                    _repository.Recipes.Update(recipe);
+                    cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
                 }
+                recipe.CookedRecipes.Add(cookedRecipe);
+                _repository.Recipes.Update(recipe);
             }
             return chatResponseVM;
         }

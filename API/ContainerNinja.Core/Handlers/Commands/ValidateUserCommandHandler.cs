@@ -20,13 +20,11 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class ValidateUserCommandHandler : IRequestHandler<ValidateUserCommand, AuthTokenDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<ValidateUserDTO> _validator;
         private readonly ITokenService _token;
 
-        public ValidateUserCommandHandler(IUnitOfWork repository, IValidator<ValidateUserDTO> validator, ITokenService token)
+        public ValidateUserCommandHandler(IUnitOfWork repository, ITokenService token)
         {
             _repository = repository;
-            _validator = validator;
             _token = token;
         }
 

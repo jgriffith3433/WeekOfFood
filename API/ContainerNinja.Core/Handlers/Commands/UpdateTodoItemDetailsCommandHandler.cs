@@ -24,15 +24,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateTodoItemDetailsCommandHandler : IRequestHandler<UpdateTodoItemDetailsCommand, TodoItemDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateTodoItemDetailsCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateTodoItemDetailsCommandHandler> _logger;
 
-        public UpdateTodoItemDetailsCommandHandler(ILogger<UpdateTodoItemDetailsCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateTodoItemDetailsCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateTodoItemDetailsCommandHandler(ILogger<UpdateTodoItemDetailsCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;

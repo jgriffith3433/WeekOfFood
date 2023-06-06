@@ -11,6 +11,8 @@ using ContainerNinja.Core.Handlers.Queries;
 using ContainerNinja.Contracts.Data.Entities;
 using FluentValidation;
 using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Core.Exceptions;
+using FluentValidation.Results;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -32,9 +34,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandEditProductUnitType> _validator;
 
-        public ConsumeChatCommandEditProductUnitTypeHandler(ILogger<ConsumeChatCommandEditProductUnitTypeHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandEditProductUnitType> validator)
+        public ConsumeChatCommandEditProductUnitTypeHandler(ILogger<ConsumeChatCommandEditProductUnitTypeHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -42,7 +43,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandEditProductUnitType request, CancellationToken cancellationToken)
@@ -51,59 +51,16 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
             };
-            var result = _validator.Validate(request);
-
-            _logger.LogInformation($"Validation result: {result}");
-
-            if (!result.IsValid)
+            var product = _repository.Products.FirstOrDefault(p => p.Name.ToLower().Contains(request.Command.Product.ToLower()));
+            if (product == null)
             {
-                foreach (var error in result.Errors)
-                {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
+                var systemResponse = "Error: Could not find product by name: " + request.Command.Product;
+                throw new ChatAIException(systemResponse);
             }
             else
             {
-                //Command logic
-                var product = _repository.Products.FirstOrDefault(p => p.Name.ToLower().Contains(request.Command.Product.ToLower()));
-                if (product == null)
-                {
-                    var systemResponse = "Error: Could not find product by name: " + request.Command.Product;
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = systemResponse,
-                        RawContent = systemResponse,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
-                }
-                else
-                {
-                    product.UnitType = request.Command.UnitType.UnitTypeFromString();
-                    _repository.Products.Update(product);
-                }
+                product.UnitType = request.Command.UnitType.UnitTypeFromString();
+                _repository.Products.Update(product);
             }
             return chatResponseVM;
         }

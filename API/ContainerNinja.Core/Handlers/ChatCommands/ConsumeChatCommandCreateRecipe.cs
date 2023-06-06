@@ -32,9 +32,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
-        private readonly IValidator<ConsumeChatCommandCreateRecipe> _validator;
 
-        public ConsumeChatCommandCreateRecipeHandler(ILogger<ConsumeChatCommandCreateRecipeHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator, IValidator<ConsumeChatCommandCreateRecipe> validator)
+        public ConsumeChatCommandCreateRecipeHandler(ILogger<ConsumeChatCommandCreateRecipeHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -42,7 +41,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _cache = cache;
             _chatAIService = chatAIService;
             _mediator = mediator;
-            _validator = validator;
         }
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandCreateRecipe request, CancellationToken cancellationToken)
@@ -51,67 +49,38 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 ChatMessages = request.ChatMessages,
             };
-            var result = _validator.Validate(request);
+            //var response = _mediator.Send(new CreateRecipeCommand
+            //{
+            //    Name = createRecipe.Name,
+            //    UserImport = notification.ChatCommand.RawReponse
+            //});
+            var recipeEntity = new Recipe();
 
-            _logger.LogInformation($"Validation result: {result}");
+            recipeEntity.Name = request.Command.Name;
+            //entity.Serves = createRecipe.Serves.Value;
+            recipeEntity.UserImport = request.RawChatAICommand;
 
-            if (!result.IsValid)
+            foreach (var createRecipeIngredient in request.Command.Ingredients)
             {
-                foreach (var error in result.Errors)
+                var calledIngredient = new CalledIngredient
                 {
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = error.ErrorMessage,
-                        RawContent = error.ErrorMessage,
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
-                }
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                });
+                    Name = createRecipeIngredient.Name,
+                    Recipe = recipeEntity,
+                    Verified = false,
+                    Units = createRecipeIngredient.Units,
+                    UnitType = createRecipeIngredient.UnitType.UnitTypeFromString()
+                };
+                recipeEntity.CalledIngredients.Add(calledIngredient);
             }
-            else
-            {
-                //Command logic
-                //var response = _mediator.Send(new CreateRecipeCommand
-                //{
-                //    Name = createRecipe.Name,
-                //    UserImport = notification.ChatCommand.RawReponse
-                //});
-                var recipeEntity = new Recipe();
 
-                recipeEntity.Name = request.Command.Name;
-                //entity.Serves = createRecipe.Serves.Value;
-                recipeEntity.UserImport = request.RawChatAICommand;
+            _repository.Recipes.Add(recipeEntity);
+            //await _repository.CommitAsync();
 
-                foreach (var createRecipeIngredient in request.Command.Ingredients)
-                {
-                    var calledIngredient = new CalledIngredient
-                    {
-                        Name = createRecipeIngredient.Name,
-                        Recipe = recipeEntity,
-                        Verified = false,
-                        Units = createRecipeIngredient.Units,
-                        UnitType = createRecipeIngredient.UnitType.UnitTypeFromString()
-                    };
-                    recipeEntity.CalledIngredients.Add(calledIngredient);
-                }
-
-                _repository.Recipes.Add(recipeEntity);
-                //await _repository.CommitAsync();
-
-                //if (entity.UserImport != null)
-                //{
-                //    entity.AddDomainEvent(new RecipeUserImportEvent(entity));
-                //}
-                //await _repository.SaveChangesAsync(cancellationToken);
-            }
+            //if (entity.UserImport != null)
+            //{
+            //    entity.AddDomainEvent(new RecipeUserImportEvent(entity));
+            //}
+            //await _repository.SaveChangesAsync(cancellationToken);
             return chatResponseVM;
         }
     }

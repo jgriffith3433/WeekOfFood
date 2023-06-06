@@ -13,9 +13,9 @@ using FluentValidation;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    public class ConsumeChatCommandGoToPage : IRequest<ChatResponseVM>
+    public class ConsumeChatCommandGoToRecipes : IRequest<ChatResponseVM>
     {
-        public ChatAICommandGoToPage Command { get; set; }
+        public ChatAICommandGoToRecipes Command { get; set; }
         public List<ChatMessageVM> ChatMessages { get; set; }
         public ChatConversation ChatConversation { get; set; }
         public string RawChatAICommand { get; set; }
@@ -23,16 +23,16 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public int CurrentSystemToAssistantChatCalls { get; set; }
     }
 
-    public class ConsumeChatCommandGoToPageHandler : IRequestHandler<ConsumeChatCommandGoToPage, ChatResponseVM>
+    public class ConsumeChatCommandGoToRecipesHandler : IRequestHandler<ConsumeChatCommandGoToRecipes, ChatResponseVM>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
-        private readonly ILogger<ConsumeChatCommandGoToPageHandler> _logger;
+        private readonly ILogger<ConsumeChatCommandGoToRecipesHandler> _logger;
         private readonly ICachingService _cache;
         private readonly IChatAIService _chatAIService;
         private readonly IMediator _mediator;
 
-        public ConsumeChatCommandGoToPageHandler(ILogger<ConsumeChatCommandGoToPageHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
+        public ConsumeChatCommandGoToRecipesHandler(ILogger<ConsumeChatCommandGoToRecipesHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
         {
             _repository = repository;
             _mapper = mapper;
@@ -42,13 +42,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _mediator = mediator;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandGoToPage request, CancellationToken cancellationToken)
+        public async Task<ChatResponseVM> Handle(ConsumeChatCommandGoToRecipes request, CancellationToken cancellationToken)
         {
             var chatResponseVM = new ChatResponseVM
             {
                 ChatMessages = request.ChatMessages,
             };
-            chatResponseVM.NavigateToPage = string.Join('-', request.Command.Page.Split(' '));
+            chatResponseVM.NavigateToPage = "recipes";
             return chatResponseVM;
         }
     }

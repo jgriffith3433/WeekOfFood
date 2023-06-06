@@ -20,15 +20,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductStockCommand, ProductStockDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateProductStockCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateProductStockCommandHandler> _logger;
 
-        public UpdateProductStockCommandHandler(ILogger<UpdateProductStockCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateProductStockCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateProductStockCommandHandler(ILogger<UpdateProductStockCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;

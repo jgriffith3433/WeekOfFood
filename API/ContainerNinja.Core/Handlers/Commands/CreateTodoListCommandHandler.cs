@@ -19,15 +19,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListCommand, int>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateTodoListCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateTodoListCommandHandler> _logger;
         private readonly ICachingService _cache;
 
-        public CreateTodoListCommandHandler(ILogger<CreateTodoListCommandHandler> logger, IUnitOfWork repository, IValidator<CreateTodoListCommand> validator, IMapper mapper, ICachingService cache)
+        public CreateTodoListCommandHandler(ILogger<CreateTodoListCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;

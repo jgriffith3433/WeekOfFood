@@ -22,15 +22,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class CreateRecipeCommandHandler : IRequestHandler<CreateRecipeCommand, RecipeDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateRecipeCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateRecipeCommandHandler> _logger;
         private readonly ICachingService _cache;
 
-        public CreateRecipeCommandHandler(ILogger<CreateRecipeCommandHandler> logger, IUnitOfWork repository, IValidator<CreateRecipeCommand> validator, IMapper mapper, ICachingService cache)
+        public CreateRecipeCommandHandler(ILogger<CreateRecipeCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;

@@ -28,15 +28,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateCalledIngredientDetailsCommandHandler : IRequestHandler<UpdateCalledIngredientDetailsCommand, CalledIngredientDetailsDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateCalledIngredientDetailsCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateCalledIngredientDetailsCommandHandler> _logger;
 
-        public UpdateCalledIngredientDetailsCommandHandler(ILogger<UpdateCalledIngredientDetailsCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateCalledIngredientDetailsCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateCalledIngredientDetailsCommandHandler(ILogger<UpdateCalledIngredientDetailsCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;

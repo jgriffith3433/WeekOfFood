@@ -21,6 +21,7 @@ namespace ContainerNinja.API.Filters
                 { typeof(NotFoundException), HandleNotFoundException },
                 { typeof(UnauthorizedAccessException), HandleUnauthorizedAccessException },
                 { typeof(ForbiddenAccessException), HandleForbiddenAccessException },
+                { typeof(ChatAIException), HandleChatAIException },
             };
         }
 
@@ -54,6 +55,21 @@ namespace ContainerNinja.API.Filters
             var details = new ValidationProblemDetails(exception.Errors)
             {
                 Type = "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+            };
+
+            context.Result = new BadRequestObjectResult(details);
+
+            context.ExceptionHandled = true;
+        }
+
+        private void HandleChatAIException(ExceptionContext context)
+        {
+            var exception = (ChatAIException)context.Exception;
+
+            var details = new ProblemDetails()
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Detail = exception.Message
             };
 
             context.Result = new BadRequestObjectResult(details);

@@ -64,7 +64,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                 chatResponseVM = new ChatResponseVM
                 {
                     ChatConversationId = request.ChatConversation.Id,
-                    CreateNewChat = true,
+                    //CreateNewChat = true,
                     ChatMessages = request.ChatMessages,
                     Error = true
                 };

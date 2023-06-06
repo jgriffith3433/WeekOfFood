@@ -93,22 +93,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           }, 1000);
         }
         else {
-          setTimeout(() => {
-            this._chatConversationId = -1;
-            if (event.url.toLowerCase().indexOf('login') == -1) {
-              while (this.messages.length > 0) {
-                this.messages.pop();
-              }
-              while (this.chatMessages.length > 0) {
-                this.chatMessages.pop();
-              }
-              //this.greeting = 'How can I help you manage your ' + this.getCurrentPageName();
-              this.greeting = 'Try saying: bumblebee';
-            }
-            if (this._botNavigating) {
-              this._botNavigating = false;
-            }
-          }, 500);
+          //setTimeout(() => {
+          //  this._chatConversationId = -1;
+          //  if (event.url.toLowerCase().indexOf('login') == -1) {
+          //    while (this.messages.length > 0) {
+          //      this.messages.pop();
+          //    }
+          //    while (this.chatMessages.length > 0) {
+          //      this.chatMessages.pop();
+          //    }
+          //    //this.greeting = 'How can I help you manage your ' + this.getCurrentPageName();
+          //    this.greeting = 'Try saying: bumblebee';
+          //  }
+          //  if (this._botNavigating) {
+          //    this._botNavigating = false;
+          //  }
+          //}, 500);
         }
       }
     });
@@ -184,7 +184,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       if (!this.visible) {
         this.visible = true;
       }
-      this.record(true);
+      this.record(false);
     });
     this.errorSubscription = this.picoService.errorListener.subscribe(error => {
       if (error) {
@@ -218,7 +218,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           }
         }
       }
-      this.record(true);
+      this.record(false);
     }
     else {
       if (this.mediaRecorder && this.mediaRecorder.state == "recording") {
@@ -254,15 +254,29 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.chatService.getChatResponse(this.normalConversation, query).subscribe(
       result => this.receiveMessage(result),
       error => {
-        console.error(error);
         setTimeout(() => {
           if (this.getCurrentPageName() != 'login') {
-            this.addMessage({
-              content: 'An error occured.',
-              rawContent: 'An error occured.',
-              name: this.system.name,
-              role: this.system.name
-            } as ChatMessageVm);
+            if (error.errors) {
+              for (let e in error.errors) {
+                for (let i in error.errors[e]) {
+                  this.addMessage({
+                    content: error.errors[e][i],
+                    rawContent: error.errors[e][i],
+                    name: this.system.name,
+                    role: this.system.name
+                  } as ChatMessageVm);
+                }
+                console.error(error.errors[e]);
+              }
+            }
+            else if (error.message) {
+              this.addMessage({
+                content: error.message,
+                rawContent: error.message,
+                name: this.system.name,
+                role: this.system.name
+              } as ChatMessageVm);
+            }
             this.scrollToBottom();
           }
         }, 500);
@@ -279,9 +293,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     }
     if (this.speechSynthesisOn) {
       let textToSpeak = "";
-      for (let c of newChatMessages) {
-        if (c.content && c.role == this.assistant.name) {
-          textToSpeak += c.content + '...';
+      //for (let c of newChatMessages) {
+      //  if (c.content && c.role == this.assistant.name) {
+      //    textToSpeak += c.content + '...';
+      //  }
+      //}
+      if (newChatMessages.length > 0) {
+        let mostRecentMessage = newChatMessages[newChatMessages.length - 1];
+        if (mostRecentMessage.content && mostRecentMessage.role == this.assistant.name) {
+          textToSpeak = mostRecentMessage.content;
         }
       }
       if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
@@ -328,8 +348,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         this.addMessage(newChatMessage);
       }
       this.scrollToBottom();
-
-      if (response.dirty) {
+      if (response.navigateToPage) {
+        this.router.navigateByUrl(response.navigateToPage);
+      }
+      else if (response.dirty) {
         this._refreshing = true;
         this._previousScrollPosition = window.scrollY || document.getElementsByTagName("html")[0].scrollTop;
         this.router.navigateByUrl(this.router.url);

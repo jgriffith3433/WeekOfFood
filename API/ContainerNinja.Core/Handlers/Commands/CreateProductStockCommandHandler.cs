@@ -18,15 +18,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class CreateProductStockCommandHandler : IRequestHandler<CreateProductStockCommand, int>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<CreateProductStockCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateProductStockCommandHandler> _logger;
         private readonly ICachingService _cache;
 
-        public CreateProductStockCommandHandler(ILogger<CreateProductStockCommandHandler> logger, IUnitOfWork repository, IValidator<CreateProductStockCommand> validator, IMapper mapper, ICachingService cache)
+        public CreateProductStockCommandHandler(ILogger<CreateProductStockCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _logger = logger;
             _cache = cache;

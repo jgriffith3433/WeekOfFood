@@ -21,15 +21,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateCompletedOrderCommandHandler : IRequestHandler<UpdateCompletedOrderCommand, CompletedOrderDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateCompletedOrderCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateCompletedOrderCommandHandler> _logger;
 
-        public UpdateCompletedOrderCommandHandler(ILogger<UpdateCompletedOrderCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateCompletedOrderCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateCompletedOrderCommandHandler(ILogger<UpdateCompletedOrderCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;

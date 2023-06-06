@@ -20,15 +20,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     public class UpdateTodoListCommandHandler : IRequestHandler<UpdateTodoListCommand, TodoListDTO>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IValidator<UpdateTodoListCommand> _validator;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
         private readonly ILogger<UpdateTodoListCommandHandler> _logger;
 
-        public UpdateTodoListCommandHandler(ILogger<UpdateTodoListCommandHandler> logger, IUnitOfWork repository, IValidator<UpdateTodoListCommand> validator, IMapper mapper, ICachingService cache)
+        public UpdateTodoListCommandHandler(ILogger<UpdateTodoListCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
-            _validator = validator;
             _mapper = mapper;
             _cache = cache;
             _logger = logger;
