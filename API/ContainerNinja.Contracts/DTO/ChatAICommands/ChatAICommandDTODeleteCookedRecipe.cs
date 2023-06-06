@@ -1,6 +1,6 @@
-﻿namespace ContainerNinja.Contracts.ChatAI;
+﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-public record ChatAICommandDeleteCookedRecipe : ChatAICommand
+public record ChatAICommandDTODeleteCookedRecipe : ChatAICommandDTO
 {
     public string Name { get; set; }
     public string Recipe

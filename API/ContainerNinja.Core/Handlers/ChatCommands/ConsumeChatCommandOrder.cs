@@ -1,59 +1,33 @@
 using MediatR;
 using ContainerNinja.Contracts.Data;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
-using ContainerNinja.Contracts.Services;
-using ContainerNinja.Contracts.ChatAI;
+using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
-using OpenAI.ObjectModels.RequestModels;
-using OpenAI.ObjectModels;
-using ContainerNinja.Contracts.Data.Entities;
-using ContainerNinja.Core.Handlers.Queries;
-using FluentValidation;
 using ContainerNinja.Core.Exceptions;
-using FluentValidation.Results;
+using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    public class ConsumeChatCommandOrder : IRequest<ChatResponseVM>
+    [ChatCommandModel(new [] { "order" })]
+    public class ConsumeChatCommandOrder : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOOrder>
     {
-        public ChatAICommandOrder Command { get; set; }
-        public List<ChatMessageVM> ChatMessages { get; set; }
-        public ChatConversation ChatConversation { get; set; }
-        public string RawChatAICommand { get; set; }
-        public string CurrentUrl { get; set; }
-        public int CurrentSystemToAssistantChatCalls { get; set; }
+        public ChatAICommandDTOOrder Command { get; set; }
+        public ChatResponseVM Response { get; set; }
     }
 
     public class ConsumeChatCommandOrderHandler : IRequestHandler<ConsumeChatCommandOrder, ChatResponseVM>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<ConsumeChatCommandOrderHandler> _logger;
-        private readonly ICachingService _cache;
-        private readonly IChatAIService _chatAIService;
-        private readonly IMediator _mediator;
 
-        public ConsumeChatCommandOrderHandler(ILogger<ConsumeChatCommandOrderHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
+        public ConsumeChatCommandOrderHandler(IUnitOfWork repository)
         {
             _repository = repository;
-            _mapper = mapper;
-            _logger = logger;
-            _cache = cache;
-            _chatAIService = chatAIService;
-            _mediator = mediator;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandOrder request, CancellationToken cancellationToken)
+        public async Task<ChatResponseVM> Handle(ConsumeChatCommandOrder model, CancellationToken cancellationToken)
         {
-            var chatResponseVM = new ChatResponseVM
-            {
-                ChatConversationId = request.ChatConversation.Id,
-                ChatMessages = request.ChatMessages,
-            };
-            var systemResponse = "Error: Not implemented: " + request.Command.Cmd;
+            var systemResponse = "Error: Not implemented: " + model.Command.Cmd;
             throw new ChatAIException(systemResponse);
-            return chatResponseVM;
+            return model.Response;
         }
     }
 }

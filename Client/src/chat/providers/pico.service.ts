@@ -71,7 +71,7 @@ export class PicoService implements OnDestroy {
       navigator.mediaDevices.enumerateDevices().then((devices) => {
         devices.forEach((device) => {
           if (device.kind == 'audioinput') {
-            hasMicrophone = false;
+            hasMicrophone = true;
           }
         });
       }).catch(function (err) {
@@ -79,7 +79,7 @@ export class PicoService implements OnDestroy {
       }).then(() => {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
           if (hasMicrophone) {
-            if (stream.getVideoTracks().length > 0 && stream.getAudioTracks().length > 0) {
+            if (stream.getAudioTracks().length > 0) {
               console.log('asdf1');
               try {
                 this.porcupineService.init(

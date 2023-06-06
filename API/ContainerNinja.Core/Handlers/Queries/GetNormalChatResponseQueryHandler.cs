@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using System.Text;
-using ContainerNinja.Contracts.ChatAI;
+using ContainerNinja.Contracts.DTO.ChatAICommands;
 using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using System.Text;
-using ContainerNinja.Contracts.ChatAI;
+using ContainerNinja.Contracts.DTO.ChatAICommands;
 using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;
@@ -81,7 +81,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     else if (startIndex != -1 && endIndex != -1)
                     {
                         //json response
-                        var chatAICommand = JsonConvert.DeserializeObject<ChatAICommand>(rawAssistantResponseMessage.Substring(startIndex, endIndex - startIndex + 1));
+                        var chatAICommand = JsonConvert.DeserializeObject<ChatAICommandDTO>(rawAssistantResponseMessage.Substring(startIndex, endIndex - startIndex + 1));
 
                         request.ChatMessages.Add(new ChatMessageVM
                         {
@@ -96,7 +96,6 @@ namespace ContainerNinja.Core.Handlers.Queries
                             ChatMessages = request.ChatMessages,
                             ChatAICommand = chatAICommand,
                             RawChatAICommand = rawAssistantResponseMessage,
-                            CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
                             CurrentUrl = request.CurrentUrl,
                         });
                     }
@@ -200,7 +199,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     Name = StaticValues.ChatMessageRoles.System,
                     Role = StaticValues.ChatMessageRoles.System,
                 });
-                if (request.CurrentSystemToAssistantChatCalls < 7)
+                if (request.CurrentSystemToAssistantChatCalls < 5)
                 {
                     chatResponseVM = await _mediator.Send(new GetChatResponseQuery
                     {

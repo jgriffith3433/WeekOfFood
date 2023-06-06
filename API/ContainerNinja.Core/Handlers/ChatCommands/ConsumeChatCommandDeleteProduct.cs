@@ -1,59 +1,36 @@
 using MediatR;
 using ContainerNinja.Contracts.Data;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
-using ContainerNinja.Contracts.Services;
-using ContainerNinja.Contracts.ChatAI;
+using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
-using OpenAI.ObjectModels.RequestModels;
-using OpenAI.ObjectModels;
-using ContainerNinja.Core.Handlers.Queries;
 using ContainerNinja.Contracts.Data.Entities;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using LinqKit;
 using ContainerNinja.Core.Exceptions;
-using FluentValidation.Results;
+using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    public class ConsumeChatCommandDeleteProduct : IRequest<ChatResponseVM>
+    [ChatCommandModel(new [] { "delete_product" })]
+    public class ConsumeChatCommandDeleteProduct : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTODeleteProduct>
     {
-        public ChatAICommandDeleteProduct Command { get; set; }
-        public List<ChatMessageVM> ChatMessages { get; set; }
-        public ChatConversation ChatConversation { get; set; }
-        public string RawChatAICommand { get; set; }
-        public string CurrentUrl { get; set; }
-        public int CurrentSystemToAssistantChatCalls { get; set; }
+        public ChatAICommandDTODeleteProduct Command { get; set; }
+        public ChatResponseVM Response { get; set; }
     }
 
     public class ConsumeChatCommandDeleteProductHandler : IRequestHandler<ConsumeChatCommandDeleteProduct, ChatResponseVM>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<ConsumeChatCommandDeleteProductHandler> _logger;
-        private readonly ICachingService _cache;
-        private readonly IChatAIService _chatAIService;
-        private readonly IMediator _mediator;
 
-        public ConsumeChatCommandDeleteProductHandler(ILogger<ConsumeChatCommandDeleteProductHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
+        public ConsumeChatCommandDeleteProductHandler(IUnitOfWork repository)
         {
             _repository = repository;
-            _mapper = mapper;
-            _logger = logger;
-            _cache = cache;
-            _chatAIService = chatAIService;
-            _mediator = mediator;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteProduct request, CancellationToken cancellationToken)
+        public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteProduct model, CancellationToken cancellationToken)
         {
-            var chatResponseVM = new ChatResponseVM
-            {
-                ChatMessages = request.ChatMessages,
-            };
             var predicate = PredicateBuilder.New<Product>();
-            var searchTerms = string.Join(' ', request.Command.Product.ToLower().Split('-')).Split(' ');
+            var searchTerms = string.Join(' ', model.Command.Product.ToLower().Split('-')).Split(' ');
             foreach (var searchTerm in searchTerms)
             {
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
@@ -65,12 +42,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             if (query.Count == 0)
             {
-                var systemResponse = "Error: Could not find product by name: " + request.Command.Product;
+                var systemResponse = "Error: Could not find product by name: " + model.Command.Product;
                 throw new ChatAIException(systemResponse);
             }
             else
             {
-                if (query.Count == 1 && query[0].Name.ToLower() == request.Command.Product.ToLower())
+                if (query.Count == 1 && query[0].Name.ToLower() == model.Command.Product.ToLower())
                 {
                     //exact match, go ahead and delete
                     _repository.Products.Delete(query[0].Id);
@@ -83,7 +60,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     throw new ChatAIException(systemResponse);
                 }
             }
-            return chatResponseVM;
+            return model.Response;
         }
     }
 }

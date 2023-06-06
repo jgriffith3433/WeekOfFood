@@ -128,6 +128,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     }
   }
 
+  public get recording() {
+    return this.mediaRecorder && this.mediaRecorder.state == "recording";
+  }
+
   /*public focus = new Subject()*/
 
   public assistant = {
@@ -182,9 +186,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.keywordSubscription = this.picoService.keywordDetectionListener.subscribe(porcupineSubscription => {
       console.log('wake word: ' + porcupineSubscription.label);
       if (!this.visible) {
-        this.visible = true;
+        this.toggleChat();
       }
-      this.record(false);
+      else {
+        if (!this.recording) {
+          this.record(false);
+        }
+      }
     });
     this.errorSubscription = this.picoService.errorListener.subscribe(error => {
       if (error) {
@@ -221,7 +229,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       this.record(false);
     }
     else {
-      if (this.mediaRecorder && this.mediaRecorder.state == "recording") {
+      if (this.recording) {
         this.stopRecording();
       }
     }
@@ -283,6 +291,17 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       }
     );
   }
+
+  getSystemMessage() {
+    for (let i = this.chatMessages.length - 1; i >= 0; i--) {
+      if (this.chatMessages[i].role == this.system.name) {
+        return this.chatMessages[i].content;
+      }
+    }
+    return this.greeting;
+  }
+
+
 
   receiveMessage(response: GetChatResponseVm) {
     let newChatMessages: ChatMessageVm[] = [];
@@ -418,11 +437,27 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       console.log("This browser does not support the API yet");
     }
 
+    let audioPlayer = this.audioPlayerRef.nativeElement as HTMLAudioElement;
+    audioPlayer.crossOrigin = "anonymous";
+    audioPlayer.oncanplaythrough = e => {
+      audioPlayer.play();
+    };
+    audioPlayer.onended = e => {
+      if (this.visible) {
+        if (this.recording) {
+          this.lastTimeDetected = performance.now();
+        }
+        else {
+          this.record();
+        }
+      }
+    }
+
     let hasMicrophone = false;
     navigator.mediaDevices.enumerateDevices().then((devices) => {
       devices.forEach((device) => {
         if (device.kind == 'audioinput') {
-          hasMicrophone = false;
+          hasMicrophone = true;
         }
       });
     }).catch(function (err) {
@@ -430,14 +465,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     }).then(() => {
       if (hasMicrophone) {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-          if (stream.getVideoTracks().length > 0 && stream.getAudioTracks().length > 0) {
+          if (stream.getAudioTracks().length > 0) {
             console.log("recording");
             console.log('asdf1');
             //this.endSilenceDetected = false;
             this.soundDetectedSendToServer = false;
             this.soundWasDetected = false;
             this.mediaRecorder = new MediaRecorder(stream);
-            this.mediaRecorder.start(3000);
+            this.mediaRecorder.start(2000);
 
             let audioChunks: any[] = [];
             this.mediaRecorder.ondataavailable = (event: { data: any; }) => {
@@ -454,7 +489,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
                 if (this.timeSinceDetected > 10) {
                   this.keepRecording = false;
                   this.timeSinceDetected = 0;
-                  this.lastTimeDetected = 0;
+                  this.lastTimeDetected = performance.now();
                   this.soundDetectedSendToServer = false;
                   this.mediaRecorder.stop();
                 }
@@ -494,7 +529,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
                 this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
               }
 
-              if (this.mediaRecorder.state == "recording") {
+              if (this.recording) {
                 window.requestAnimationFrame(detectSound);
               }
             };

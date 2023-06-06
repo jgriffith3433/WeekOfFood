@@ -1,5 +1,4 @@
-﻿using ContainerNinja.Contracts.Data.Entities;
-
+﻿
 namespace ContainerNinja.Contracts.DTO
 {
     public class ItemDTO

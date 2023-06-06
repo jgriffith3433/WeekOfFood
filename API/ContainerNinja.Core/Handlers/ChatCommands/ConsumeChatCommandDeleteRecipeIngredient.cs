@@ -1,68 +1,44 @@
 using MediatR;
 using ContainerNinja.Contracts.Data;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
-using ContainerNinja.Contracts.Services;
-using ContainerNinja.Contracts.ChatAI;
+using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
-using OpenAI.ObjectModels.RequestModels;
-using OpenAI.ObjectModels;
-using ContainerNinja.Core.Handlers.Queries;
 using ContainerNinja.Contracts.Data.Entities;
-using FluentValidation;
 using ContainerNinja.Core.Exceptions;
-using FluentValidation.Results;
+using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    public class ConsumeChatCommandDeleteRecipeIngredient : IRequest<ChatResponseVM>
+    [ChatCommandModel(new [] { "remove_recipe_ingredient" })]
+    public class ConsumeChatCommandDeleteRecipeIngredient : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTODeleteRecipeIngredient>
     {
-        public ChatAICommandDeleteRecipeIngredient Command { get; set; }
-        public List<ChatMessageVM> ChatMessages { get; set; }
-        public ChatConversation ChatConversation { get; set; }
-        public string RawChatAICommand { get; set; }
-        public string CurrentUrl { get; set; }
-        public int CurrentSystemToAssistantChatCalls { get; set; }
+        public ChatAICommandDTODeleteRecipeIngredient Command { get; set; }
+        public ChatResponseVM Response { get; set; }
     }
 
     public class ConsumeChatCommandDeleteRecipeIngredientHandler : IRequestHandler<ConsumeChatCommandDeleteRecipeIngredient, ChatResponseVM>
     {
         private readonly IUnitOfWork _repository;
-        private readonly IMapper _mapper;
-        private readonly ILogger<ConsumeChatCommandDeleteRecipeIngredientHandler> _logger;
-        private readonly ICachingService _cache;
-        private readonly IChatAIService _chatAIService;
-        private readonly IMediator _mediator;
 
-        public ConsumeChatCommandDeleteRecipeIngredientHandler(ILogger<ConsumeChatCommandDeleteRecipeIngredientHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache, IChatAIService chatAIService, IMediator mediator)
+        public ConsumeChatCommandDeleteRecipeIngredientHandler(IUnitOfWork repository)
         {
             _repository = repository;
-            _mapper = mapper;
-            _logger = logger;
-            _cache = cache;
-            _chatAIService = chatAIService;
-            _mediator = mediator;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteRecipeIngredient request, CancellationToken cancellationToken)
+        public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var chatResponseVM = new ChatResponseVM
-            {
-                ChatMessages = request.ChatMessages,
-            };
-            var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).FirstOrDefault(r => r.Name.ToLower() == request.Command.Recipe.ToLower());
+            var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).FirstOrDefault(r => r.Name.ToLower() == model.Command.Recipe.ToLower());
             if (recipe == null)
             {
-                var systemResponse = "Error: Could not find recipe by name: " + request.Command.Recipe;
+                var systemResponse = "Error: Could not find recipe by name: " + model.Command.Recipe;
                 throw new ChatAIException(systemResponse);
             }
             else
             {
-                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(request.Command.Ingredient.ToLower()));
+                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.Ingredient.ToLower()));
 
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Error: Could not find ingredient by name: " + request.Command.Ingredient;
+                    var systemResponse = "Error: Could not find ingredient by name: " + model.Command.Ingredient;
                     throw new ChatAIException(systemResponse);
                 }
                 else
@@ -72,7 +48,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     _repository.Recipes.Update(recipe);
                 }
             }
-            return chatResponseVM;
+            return model.Response;
         }
     }
 }

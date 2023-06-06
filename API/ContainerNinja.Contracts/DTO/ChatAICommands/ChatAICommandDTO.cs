@@ -1,8 +1,6 @@
-﻿
-
-namespace ContainerNinja.Contracts.ChatAI
+﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands
 {
-    public record ChatAICommand
+    public record ChatAICommandDTO
     {
         public string Cmd { get; set; }
         public string Response { get; set; }

@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace ContainerNinja.Core.Validators.ChatCommands
 {
-    public class ConsumeChatCommandCookedRecipeSubstituteIngredientValidator : AbstractValidator<ConsumeChatCommandCookedRecipeSubstituteIngredient>
+    public class ConsumeChatCommandCookedRecipeSubstituteIngredientValidator : AbstractValidator<ConsumeChatCommandSubstituteCookedRecipeIngredient>
     {
         public ConsumeChatCommandCookedRecipeSubstituteIngredientValidator()
         {

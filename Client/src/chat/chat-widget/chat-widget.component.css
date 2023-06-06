@@ -1,8 +1,7 @@
 * {
   box-sizing: border-box;
   position: relative;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif,
-  'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 }
 
 .wrapper {
@@ -11,6 +10,10 @@
   right: 0px;
   bottom: 0px;
   z-index: 2;
+}
+
+#audio {
+  display: none;
 }
 
 .chat-button {
@@ -28,6 +31,7 @@
   color: #fff;
   font-size: 32px;
 }
+
 .chat-button-header {
   z-index: 1;
   font-weight: bold;
@@ -51,13 +55,14 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-
   box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
   background: #1976d2;
 }
+
 .chat-box-hidden {
   display: none;
 }
+
 .chat-box-header {
   padding: 10px;
   color: #fff;
@@ -88,12 +93,15 @@
   float: right;
   padding: 4px;
 }
-.system-status span {
-  margin-left: 4px;
-}
+
+  .system-status span {
+    margin-left: 4px;
+  }
+
 .system-status-online {
   color: lawngreen;
 }
+
 .system-status-offline {
   color: red;
 }
@@ -141,31 +149,31 @@ Received message style
   margin-right: 50px;
 }
 
-.chat-message-received .chat-message-text {
-  background: #B9D6F2;
-  margin-left: 50px;
-  border-bottom-left-radius: 0;
-}
+  .chat-message-received .chat-message-text {
+    background: #B9D6F2;
+    margin-left: 50px;
+    border-bottom-left-radius: 0;
+  }
 
-.chat-message-received .chat-message-text:before {
-  position: absolute;
-  content: " ";
-  left: -10px;
-  bottom: 0;
-  border-right: solid 10px #B9D6F2;
-  border-top: solid 10px transparent;
-  z-index: 0;
-}
+    .chat-message-received .chat-message-text:before {
+      position: absolute;
+      content: " ";
+      left: -10px;
+      bottom: 0;
+      border-right: solid 10px #B9D6F2;
+      border-top: solid 10px transparent;
+      z-index: 0;
+    }
 
-.chat-message-received .chat-message-date {
-  margin-left: 50px;
-}
+  .chat-message-received .chat-message-date {
+    margin-left: 50px;
+  }
 
-.chat-message-received .chat-message-from-avatar {
-  position: absolute;
-  left: 0;
-  bottom: -15px;
-}
+  .chat-message-received .chat-message-from-avatar {
+    position: absolute;
+    left: 0;
+    bottom: -15px;
+  }
 
 /**
 Sent message style
@@ -174,41 +182,42 @@ Sent message style
   align-self: flex-end;
 }
 
-.chat-message-sent .chat-message-from {
-  float: right;
-}
+  .chat-message-sent .chat-message-from {
+    float: right;
+  }
 
-.chat-message-sent .chat-message-text {
-  background: #84DCCF;
-  margin-right: 50px;
-  border-bottom-right-radius: 0;
-}
+  .chat-message-sent .chat-message-text {
+    background: #84DCCF;
+    margin-right: 50px;
+    border-bottom-right-radius: 0;
+  }
 
-.chat-message-sent .chat-message-text:after {
-  position: absolute;
-  content: " ";
-  right: -10px;
-  bottom: 0;
-  border-left: solid 10px #84DCCF;
-  border-top: solid 10px transparent;
-  z-index: 0;
-}
+    .chat-message-sent .chat-message-text:after {
+      position: absolute;
+      content: " ";
+      right: -10px;
+      bottom: 0;
+      border-left: solid 10px #84DCCF;
+      border-top: solid 10px transparent;
+      z-index: 0;
+    }
 
-.chat-message-sent .chat-message-date {
-  text-align: right;
-  padding-right: 50px;
-}
+  .chat-message-sent .chat-message-date {
+    text-align: right;
+    padding-right: 50px;
+  }
 
-.chat-message-sent .chat-message-from-avatar {
-  position: absolute;
-  right: 0;
-  bottom: -15px;
-}
+  .chat-message-sent .chat-message-from-avatar {
+    position: absolute;
+    right: 0;
+    bottom: -15px;
+  }
 
 
 .blue .chat-button {
   background: #1976d2;
 }
+
 .blue .chat-box {
   background: #1976d2;
 }
@@ -216,6 +225,7 @@ Sent message style
 .grey .chat-button {
   background: #454549;
 }
+
 .grey .chat-box {
   background: #454549;
 }
@@ -223,6 +233,7 @@ Sent message style
 .red .chat-button {
   background: #DD0031;
 }
+
 .red .chat-box {
   background: #DD0031;
 }
@@ -233,12 +244,15 @@ Sent message style
     top: auto;
     right: 0;
   }
+
   .chat-button {
     display: block;
   }
+
   .chat-button-header {
     display: none;
   }
+
   .chat-box {
     top: auto;
     left: auto;

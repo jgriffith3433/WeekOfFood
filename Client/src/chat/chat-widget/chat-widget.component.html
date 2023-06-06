@@ -9,7 +9,7 @@
         </div>
         <chat-avatar [image]="system.avatar"></chat-avatar>
         <h3 class="system-greeting">
-          {{greeting}}
+          {{ getSystemMessage() }}
         </h3>
       </div>
     </div>
@@ -17,9 +17,7 @@
       <button class="chat-button" (click)="toggleNormalConversation()">Normal</button>
       <div class="chat-message-bottom" #bottom></div>
       <ng-container *ngFor="let message of chatMessages.slice().reverse()">
-        <div *ngIf="message.content" class="chat-message" [class.chat-message-received]="message.role != 'user'"
-             [@fadeIn]
-             [class.chat-message-sent]="message.role == 'user'">
+        <div *ngIf="message.role != 'system' && message.content" class="chat-message" [class.chat-message-received]="message.role != 'user'" [@fadeIn] [class.chat-message-sent]="message.role == 'user'">
           <div>
             <chat-avatar [image]="getAvatarForRole(message.role)" class="chat-message-from-avatar"></chat-avatar>
             <div class="chat-message-text">
@@ -36,7 +34,6 @@
       <chat-input (send)="sendMessage($event)" (dismiss)="toggleChat()"></chat-input>
       <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
     </div>
-    <audio [src]="audioSource" id="audio" controls #audio></audio>
     <div style="left: 20px; margin-top: 40px;">
       <span>{{soundWasDetected ? 'Sound Was Detected' : ''}}</span>
       <br />
@@ -44,7 +41,9 @@
     </div>
   </div>
   <button class="chat-button" (click)="toggleChat()">
-    <span [@fadeIn] *ngIf="visible">✕</span>
+    <span [@fadeIn] *ngIf="visible && !recording">X</span>
+    <span [@fadeIn] *ngIf="visible && recording">R</span>
     <span [@fadeIn] *ngIf="!visible">?</span>
   </button>
+  <audio [src]="audioSource" id="audio" controls #audio></audio>
 </div>
