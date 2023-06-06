@@ -67,10 +67,10 @@
           <li class="nav-item">
             <a class="nav-link text-dark" href="/api" target="_blank">API</a>
           </li>
-          <li class="nav-item" *ngIf="!tokenService.IsAuthenticated">
+          <li class="nav-item" *ngIf="!isAuthentiacated">
             <a class="nav-link text-dark" [routerLink]="['login']">Login</a>
           </li>
-          <li class="nav-item" *ngIf="tokenService.IsAuthenticated">
+          <li class="nav-item" *ngIf="isAuthentiacated">
             <a class="nav-link text-dark" href="javascript:void(0)" (click)="logout()">Logout</a>
           </li>
         </ul>

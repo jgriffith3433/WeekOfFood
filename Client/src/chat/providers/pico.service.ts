@@ -80,7 +80,6 @@ export class PicoService implements OnDestroy {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
           if (hasMicrophone) {
             if (stream.getAudioTracks().length > 0) {
-              console.log('asdf1');
               try {
                 this.porcupineService.init(
                   this.tokenService.getPico() as string,
@@ -94,9 +93,6 @@ export class PicoService implements OnDestroy {
                   console.error(error);
                 }
               }
-            }
-            else {
-              console.log('asdf2');
             }
           }
         }, error => {

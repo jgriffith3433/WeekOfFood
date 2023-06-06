@@ -45,11 +45,8 @@ export class HttpErrorInterceptor implements HttpInterceptor {
           case 400:
             return throwError(() => response.error);
           case 401:
-            if (this.router.url.split('/').join(' ').trim() == 'login') {
-              return throwError(() => response);
-            }
             this.router.navigate(['login']);
-            return EMPTY;
+            return throwError(() => response);
           default:
             return EMPTY;
         }

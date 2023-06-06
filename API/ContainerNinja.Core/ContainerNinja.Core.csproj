@@ -10,6 +10,7 @@
 		<PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="8.1.1" />
 		<PackageReference Include="Betalgo.OpenAI" Version="7.0.0" />
 		<PackageReference Include="BouncyCastle.NetCore" Version="1.9.0" />
+		<PackageReference Include="FFMpegCore" Version="5.1.0" />
 		<PackageReference Include="Google.Cloud.TextToSpeech.V1" Version="3.2.0" />
 		<PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="7.1.4" />
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />

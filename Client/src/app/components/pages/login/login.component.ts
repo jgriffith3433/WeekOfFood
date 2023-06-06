@@ -32,7 +32,9 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void { 
     // clear off any tokens in cache
     // if user lands on login
-    this.tokenService.clearToken();
+    if (this.tokenService.IsAuthenticated) {
+      this.authService.logout();
+    }
   }
 
   login() {

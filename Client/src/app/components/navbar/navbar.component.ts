@@ -1,39 +1,31 @@
-//import { Component, OnInit } from '@angular/core';
-//import { Router } from '@angular/router';
-//import { TokenService } from 'src/app/providers/token.service';
-
-//@Component({
-//  selector: 'app-navbar',
-//  templateUrl: './navbar.component.html',
-//  styleUrls: ['./navbar.component.scss']
-//})
-//export class NavbarComponent implements OnInit {
-
-//  constructor(public tokenService: TokenService, private router: Router) { }
-
-//  ngOnInit(): void {
-//  }
-
-//  logout() {
-//    this.tokenService.clearToken();
-//    this.router.navigate(['/']);
-//  }
-
-//}
-
-import { TokenService } from 'src/app/providers/token.service';
-import { Router } from '@angular/router';
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AuthService } from '../../providers/auth.service';
+import { TokenService } from '../../providers/token.service';
 
 @Component({
   selector: 'app-navbar',
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss']
 })
-export class NavbarComponent {
-  constructor(public tokenService: TokenService, private router: Router) { }
+export class NavbarComponent implements OnInit, OnDestroy {
+  constructor(
+    private authService: AuthService,
+    private tokenService: TokenService
+  ) { }
 
   isExpanded = false;
+  isAuthentiacated: boolean = false;
+
+  ngOnInit() {
+    this.authService.authListener.subscribe(authorized => {
+      this.isAuthentiacated = authorized;
+    });
+    this.isAuthentiacated = this.tokenService.IsAuthenticated;
+  }
+
+  ngOnDestroy() {
+    this.authService.authListener.unsubscribe();
+  }
 
   collapse() {
     this.isExpanded = false;
@@ -44,7 +36,6 @@ export class NavbarComponent {
   }
 
   logout() {
-    this.tokenService.clearToken();
-    this.router.navigate(['/']);
+    this.authService.logout();
   }
 }

@@ -11,6 +11,7 @@ using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;
 using ContainerNinja.Core.Exceptions;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -82,6 +83,16 @@ namespace ContainerNinja.Core.Handlers.Queries
                     {
                         //json response
                         var chatAICommand = JsonConvert.DeserializeObject<ChatAICommandDTO>(rawAssistantResponseMessage.Substring(startIndex, endIndex - startIndex + 1));
+
+                        //sometimes the ai sends the response before the json brackets
+                        if (string.IsNullOrEmpty(chatAICommand.Response))
+                        {
+                            //to account for newlines, skip the first 2 characters when deciding if the response is outside
+                            if (startIndex > 2)
+                            {
+                                chatAICommand.Response = rawAssistantResponseMessage.Substring(0, startIndex + 1);
+                            }
+                        }
 
                         request.ChatMessages.Add(new ChatMessageVM
                         {

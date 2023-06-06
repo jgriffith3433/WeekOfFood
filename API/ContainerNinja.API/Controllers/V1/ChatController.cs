@@ -2,7 +2,6 @@ using ContainerNinja.Contracts.Constants;
 using ContainerNinja.Contracts.DTO;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Handlers.Queries;
-using Google.Cloud.TextToSpeech.V1;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -35,6 +34,10 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ChatResponseVM>> Create(GetChatResponseVM getChatResponse)
         {
+            foreach (var chatMessage in getChatResponse.ChatMessages)
+            {
+                chatMessage.Received = true;
+            }
             var chatConversation = await _mediator.Send(new GetChatConversation
             {
                 ChatConversationId = getChatResponse.ChatConversationId,
@@ -63,6 +66,10 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ChatResponseVM>> CreateNormal(GetChatResponseVM getChatResponse)
         {
+            foreach (var chatMessage in getChatResponse.ChatMessages)
+            {
+                chatMessage.Received = true;
+            }
             var chatConversation = await _mediator.Send(new GetChatConversation
             {
                 ChatConversationId = getChatResponse.ChatConversationId,

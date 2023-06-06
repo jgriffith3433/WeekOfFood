@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChil
 import { fadeIn, fadeInOut } from '../animations'
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { mergeMap as _observableMergeMap, catchError as _observableCatch } from 'rxjs/operators';
-import { Observable, Subject, throwError as _observableThrow, of as _observableOf, Subscription } from 'rxjs';
+import { Observable, Subject, throwError as _observableThrow, of as _observableOf, Subscription, BehaviorSubject } from 'rxjs';
 import { Injectable, Inject, Optional, InjectionToken } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpResponseBase } from '@angular/common/http';
 import { ChatService } from '../providers/chat.service'
@@ -19,6 +19,7 @@ import { GetChatTextFromSpeechVm } from '../models/GetChatTextFromSpeechVm';
 import { TokenService } from '../../app/providers/token.service';
 import { PicoService } from '../providers/pico.service';
 import { GetChatResponseVm } from '../models/GetChatResponseVm';
+import { AuthService } from '../../app/providers/auth.service';
 
 //read online that maybe you want to use this instead?
 //import { Blob } from 'buffer';
@@ -52,18 +53,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   timeSinceDetected: number;
   soundDetectedSendToServer: boolean = false;
   soundWasDetected: boolean = false;
+  audioBlobsToSend: Blob[] = [];
   //endSilenceDetected: boolean = false;
   public speechSynthesisOn: boolean = true;
   public normalConversation: boolean = false;
+  public authenticated: boolean = false;
   audioSource = '';
   private keywordSubscription: Subscription;
   private errorSubscription: Subscription;
+  private authSubscription: Subscription;
 
   constructor(
     private chatService: ChatService,
     private router: Router,
     private tokenService: TokenService,
     private picoService: PicoService,
+    private authService: AuthService,
     @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string
   ) {
     this.http = http;
@@ -182,7 +187,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   //  this.focus.next(true)
   //}
 
+
   async ngOnInit() {
+    this.authenticated = this.tokenService.IsAuthenticated;
+    this.authSubscription = this.authService.authListener.subscribe(authenticated => {
+      this.authenticated = authenticated;
+      this.scrollToBottom();
+      this.sendMessages();
+    });
     this.keywordSubscription = this.picoService.keywordDetectionListener.subscribe(porcupineSubscription => {
       console.log('wake word: ' + porcupineSubscription.label);
       if (!this.visible) {
@@ -204,6 +216,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.authSubscription.unsubscribe();
     this.keywordSubscription.unsubscribe();
     this.errorSubscription.unsubscribe();
   }
@@ -248,10 +261,24 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       content: message,
       rawContent: message,
       name: this.user.name,
-      role: this.user.name
+      role: this.user.name,
+      received: false
     } as ChatMessageVm);
-    this.scrollToBottom();
 
+    this.scrollToBottom();
+    this.sendMessages();
+  }
+
+  sendMessages() {
+    var unsentMessages = false;
+    this.chatMessages.forEach(c => {
+      if (!c.received) {
+        unsentMessages = true;
+      }
+    });
+    if (!unsentMessages) {
+      return;
+    }
     let query: GetChatResponseQuery = {
       sendToRole: "assistant",
       chatMessages: this.chatMessages,
@@ -271,7 +298,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
                     content: error.errors[e][i],
                     rawContent: error.errors[e][i],
                     name: this.system.name,
-                    role: this.system.name
+                    role: this.system.name,
+                    received: true
                   } as ChatMessageVm);
                 }
                 console.error(error.errors[e]);
@@ -282,7 +310,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
                 content: error.message,
                 rawContent: error.message,
                 name: this.system.name,
-                role: this.system.name
+                role: this.system.name,
+                received: true
               } as ChatMessageVm);
             }
             this.scrollToBottom();
@@ -301,12 +330,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     return this.greeting;
   }
 
-
-
   receiveMessage(response: GetChatResponseVm) {
     let newChatMessages: ChatMessageVm[] = [];
     if (response.chatMessages) {
       for (let i = this.chatMessages.length; i < response.chatMessages.length; i++) {
+        response.chatMessages[i].received = true;
         newChatMessages.push(response.chatMessages[i]);
       }
     }
@@ -467,17 +495,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
           if (stream.getAudioTracks().length > 0) {
             console.log("recording");
-            console.log('asdf1');
             //this.endSilenceDetected = false;
             this.soundDetectedSendToServer = false;
             this.soundWasDetected = false;
             this.mediaRecorder = new MediaRecorder(stream);
             this.mediaRecorder.start(2000);
 
-            let audioChunks: any[] = [];
-            this.mediaRecorder.ondataavailable = (event: { data: any; }) => {
-              audioChunks.push(event.data);
-              const audioBlob = new Blob(audioChunks);
+            this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
+              this.audioBlobsToSend.push(event.data);
               console.log("dataavailable");
               if (this.soundWasDetected) {
                 if (this.timeSinceDetected > 1) {
@@ -560,10 +585,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
 
             this.mediaRecorder.addEventListener("stop", () => {
               console.log("Recording ended.");
-              const audioBlob = new Blob(audioChunks);
               if (this.soundDetectedSendToServer) {
                 this.soundDetectedSendToServer = false;
-                this.sendSpeech(audioBlob);
+                this.sendSpeech();
                 if (this.keepRecording) {
                   this.record();
                 }
@@ -573,9 +597,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
               }
             });
           }
-          else {
-            console.log('asdf2');
-          }
         }, function (error) {
           console.log(error);
         });
@@ -583,14 +604,18 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     });
   }
 
-  sendSpeech(speech: any) {
-    this.chatService.getChatTextFromSpeech(speech).subscribe(
+  sendSpeech() {
+    var blobToSend = new Blob(this.audioBlobsToSend, { type: 'audio/webm' });
+    this.audioBlobsToSend = [];
+
+    this.chatService.getChatTextFromSpeech(blobToSend).subscribe(
       result => {
         var message = result.text;
         this.sendMessage({ message } as any);
       },
       error => {
-        console.error(error);
+        this.audioBlobsToSend.unshift(blobToSend);
+        console.log(error);
         setTimeout(() => {
           this.greeting = 'An error while transcribing audio.';
         }, 500);
