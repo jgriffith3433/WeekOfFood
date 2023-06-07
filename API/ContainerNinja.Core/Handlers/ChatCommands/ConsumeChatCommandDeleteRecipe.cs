@@ -28,8 +28,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteRecipe model, CancellationToken cancellationToken)
         {
             var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients)
-                .Where(r => r.Name.ToLower() == model.Command.Name.ToLower())
-                .SingleOrDefaultAsync(cancellationToken).Result;
+                .FirstOrDefault(r => r.Name.ToLower() == model.Command.Name.ToLower());
 
             if (recipe == null)
             {

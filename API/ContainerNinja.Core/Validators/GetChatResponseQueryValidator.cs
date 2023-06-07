@@ -39,8 +39,11 @@ namespace ContainerNinja.Core.Validators
                 {
                     if (cm.Count >= 3 && cm[cm.Count - 3].RawContent == cm[cm.Count - 1].RawContent)
                     {
-                        //Loop detected
-                        return false;
+                        if (cm[cm.Count - 3].Role == StaticValues.ChatMessageRoles.System)
+                        {
+                            //Loop detected
+                            return false;
+                        }
                     }
                     return true;
                 }).WithMessage("Could not negotiate a command");

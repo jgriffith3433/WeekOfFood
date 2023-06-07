@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core'
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild } from '@angular/core'
 import { fadeIn, fadeInOut } from '../animations'
 import { NavigationEnd, NavigationStart, Router } from '@angular/router';
 import { mergeMap as _observableMergeMap, catchError as _observableCatch } from 'rxjs/operators';
@@ -33,9 +33,10 @@ const rand = (max: number) => Math.floor(Math.random() * max)
   styleUrls: ['./chat-widget.component.css'],
   animations: [fadeInOut, fadeIn],
 })
-export class ChatWidgetComponent implements OnInit, OnDestroy {
+export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('bottom') bottom: ElementRef;
   @ViewChild('audio') audioPlayerRef: ElementRef;
+  @ViewChild('visualizer') visualizerRef: ElementRef;
   @Input() public theme: 'blue' | 'grey' | 'red' = 'blue';
   public _visible = false;
   public _refreshing = false;
@@ -53,12 +54,31 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   timeSinceDetected: number;
   soundDetectedSendToServer: boolean = false;
   soundWasDetected: boolean = false;
+  soundWasDetectedSinceLastAvailableData: boolean = false;
   audioBlobsToSend: Blob[] = [];
+  canvasCtx: any;
+  audioContext: AudioContext;
+  recordingBufferSource: AudioBufferSourceNode;
+  recordingAudioStreamDestination: MediaStreamAudioDestinationNode;
+  audioPlayer: HTMLAudioElement;
+  textToSpeechAudioStreamSource: MediaElementAudioSourceNode;
+  textToSpeechVisualAnalyser: AnalyserNode;
+  textToSpeechVisualAnalyserDataArray: Uint8Array;
+  textToSpeechVisualAnalyserBufferLength: number;
+  textToSpeechVisualAnalyserAnimationFrameHandle: number | undefined;
+  textToSpeechPlaying: boolean = false;
+  recordingVisualAnalyserAudioStreamSource: MediaStreamAudioSourceNode;
+  recordingVisualAnalyser: AnalyserNode;
+  recordingVisualAnalyserDataArray: Uint8Array;
+  recordingVisualAnalyserBufferLength: number;
+  recordingVisualAnalyserAnimationFrameHandle: number | undefined;
+  badWordAndWakeWordRegex: RegExp = new RegExp("^bumble *bee*|[a@][s\$][s\$]$|[a@][s\$][s\$]h[o0][l1][e3][s\$]?|b[a@][s\$][t\+][a@]rd|b[e3][a@][s\$][t\+][i1][a@]?[l1]([i1][t\+]y)?|b[e3][a@][s\$][t\+][i1][l1][i1][t\+]y|b[e3][s\$][t\+][i1][a@][l1]([i1][t\+]y)?|b[i1][t\+]ch[s\$]?|b[i1][t\+]ch[e3]r[s\$]?|b[i1][t\+]ch[e3][s\$]|b[i1][t\+]ch[i1]ng?|b[l1][o0]wj[o0]b[s\$]?|c[l1][i1][t\+]|^(c|k|ck|q)[o0](c|k|ck|q)[s\$]?$|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[e3]d|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[e3]r|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[i1]ng|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[s\$]|^cum[s\$]?$|cumm??[e3]r|cumm?[i1]ngcock|(c|k|ck|q)um[s\$]h[o0][t\+]|(c|k|ck|q)un[i1][l1][i1]ngu[s\$]|(c|k|ck|q)un[i1][l1][l1][i1]ngu[s\$]|(c|k|ck|q)unn[i1][l1][i1]ngu[s\$]|(c|k|ck|q)un[t\+][s\$]?|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)[e3]r|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)[i1]ng|cyb[e3]r(ph|f)u(c|k|ck|q)|d[a@]mn|d[i1]ck|d[i1][l1]d[o0]|d[i1][l1]d[o0][s\$]|d[i1]n(c|k|ck|q)|d[i1]n(c|k|ck|q)[s\$]|[e3]j[a@]cu[l1]|(ph|f)[a@]g[s\$]?|(ph|f)[a@]gg[i1]ng|(ph|f)[a@]gg?[o0][t\+][s\$]?|(ph|f)[a@]gg[s\$]|(ph|f)[e3][l1][l1]?[a@][t\+][i1][o0]|(ph|f)u(c|k|ck|q)|(ph|f)u(c|k|ck|q)[s\$]?|g[a@]ngb[a@]ng[s\$]?|g[a@]ngb[a@]ng[e3]d|g[a@]y|h[o0]m?m[o0]|h[o0]rny|j[a@](c|k|ck|q)\-?[o0](ph|f)(ph|f)?|j[e3]rk\-?[o0](ph|f)(ph|f)?|j[i1][s\$z][s\$z]?m?|[ck][o0]ndum[s\$]?|mast(e|ur)b(8|ait|ate)|n+[i1]+[gq]+[e3]*r+[s\$]*|[o0]rg[a@][s\$][i1]m[s\$]?|[o0]rg[a@][s\$]m[s\$]?|p[e3]nn?[i1][s\$]|p[i1][s\$][s\$]|p[i1][s\$][s\$][o0](ph|f)(ph|f)|p[o0]rn|p[o0]rn[o0][s\$]?|p[o0]rn[o0]gr[a@]phy|pr[i1]ck[s\$]?|pu[s\$][s\$][i1][e3][s\$]|pu[s\$][s\$]y[s\$]?|[s\$][e3]x|[s\$]h[i1][t\+][s\$]?|[s\$][l1]u[t\+][s\$]?|[s\$]mu[t\+][s\$]?|[s\$]punk[s\$]?|[t\+]w[a@][t\+][s\$]?");
   //endSilenceDetected: boolean = false;
   public speechSynthesisOn: boolean = true;
   public normalConversation: boolean = false;
   public authenticated: boolean = false;
   audioSource = '';
+  private currentWakeWord: string;
   private keywordSubscription: Subscription;
   private errorSubscription: Subscription;
   private authSubscription: Subscription;
@@ -183,12 +203,61 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     }
   }
 
+  ensureAudioContextCreated() {
+    if (!this.audioContext) {
+      this.audioContext = new AudioContext();
+      this.recordingBufferSource = this.audioContext.createBufferSource();
+      this.recordingAudioStreamDestination = this.audioContext.createMediaStreamDestination();
+
+      this.recordingVisualAnalyser = this.audioContext.createAnalyser();
+      this.recordingVisualAnalyser.fftSize = 2048;
+      this.recordingVisualAnalyserBufferLength = this.recordingVisualAnalyser.frequencyBinCount;
+      this.recordingVisualAnalyserDataArray = new Uint8Array(this.recordingVisualAnalyserBufferLength);
+      this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+
+      this.textToSpeechAudioStreamSource = this.audioContext.createMediaElementSource(this.audioPlayer);
+      this.textToSpeechAudioStreamSource.connect(this.audioContext.destination);
+      this.textToSpeechVisualAnalyser = this.audioContext.createAnalyser();
+      this.textToSpeechVisualAnalyser.fftSize = 2048;
+      this.textToSpeechVisualAnalyserBufferLength = this.textToSpeechVisualAnalyser.frequencyBinCount;
+      this.textToSpeechVisualAnalyserDataArray = new Uint8Array(this.textToSpeechVisualAnalyserBufferLength);
+      this.textToSpeechAudioStreamSource.connect(this.textToSpeechVisualAnalyser);
+    }
+  }
+
   //public focusMessage() {
   //  this.focus.next(true)
   //}
 
+  ngAfterViewInit() {
+    this.audioPlayer = this.audioPlayerRef.nativeElement as HTMLAudioElement;
+    this.canvasCtx = this.visualizerRef.nativeElement.getContext("2d");
+
+    this.audioPlayer.crossOrigin = "anonymous";
+    this.audioPlayer.oncanplaythrough = e => {
+      this.textToSpeechPlaying = true;
+      this.audioPlayer.play();
+      this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
+    };
+    this.audioPlayer.onended = e => {
+      this.textToSpeechPlaying = false;
+      if (this.visible) {
+        if (this.recording) {
+          this.lastTimeDetected = performance.now();
+        }
+        else {
+          this.record();
+        }
+      }
+    }
+  }
 
   async ngOnInit() {
+
+    window.onresize = () => {
+      //this.visualizerRef.nativeElement.width = mainSection.offsetWidth;
+    }
+
     this.authenticated = this.tokenService.IsAuthenticated;
     this.authSubscription = this.authService.authListener.subscribe(authenticated => {
       this.authenticated = authenticated;
@@ -196,7 +265,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       this.sendMessages();
     });
     this.keywordSubscription = this.picoService.keywordDetectionListener.subscribe(porcupineSubscription => {
-      console.log('wake word: ' + porcupineSubscription.label);
+      this.currentWakeWord = porcupineSubscription.label;
       if (!this.visible) {
         this.toggleChat();
       }
@@ -219,6 +288,20 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     this.authSubscription.unsubscribe();
     this.keywordSubscription.unsubscribe();
     this.errorSubscription.unsubscribe();
+    if (this.textToSpeechVisualAnalyserAnimationFrameHandle) {
+      window.cancelAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandle);
+      this.textToSpeechVisualAnalyserAnimationFrameHandle = undefined;
+    }
+
+    if (this.recordingVisualAnalyserAnimationFrameHandle) {
+      window.cancelAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandle);
+      this.recordingVisualAnalyserAnimationFrameHandle = undefined;
+    }
+  }
+
+  public userToggleChat() {
+    this.ensureAudioContextCreated();
+    this.toggleChat();
   }
 
   public toggleChat() {
@@ -252,7 +335,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     return this.router.url.split('/').join(' ').trim() || 'home';
   }
 
-  public sendMessage({ message }: any) {
+  public userSendMessage({ message }: any) {
+    this.ensureAudioContextCreated();
+    this.sendMessage(message);
+  }
+
+  public sendMessage(message: string) {
     if (message.trim() === '') {
       return;
     }
@@ -270,7 +358,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   sendMessages() {
-    var unsentMessages = false;
+    let unsentMessages = false;
     this.chatMessages.forEach(c => {
       if (!c.received) {
         unsentMessages = true;
@@ -351,16 +439,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
           textToSpeak = mostRecentMessage.content;
         }
       }
+
       if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
-        this.chatService.getChatTextToSpeech(textToSpeak).subscribe(
-          result => {
-            this.audioSource = result;
-            let audioPlayer = this.audioPlayerRef.nativeElement;
-            audioPlayer.crossOrigin = "anonymous";
-            audioPlayer.addEventListener("canplaythrough", function () {
-              audioPlayer.play();
-            })
-          });
+        this.chatService.getChatTextToSpeech(textToSpeak).subscribe(result => {
+          this.audioSource = result;
+        });
       }
     }
     if (response.createNewChat) {
@@ -442,6 +525,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
   }
 
   record(respond: boolean = false) {
+    this.ensureAudioContextCreated();
     if (respond) {
       this.receiveMessage({
         chatConversationId: this._chatConversationId,
@@ -465,21 +549,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
       console.log("This browser does not support the API yet");
     }
 
-    let audioPlayer = this.audioPlayerRef.nativeElement as HTMLAudioElement;
-    audioPlayer.crossOrigin = "anonymous";
-    audioPlayer.oncanplaythrough = e => {
-      audioPlayer.play();
-    };
-    audioPlayer.onended = e => {
-      if (this.visible) {
-        if (this.recording) {
-          this.lastTimeDetected = performance.now();
-        }
-        else {
-          this.record();
-        }
-      }
-    }
 
     let hasMicrophone = false;
     navigator.mediaDevices.enumerateDevices().then((devices) => {
@@ -498,44 +567,60 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
             //this.endSilenceDetected = false;
             this.soundDetectedSendToServer = false;
             this.soundWasDetected = false;
+            this.soundWasDetectedSinceLastAvailableData = false;
             this.mediaRecorder = new MediaRecorder(stream);
-            this.mediaRecorder.start(2000);
+            this.mediaRecorder.start(1000);
 
             this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
-              this.audioBlobsToSend.push(event.data);
-              console.log("dataavailable");
-              if (this.soundWasDetected) {
-                if (this.timeSinceDetected > 1) {
-                  this.soundDetectedSendToServer = true;
-                  this.soundWasDetected = false;
-                  this.mediaRecorder.stop();
-                }
-              } else {
-                if (this.timeSinceDetected > 10) {
-                  this.keepRecording = false;
-                  this.timeSinceDetected = 0;
-                  this.lastTimeDetected = performance.now();
-                  this.soundDetectedSendToServer = false;
-                  this.mediaRecorder.stop();
-                }
-                if (this.mediaRecorder.state == "inactive") {
-                  this.mediaRecorder.stop();
+              if (this.audioBlobsToSend.length == 0) {
+                console.log("captured");
+                this.audioBlobsToSend.push(event.data);
+              }
+              else {
+                if (this.soundWasDetected) {
+                  if (this.soundWasDetectedSinceLastAvailableData) {
+                    console.log("captured");
+                    this.audioBlobsToSend.push(event.data);
+                    this.soundWasDetectedSinceLastAvailableData = false;
+                  }
+                  else {
+                    console.log("trimmed");
+                  }
+                  if (this.timeSinceDetected > 1) {
+                    this.soundDetectedSendToServer = true;
+                    this.soundWasDetected = false;
+                    this.mediaRecorder.stop();
+                  }
+                } else {
+                  console.log("not captured");
+                  if (this.timeSinceDetected > 10) {
+                    this.keepRecording = false;
+                    this.timeSinceDetected = 0;
+                    this.lastTimeDetected = performance.now();
+                    this.soundDetectedSendToServer = false;
+                    this.mediaRecorder.stop();
+                  }
+                  if (this.mediaRecorder.state == "inactive") {
+                    this.mediaRecorder.stop();
+                  }
                 }
               }
             };
 
-            const audioContext = new AudioContext();
-            const audioStreamSource = audioContext.createMediaStreamSource(stream);
-            const analyser = audioContext.createAnalyser();
+            this.recordingVisualAnalyser = this.audioContext.createAnalyser();
+            this.recordingVisualAnalyser.fftSize = 2048;
+            this.recordingVisualAnalyserBufferLength = this.recordingVisualAnalyser.frequencyBinCount;
+
+            this.recordingVisualAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(stream);
+            const analyser = this.audioContext.createAnalyser();
             analyser.minDecibels = MIN_DECIBELS;
-            audioStreamSource.connect(analyser);
+            this.recordingVisualAnalyserAudioStreamSource.connect(analyser);
+            this.recordingVisualAnalyserAudioStreamSource.connect(this.recordingVisualAnalyser);
 
             const bufferLength = analyser.frequencyBinCount;
             const domainData = new Uint8Array(bufferLength);
 
-
             const detectSound = () => {
-
               analyser.getByteFrequencyData(domainData);
               let detected = false;
               for (let i = 0; i < bufferLength; i++) {
@@ -548,6 +633,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
               }
               if (detected) {
                 this.lastTimeDetected = performance.now();
+                this.soundWasDetectedSinceLastAvailableData = true;
                 this.soundWasDetected = true;
               }
               else {
@@ -560,28 +646,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
             };
             window.requestAnimationFrame(detectSound);
 
-            //const detectEndSilence = () => {
-            //  analyser.getByteFrequencyData(domainData);
-
-            //  let endSoundDetected = false;
-            //  for (let i = bufferLength - 1; i >= 0; i--) {
-            //    const value = domainData[i];
-
-            //    if (domainData[i] > 0) {
-            //      endSoundDetected = true;
-            //    }
-            //    if (i < 500) {
-            //      if (endSoundDetected == false) {
-            //        this.endSilenceDetected = true;
-            //      }
-            //    }
-            //  }
-
-            //  if (this.mediaRecorder.state == "recording") {
-            //    window.requestAnimationFrame(detectEndSilence);
-            //  }
-            //};
-            //window.requestAnimationFrame(detectEndSilence);
+            this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
 
             this.mediaRecorder.addEventListener("stop", () => {
               console.log("Recording ended.");
@@ -604,24 +669,125 @@ export class ChatWidgetComponent implements OnInit, OnDestroy {
     });
   }
 
+  textToSpeechVisualAnalyserAnimationFrameHandler = () => {
+    this.visualizeSound(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
+
+    if (this.textToSpeechPlaying) {
+      this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
+    }
+  }
+
+  recordingVisualAnalyserAnimationFrameHandler = () => {
+    this.visualizeSound(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength);
+
+    if (this.recording) {
+      this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+    }
+  }
+
+  visualizeSound(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number) {
+    const WIDTH = this.visualizerRef.nativeElement.width
+    const HEIGHT = this.visualizerRef.nativeElement.height;
+
+    visualAnalyser.getByteTimeDomainData(visualAnalyserDataArray);
+
+    this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    this.canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+    this.canvasCtx.lineWidth = 2;
+    this.canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+    this.canvasCtx.beginPath();
+
+    let sliceWidth = WIDTH * 1.0 / visualAnalyserBufferLength;
+    let x = 0;
+
+    for (let i = 0; i < visualAnalyserBufferLength; i++) {
+
+      let v = visualAnalyserDataArray[i] / 128.0;
+      let y = v * HEIGHT / 2;
+
+      if (i === 0) {
+        this.canvasCtx.moveTo(x, y);
+      } else {
+        this.canvasCtx.lineTo(x, y);
+      }
+
+      x += sliceWidth;
+    }
+
+    this.canvasCtx.lineTo(this.visualizerRef.nativeElement.width, this.visualizerRef.nativeElement.height / 2);
+    this.canvasCtx.stroke();
+  }
+
   sendSpeech() {
     var blobToSend = new Blob(this.audioBlobsToSend, { type: 'audio/webm' });
     this.audioBlobsToSend = [];
 
     this.chatService.getChatTextFromSpeech(blobToSend).subscribe(
       result => {
-        var message = result.text;
-        this.sendMessage({ message } as any);
+        if (result.text) {
+          //remove bad words and wake words
+          let sentence = "";
+          if (result.text.indexOf(" ") != - 1) {
+            for (let word of result.text.split(" ")) {
+              if (this.badWordAndWakeWordRegex.test(word.toLowerCase())) {
+                word = "";
+              }
+              else {
+                sentence += word + " ";
+              }
+            }
+          }
+          else {
+            if (!this.badWordAndWakeWordRegex.test(result.text)) {
+              sentence = result.text;
+            }
+          }
+          let speechText = sentence.trim();
+          if (speechText.length == 1 && !RegExp(/^\p{L}/, 'u').test(speechText)) {
+            speechText = "";
+          }
+          if (speechText) {
+            this.sendMessage(speechText);
+          }
+        }
       },
       error => {
         this.audioBlobsToSend.unshift(blobToSend);
-        console.log(error);
-        setTimeout(() => {
-          this.greeting = 'An error while transcribing audio.';
-        }, 500);
+        if (error.ok === false) {
+          switch (error.status) {
+            case 400:
+              this.addMessage({
+                content: 'An error while transcribing audio.',
+                rawContent: 'An error while transcribing audio.',
+                name: this.system.name,
+                role: this.system.name,
+                received: false
+              } as ChatMessageVm);
+              break;
+            case 401:
+              this.addMessage({
+                content: 'You must be logged in.',
+                rawContent: 'You must be logged in.',
+                name: this.system.name,
+                role: this.system.name,
+                received: false
+              } as ChatMessageVm);
+              break;
+            default:
+              this.addMessage({
+                content: 'An error while transcribing audio.',
+                rawContent: 'An error while transcribing audio.',
+                name: this.system.name,
+                role: this.system.name,
+                received: false
+              } as ChatMessageVm);
+              break;
+          }
+        }
       }
     );
   }
+
 }
 //declare class MediaStreamRecorder {
 //  constructor(stream);

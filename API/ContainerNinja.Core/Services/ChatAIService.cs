@@ -164,12 +164,12 @@ namespace ContainerNinja.Core.Services
             {
             "home",
             "todo",
-            "product_stocks",
+            "product stocks",
             "products",
-            "completed_orders",
+            "completed orders",
             "recipes",
-            "cooked_recipes",
-                "called_ingredients"
+            "cooked recipes",
+                "called ingredients"
             };
         }
 

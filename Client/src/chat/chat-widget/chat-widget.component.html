@@ -1,5 +1,5 @@
 <div class="wrapper {{theme}}">
-  <div class="chat-box" *ngIf="visible" [@fadeInOut]="visible">
+  <div class="chat-box" [class.d-flex]="visible" [class.d-none]="!visible" [@fadeInOut]="visible">
     <div class="chat-box-header">
       <div class="">
         <div class="system-status">
@@ -31,7 +31,8 @@
       </ng-container>
     </div>
     <div class="chat-box-footer">
-      <chat-input (send)="sendMessage($event)" (dismiss)="toggleChat()"></chat-input>
+      <chat-input (send)="userSendMessage($event)" (dismiss)="userToggleChat()"></chat-input>
+      <canvas id="visualizer" class="visualizer" height="30" #visualizer></canvas>
       <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
     </div>
     <div style="left: 20px; margin-top: 40px;">
@@ -40,7 +41,7 @@
       <span>{{'Last Time Detected: ' + timeSinceDetected}}</span>
     </div>
   </div>
-  <button class="chat-button" (click)="toggleChat()">
+  <button class="chat-button" (click)="userToggleChat()">
     <span [@fadeIn] *ngIf="visible && !recording">X</span>
     <span [@fadeIn] *ngIf="visible && recording">R</span>
     <span [@fadeIn] *ngIf="!visible">?</span>
