@@ -6,6 +6,7 @@ using ContainerNinja.Contracts.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -37,13 +38,20 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             else
             {
-
                 foreach (var cookedRecipeCalledIngredient in cookedRecipe.CookedRecipeCalledIngredients)
                 {
                     _repository.CookedRecipeCalledIngredients.Delete(cookedRecipeCalledIngredient.Id);
                 }
                 _repository.CookedRecipes.Delete(cookedRecipe.Id);
+                model.Response.ChatMessages.Add(new ChatMessageVM
+                {
+                    Content = "Success",
+                    RawContent = "Success",
+                    Name = StaticValues.ChatMessageRoles.System,
+                    Role = StaticValues.ChatMessageRoles.System,
+                });
             }
+            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;
         }
     }

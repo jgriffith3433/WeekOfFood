@@ -8,10 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using LinqKit;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "delete_product" })]
+    [ChatCommandModel(new[] { "delete_product" })]
     public class ConsumeChatCommandDeleteProduct : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTODeleteProduct>
     {
         public ChatAICommandDTODeleteProduct Command { get; set; }
@@ -40,26 +41,53 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 .AsExpandable()
                 .Where(predicate).ToList();
 
+            Product product;
             if (query.Count == 0)
             {
                 var systemResponse = "Error: Could not find product by name: " + model.Command.Product;
                 throw new ChatAIException(systemResponse);
             }
-            else
+            else if (query.Count == 1)
             {
-                if (query.Count == 1 && query[0].Name.ToLower() == model.Command.Product.ToLower())
+                if (query[0].Name.ToLower() == model.Command.Product.ToLower())
                 {
-                    //exact match, go ahead and delete
-                    _repository.Products.Delete(query[0].Id);
+                    //exact match
+                    product = query[0];
                 }
                 else
                 {
                     //unsure, ask user
-                    var productNames = query.Select(p => p.Name).ToList();
-                    var systemResponse = "Which product are you referring to?\n" + string.Join(", ", productNames);
+                    var systemResponse = "Error: Could not find product by name '" + model.Command.Product + "'. Did you mean: " + query[0].Name + "?";
                     throw new ChatAIException(systemResponse);
                 }
             }
+            else
+            {
+                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.Product.ToLower());
+                if (exactMatch != null)
+                {
+                    //exact match
+                    product = query[0];
+                }
+                else
+                {
+                    //unsure, ask user
+                    var systemResponse = "Error: Multiple records found: " + string.Join(", ", query.Select(r => r.Name));
+                    throw new ChatAIException(systemResponse);
+                }
+            }
+            if (product != null)
+            {
+                _repository.Products.Delete(query[0].Id);
+                model.Response.ChatMessages.Add(new ChatMessageVM
+                {
+                    Content = "Success",
+                    RawContent = "Success",
+                    Name = StaticValues.ChatMessageRoles.System,
+                    Role = StaticValues.ChatMessageRoles.System,
+                });
+            }
+            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;
         }
     }

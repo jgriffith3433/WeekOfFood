@@ -36,9 +36,13 @@
       <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
     </div>
     <div style="left: 20px; margin-top: 40px;">
-      <span>{{soundWasDetected ? 'Sound Was Detected' : ''}}</span>
+      <span>{{'Currently Detected: ' + soundWasDetected}}</span>
       <br />
-      <span>{{'Last Time Detected: ' + timeSinceDetected}}</span>
+      <span>{{'Detected: ' + timeSinceDetected.toFixed(2)}}</span>
+      <br />
+      <span>{{'Synth Volume: ' + synthvolume.toFixed(2)}}</span>
+      <br />
+      <span>{{'Mic Volume: ' + recordingvolume.toFixed(2)}}</span>
     </div>
   </div>
   <button class="chat-button" (click)="userToggleChat()">

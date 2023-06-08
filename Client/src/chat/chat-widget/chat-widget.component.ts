@@ -50,12 +50,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
   mediaRecorder: MediaRecorder;
   keepRecording: boolean = false;
-  lastTimeDetected: number;
-  timeSinceDetected: number;
+  lastTimeDetected: number = 0;
+  timeSinceDetected: number = 0;
   soundDetectedSendToServer: boolean = false;
   soundWasDetected: boolean = false;
   soundWasDetectedSinceLastAvailableData: boolean = false;
   audioBlobsToSend: Blob[] = [];
+  initAudioData: Blob | undefined;
   canvasCtx: any;
   audioContext: AudioContext;
   recordingBufferSource: AudioBufferSourceNode;
@@ -67,6 +68,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   textToSpeechVisualAnalyserBufferLength: number;
   textToSpeechVisualAnalyserAnimationFrameHandle: number | undefined;
   textToSpeechPlaying: boolean = false;
+  recordingvolume: number = 1;
+  synthvolume: number = 1;
   recordingVisualAnalyserAudioStreamSource: MediaStreamAudioSourceNode;
   recordingVisualAnalyser: AnalyserNode;
   recordingVisualAnalyserDataArray: Uint8Array;
@@ -205,7 +208,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ensureAudioContextCreated() {
     if (!this.audioContext) {
-      this.audioContext = new AudioContext();
+      this.audioContext = new AudioContext(this.constraints)
       this.recordingBufferSource = this.audioContext.createBufferSource();
       this.recordingAudioStreamDestination = this.audioContext.createMediaStreamDestination();
 
@@ -215,16 +218,40 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       this.recordingVisualAnalyserDataArray = new Uint8Array(this.recordingVisualAnalyserBufferLength);
       this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
 
+
       this.textToSpeechAudioStreamSource = this.audioContext.createMediaElementSource(this.audioPlayer);
-      this.textToSpeechAudioStreamSource.connect(this.audioContext.destination);
       this.textToSpeechVisualAnalyser = this.audioContext.createAnalyser();
       this.textToSpeechVisualAnalyser.fftSize = 2048;
       this.textToSpeechVisualAnalyserBufferLength = this.textToSpeechVisualAnalyser.frequencyBinCount;
       this.textToSpeechVisualAnalyserDataArray = new Uint8Array(this.textToSpeechVisualAnalyserBufferLength);
       this.textToSpeechAudioStreamSource.connect(this.textToSpeechVisualAnalyser);
+      this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
+
+      //this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
+      //this.textToSpeechAudioGainNode = this.audioContext.createGain();
+      //this.textToSpeechAudioStreamSource.connect(this.textToSpeechAudioGainNode);
+      //this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
+
+      //let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
+      //mediaStream.connect(this.audioContext.destination);
+
+      this.source2 = this.textToSpeechAudioStreamSource;
+      //this.source2 = this.audioContext.createMediaElementSource(this.audioPlayer);
+      this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
+      this.textToSpeechAudioGainNode = this.audioContext.createGain();
+      this.source2.connect(this.textToSpeechAudioGainNode);
+      this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
+      let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
+      mediaStream.connect(this.audioContext.destination);
+
+
+
+
+
     }
   }
-
+  recordingAudioGainNode: GainNode;
+  textToSpeechAudioGainNode: GainNode;
   //public focusMessage() {
   //  this.focus.next(true)
   //}
@@ -237,7 +264,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     this.audioPlayer.oncanplaythrough = e => {
       this.textToSpeechPlaying = true;
       this.audioPlayer.play();
-      this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
     };
     this.audioPlayer.onended = e => {
       this.textToSpeechPlaying = false;
@@ -251,8 +277,24 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     }
   }
+  constraints: AudioContextOptions;
 
   async ngOnInit() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(tstream => {
+      let track = tstream.getAudioTracks()[0];
+      let capab = track.getCapabilities();
+      console.log(track.getCapabilities());
+
+      this.constraints = {
+        audio: {
+          channelCount: 1,
+          sampleRate: capab.sampleRate?.max,
+          sampleSize: capab.sampleSize?.max,
+          volume: 1,
+        },
+        noiseSuppression: capab.noiseSuppression
+      } as AudioContextOptions;
+    });
 
     window.onresize = () => {
       //this.visualizerRef.nativeElement.width = mainSection.offsetWidth;
@@ -524,6 +566,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     this.mediaRecorder.stop();
   }
 
+  source: MediaStreamAudioSourceNode;
+  source2: MediaElementAudioSourceNode;
+  textToSpeechDestination: MediaStreamAudioDestinationNode;
+  recordingDestination: MediaStreamAudioDestinationNode;
+
   record(respond: boolean = false) {
     this.ensureAudioContextCreated();
     if (respond) {
@@ -563,104 +610,133 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       if (hasMicrophone) {
         navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
           if (stream.getAudioTracks().length > 0) {
-            console.log("recording");
-            //this.endSilenceDetected = false;
-            this.soundDetectedSendToServer = false;
-            this.soundWasDetected = false;
-            this.soundWasDetectedSinceLastAvailableData = false;
-            this.mediaRecorder = new MediaRecorder(stream);
-            this.mediaRecorder.start(1000);
+            this.source = this.audioContext.createMediaStreamSource(stream);
+            this.recordingDestination = this.audioContext.createMediaStreamDestination();
+            this.recordingAudioGainNode = this.audioContext.createGain();
+            this.source.connect(this.recordingAudioGainNode);
+            this.recordingAudioGainNode.connect(this.recordingDestination);
+            let mediaStream = this.audioContext.createMediaStreamSource(this.recordingDestination.stream);
+            //mediaStream.connect(this.audioContext.destination);
 
-            this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
-              if (this.audioBlobsToSend.length == 0) {
-                console.log("captured");
-                this.audioBlobsToSend.push(event.data);
-              }
-              else {
+            if (this.recordingDestination.stream.getAudioTracks().length > 0) {
+              console.log("recording");
+              //this.endSilenceDetected = false;
+              this.soundDetectedSendToServer = false;
+              this.soundWasDetected = false;
+              this.soundWasDetectedSinceLastAvailableData = false;
+              let mediaRecorderOptions = {
+                audioBitsPerSecond: 32000
+              } as MediaRecorderOptions;
+              this.mediaRecorder = new MediaRecorder(this.recordingDestination.stream, mediaRecorderOptions);
+              //this.mediaRecorder.(16 * 44100);
+              //this.mediaRecorder.setAudioSamplingRate(44100);
+
+
+              this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
+                if (this.initAudioData == undefined) {
+                  this.initAudioData = event.data;
+                  console.log("init audio blob");
+                }
                 if (this.soundWasDetected) {
                   if (this.soundWasDetectedSinceLastAvailableData) {
                     console.log("captured");
                     this.audioBlobsToSend.push(event.data);
                     this.soundWasDetectedSinceLastAvailableData = false;
                   }
-                  else {
-                    console.log("trimmed");
-                  }
-                  if (this.timeSinceDetected > 1) {
-                    this.soundDetectedSendToServer = true;
+                  if (this.timeSinceDetected > 2) {
+                    this.sendSpeech();
                     this.soundWasDetected = false;
-                    this.mediaRecorder.stop();
                   }
                 } else {
-                  console.log("not captured");
-                  if (this.timeSinceDetected > 10) {
-                    this.keepRecording = false;
+                  console.log("trimmed");
+                  if (this.timeSinceDetected > 10 && !this.textToSpeechPlaying) {
                     this.timeSinceDetected = 0;
                     this.lastTimeDetected = performance.now();
-                    this.soundDetectedSendToServer = false;
                     this.mediaRecorder.stop();
                   }
-                  if (this.mediaRecorder.state == "inactive") {
-                    this.mediaRecorder.stop();
+                  //if (this.mediaRecorder.state == "inactive") {
+                  //  this.mediaRecorder.stop();
+                  //}
+                }
+              };
+              this.mediaRecorder.start(1000);
+
+
+              this.recordingVisualAnalyser = this.audioContext.createAnalyser();
+              this.recordingVisualAnalyser.fftSize = 2048;
+              this.recordingVisualAnalyserBufferLength = this.recordingVisualAnalyser.frequencyBinCount;
+
+              this.recordingVisualAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(stream);
+              const analyser = this.audioContext.createAnalyser();
+              analyser.minDecibels = MIN_DECIBELS;
+              this.recordingVisualAnalyserAudioStreamSource.connect(analyser);
+              this.recordingVisualAnalyserAudioStreamSource.connect(this.recordingVisualAnalyser);
+
+              //this.recordingVisualAnalyserAudioStreamSource.connect(this.textToSpeechAudioGainNode);
+              //this.textToSpeechAudioGainNode.connect(this.recordingAudioStreamDestination);
+
+
+
+
+
+              //let duckedAudio = this.audioContext.createMediaStreamDestination();
+              //// Create a gain node to control the volume of the sound effect
+              //const textToSpeechAudioGainNode = this.audioContext.createGain();
+              //textToSpeechAudioGainNode.gain.value = 1;
+
+              ////this.recordingVisualAnalyserAudioStreamSource.connect(duckedAudio);
+              //this.textToSpeechAudioStreamSource.connect(textToSpeechAudioGainNode);
+              //textToSpeechAudioGainNode.connect(duckedAudio);
+
+              //// Set the volume to 50%
+              //textToSpeechAudioGainNode.gain.value = 0.1;
+
+              const bufferLength = analyser.frequencyBinCount;
+              const domainData = new Uint8Array(bufferLength);
+
+              const detectSound = () => {
+                analyser.getByteFrequencyData(domainData);
+                let detected = false;
+                for (let i = 0; i < bufferLength; i++) {
+                  const value = domainData[i];
+
+                  if (domainData[i] > 0) {
+                    detected = true;
+                    break;
                   }
                 }
-              }
-            };
-
-            this.recordingVisualAnalyser = this.audioContext.createAnalyser();
-            this.recordingVisualAnalyser.fftSize = 2048;
-            this.recordingVisualAnalyserBufferLength = this.recordingVisualAnalyser.frequencyBinCount;
-
-            this.recordingVisualAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(stream);
-            const analyser = this.audioContext.createAnalyser();
-            analyser.minDecibels = MIN_DECIBELS;
-            this.recordingVisualAnalyserAudioStreamSource.connect(analyser);
-            this.recordingVisualAnalyserAudioStreamSource.connect(this.recordingVisualAnalyser);
-
-            const bufferLength = analyser.frequencyBinCount;
-            const domainData = new Uint8Array(bufferLength);
-
-            const detectSound = () => {
-              analyser.getByteFrequencyData(domainData);
-              let detected = false;
-              for (let i = 0; i < bufferLength; i++) {
-                const value = domainData[i];
-
-                if (domainData[i] > 0) {
-                  detected = true;
-                  break;
+                if (detected) {
+                  this.lastTimeDetected = performance.now();
+                  this.soundWasDetectedSinceLastAvailableData = true;
+                  this.soundWasDetected = true;
                 }
-              }
-              if (detected) {
-                this.lastTimeDetected = performance.now();
-                this.soundWasDetectedSinceLastAvailableData = true;
-                this.soundWasDetected = true;
-              }
-              else {
-                this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
-              }
-
-              if (this.recording) {
-                window.requestAnimationFrame(detectSound);
-              }
-            };
-            window.requestAnimationFrame(detectSound);
-
-            this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
-
-            this.mediaRecorder.addEventListener("stop", () => {
-              console.log("Recording ended.");
-              if (this.soundDetectedSendToServer) {
-                this.soundDetectedSendToServer = false;
-                this.sendSpeech();
-                if (this.keepRecording) {
-                  this.record();
+                else {
+                  this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
                 }
-              }
-              else {
-                console.log("No sound detected. Nothing sent to server");
-              }
-            });
+
+                if (this.recording) {
+                  window.requestAnimationFrame(detectSound);
+                }
+              };
+              window.requestAnimationFrame(detectSound);
+
+              this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+
+              this.mediaRecorder.addEventListener("stop", () => {
+                console.log("Recording ended.");
+                return;
+                if (this.soundDetectedSendToServer) {
+                  this.soundDetectedSendToServer = false;
+                  this.sendSpeech();
+                  if (this.keepRecording) {
+                    this.record();
+                  }
+                }
+                else {
+                  console.log("No sound detected. Nothing sent to server");
+                }
+              });
+            }
           }
         }, function (error) {
           console.log(error);
@@ -671,18 +747,88 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   textToSpeechVisualAnalyserAnimationFrameHandler = () => {
     this.visualizeSound(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
-
-    if (this.textToSpeechPlaying) {
-      this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
+    if (this.recordingAudioGainNode) {
+      this.unduckRecordingAudio(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
     }
+    this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
+  }
+
+  unduckRecordingAudio(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number) {
+    visualAnalyser.getByteTimeDomainData(visualAnalyserDataArray);
+
+    let sliceWidth = visualAnalyserBufferLength / 100;
+    let x = 0;
+    let heighestV = 0;
+    for (let i = 0; i < visualAnalyserBufferLength; i++) {
+      let v = visualAnalyserDataArray[i] / 128.0;
+      if (v > heighestV) {
+        heighestV = v;
+      }
+      x += sliceWidth;
+    }
+    let audioGain = heighestV;
+    audioGain = audioGain - 1;
+    if (audioGain > 1) {
+      audioGain = 1;
+    }
+    if (audioGain < 0) {
+      audioGain = 0;
+    }
+    if (1 + (audioGain * 2.5) > this.recordingAudioGainNode.gain.value) {
+      this.recordingAudioGainNode.gain.value += .1;
+      if (this.recordingAudioGainNode.gain.value > 3) {
+        this.recordingAudioGainNode.gain.value = 3;
+      }
+    }
+    else if (1 + (audioGain * 2.5) < this.recordingAudioGainNode.gain.value) {
+      this.recordingAudioGainNode.gain.value -= .005;
+      if (this.recordingAudioGainNode.gain.value < 1) {
+        this.recordingAudioGainNode.gain.value = 1;
+      }
+    }
+    this.recordingvolume = this.recordingAudioGainNode.gain.value;
   }
 
   recordingVisualAnalyserAnimationFrameHandler = () => {
     this.visualizeSound(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength);
+    this.duckTextToSpeechAudio(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength);
+    this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+  }
 
-    if (this.recording) {
-      this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+  duckTextToSpeechAudio(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number) {
+    visualAnalyser.getByteTimeDomainData(visualAnalyserDataArray);
+
+    let sliceWidth = visualAnalyserBufferLength / 100;
+    let x = 0;
+    let heighestV = 0;
+    for (let i = 0; i < visualAnalyserBufferLength; i++) {
+      let v = visualAnalyserDataArray[i] / 128.0;
+      if (v > heighestV) {
+        heighestV = v;
+      }
+      x += sliceWidth;
     }
+    let audioGain = heighestV;
+    audioGain = audioGain - 1;
+    if (audioGain > 1) {
+      audioGain = 1;
+    }
+    if (audioGain < 0) {
+      audioGain = 0;
+    }
+    if (1 - (audioGain * 2.5) > this.textToSpeechAudioGainNode.gain.value) {
+      this.textToSpeechAudioGainNode.gain.value += .0005;
+      if (this.textToSpeechAudioGainNode.gain.value > 1) {
+        this.textToSpeechAudioGainNode.gain.value = 1;
+      }
+    }
+    else if (1 - (audioGain * 2.5) < this.textToSpeechAudioGainNode.gain.value) {
+      this.textToSpeechAudioGainNode.gain.value -= .1;
+      if (this.textToSpeechAudioGainNode.gain.value < 0) {
+        this.textToSpeechAudioGainNode.gain.value = 0;
+      }
+    }
+    this.synthvolume = this.textToSpeechAudioGainNode.gain.value;
   }
 
   visualizeSound(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number) {
@@ -719,6 +865,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   sendSpeech() {
+    if (this.initAudioData) {
+      this.audioBlobsToSend.unshift(this.initAudioData);
+    }
     var blobToSend = new Blob(this.audioBlobsToSend, { type: 'audio/webm' });
     this.audioBlobsToSend = [];
 
@@ -743,7 +892,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           }
           let speechText = sentence.trim();
-          if (speechText.length == 1 && !RegExp(/^\p{L}/, 'u').test(speechText)) {
+          if (speechText.length == 1 && !RegExp(/^`p{L}/, 'u').test(speechText)) {
             speechText = "";
           }
           if (speechText) {

@@ -5,6 +5,7 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -36,7 +37,15 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 product.UnitType = model.Command.UnitType.UnitTypeFromString();
                 _repository.Products.Update(product);
+                model.Response.ChatMessages.Add(new ChatMessageVM
+                {
+                    Content = "Success",
+                    RawContent = "Success",
+                    Name = StaticValues.ChatMessageRoles.System,
+                    Role = StaticValues.ChatMessageRoles.System,
+                });
             }
+            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;
         }
     }

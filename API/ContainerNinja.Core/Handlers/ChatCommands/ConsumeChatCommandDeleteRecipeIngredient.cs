@@ -5,6 +5,8 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using Microsoft.Extensions.Options;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -38,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Error: Could not find ingredient by name: " + model.Command.Ingredient;
+                    var systemResponse = "Error: No ingredient '" + model.Command.Ingredient + "' found on recipe '" + model.Command.Recipe + "'. The ingredients are: " + string.Join(", ", recipe.CalledIngredients.Select(ci => ci.Name));
                     throw new ChatAIException(systemResponse);
                 }
                 else
@@ -46,8 +48,17 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     recipe.CalledIngredients.Remove(calledIngredient);
                     _repository.CalledIngredients.Delete(calledIngredient.Id);
                     _repository.Recipes.Update(recipe);
+                    model.Response.ChatMessages.Add(new ChatMessageVM
+                    {
+                        Content = "Success",
+                        RawContent = "Success",
+                        Name = StaticValues.ChatMessageRoles.System,
+                        Role = StaticValues.ChatMessageRoles.System,
+                    });
                 }
             }
+            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            await _repository.CommitAsync();
             return model.Response;
         }
     }

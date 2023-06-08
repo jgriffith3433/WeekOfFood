@@ -21,8 +21,10 @@ namespace ContainerNinja.Core.Handlers.Queries
         public ChatConversation ChatConversation { get; set; }
         public string CurrentUrl { get; set; }
         public string SendToRole { get; set; }
-        public int CurrentSystemToAssistantChatCalls { get; set; }
         public bool NormalChat { get; set; }
+        public int CurrentSystemToAssistantChatCalls { get; set; }
+        public string NavigateToPage { get; set; }
+        public bool Dirty { get; set; }
     }
 
     public class GetChatResponseQueryHandler : IRequestHandler<GetChatResponseQuery, ChatResponseVM>
@@ -108,6 +110,9 @@ namespace ContainerNinja.Core.Handlers.Queries
                             ChatAICommand = chatAICommand,
                             RawChatAICommand = rawAssistantResponseMessage,
                             CurrentUrl = request.CurrentUrl,
+                            CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
+                            NavigateToPage = request.NavigateToPage,
+                            Dirty = request.Dirty,
                         });
                     }
                     else
@@ -184,17 +189,16 @@ namespace ContainerNinja.Core.Handlers.Queries
                     Name = StaticValues.ChatMessageRoles.System,
                     Role = StaticValues.ChatMessageRoles.System,
                 });
-                if (request.CurrentSystemToAssistantChatCalls < 7)
+                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
                 {
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
-                }
+                    ChatMessages = chatResponseVM.ChatMessages,
+                    ChatConversation = request.ChatConversation,
+                    CurrentUrl = request.CurrentUrl,
+                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
+                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
+                    NavigateToPage = request.NavigateToPage,
+                    Dirty = chatResponseVM.Dirty,
+                });
                 chatResponseVM.ChatConversationId = request.ChatConversation.Id;
             }
             catch (ChatAIException ex)
@@ -210,17 +214,16 @@ namespace ContainerNinja.Core.Handlers.Queries
                     Name = StaticValues.ChatMessageRoles.System,
                     Role = StaticValues.ChatMessageRoles.System,
                 });
-                if (request.CurrentSystemToAssistantChatCalls < 5)
+                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
                 {
-                    chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                    {
-                        ChatMessages = chatResponseVM.ChatMessages,
-                        ChatConversation = request.ChatConversation,
-                        CurrentUrl = request.CurrentUrl,
-                        SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    });
-                }
+                    ChatMessages = chatResponseVM.ChatMessages,
+                    ChatConversation = request.ChatConversation,
+                    CurrentUrl = request.CurrentUrl,
+                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
+                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
+                    NavigateToPage = request.NavigateToPage,
+                    Dirty = chatResponseVM.Dirty,
+                });
                 chatResponseVM.ChatConversationId = request.ChatConversation.Id;
             }
             catch (Exception e)

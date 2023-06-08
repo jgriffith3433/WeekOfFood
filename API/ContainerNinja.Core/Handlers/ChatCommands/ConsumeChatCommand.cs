@@ -12,6 +12,7 @@ using System.Reflection;
 using ContainerNinja.Core.Common;
 using AutoMapper.Internal;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
+using ContainerNinja.Core.Handlers.Queries;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -22,6 +23,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public ChatAICommandDTO ChatAICommand { get; set; }
         public string RawChatAICommand { get; set; }
         public string CurrentUrl { get; set; }
+        public int CurrentSystemToAssistantChatCalls { get; set; }
+        public string NavigateToPage { get; set; }
+        public bool Dirty { get; set; }
     }
 
     public class ConsumeChatCommandHandler : IRequestHandler<ConsumeChatCommand, ChatResponseVM>
@@ -61,9 +65,33 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         if (chatCommandConsumer != null)
                         {
                             chatCommandConsumerType.GetProperty("Command")?.SetValue(chatCommandConsumer, JsonConvert.DeserializeObject(request.RawChatAICommand.Substring(request.RawChatAICommand.IndexOf('{'), request.RawChatAICommand.LastIndexOf('}') - request.RawChatAICommand.IndexOf('{') + 1), GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType)));
-                            chatCommandConsumerType.GetProperty("Response")?.SetValue(chatCommandConsumer, new ChatResponseVM { ChatConversationId = request.ChatConversation.Id, ChatMessages = request.ChatMessages });
+                            chatCommandConsumerType.GetProperty("Response")?.SetValue(chatCommandConsumer, new ChatResponseVM
+                            {
+                                ChatConversationId = request.ChatConversation.Id,
+                                ChatMessages = request.ChatMessages,
+                                NavigateToPage = request.NavigateToPage,
+                                Dirty = request.Dirty,
+                            });
+
+                            var messageCountBefore = request.ChatMessages.Count;
 
                             chatResponseVM = await _mediator.Send(chatCommandConsumer, cancellationToken) as ChatResponseVM;
+
+                            var messageCountAfter = chatResponseVM.ChatMessages.Count;
+
+                            if (messageCountBefore < messageCountAfter)
+                            {
+                                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
+                                {
+                                    ChatMessages = chatResponseVM.ChatMessages,
+                                    ChatConversation = request.ChatConversation,
+                                    CurrentUrl = request.CurrentUrl,
+                                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
+                                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
+                                    NavigateToPage = chatResponseVM.NavigateToPage,
+                                    Dirty = chatResponseVM.Dirty,
+                                });
+                            }
                         }
                     }
                 }
@@ -75,12 +103,16 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         var chatCommandConsumer = new ConsumeChatCommandUnknown
                         {
                             Command = chatCommandModel,
-                            Response = chatResponseVM = new ChatResponseVM { ChatConversationId = request.ChatConversation.Id, ChatMessages = request.ChatMessages, UnknownCommand = true },
+                            Response = chatResponseVM = new ChatResponseVM
+                            {
+                                ChatConversationId = request.ChatConversation.Id,
+                                ChatMessages = request.ChatMessages,
+                                UnknownCommand = true,
+                            },
                         };
                         chatResponseVM = await _mediator.Send(chatCommandConsumer);
                     }
                 }
-                chatResponseVM.Dirty = _repository.ChangeTracker.HasChanges();
                 //chatResponseVM.CreateNewChat = !string.IsNullOrEmpty(chatResponseVM.NavigateToPage);
                 chatCommandEntity.ChangedData = chatResponseVM.Dirty;
                 chatCommandEntity.UnknownCommand = chatResponseVM.UnknownCommand;

@@ -26,7 +26,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandUnknown request, CancellationToken cancellationToken)
         {
             //default is an unknown command
-            var systemResponse = $"unknown cmd: {request.Command.Cmd}";
+            var systemResponse = $"Error: unknown cmd '{request.Command.Cmd}'";
             throw new ChatAIException(systemResponse);
         }
     }

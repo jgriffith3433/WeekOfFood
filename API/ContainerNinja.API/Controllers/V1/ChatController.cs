@@ -104,7 +104,12 @@ namespace ContainerNinja.Controllers.V1
                 Directory.CreateDirectory(uploads);
             }
 
-            var filePath = Path.Combine(uploads, speech.FileName);
+            var fileName = speech.FileName;
+            if (!fileName.Contains(".webm"))
+            {
+                fileName += ".webm";
+            }
+            var filePath = Path.Combine(uploads, fileName);
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await speech.CopyToAsync(fileStream);
@@ -124,8 +129,29 @@ namespace ContainerNinja.Controllers.V1
         public async Task<FileResult> TextToSpeech([FromQuery] GetChatTextToSpeechQuery query)
         {
             var bytes = await _mediator.Send(query);
+            var downloads = Path.Combine(_webHostEnvironment.WebRootPath, "downloads");
+
+            if (!Directory.Exists(downloads))
+            {
+                Directory.CreateDirectory(downloads);
+            }
+
+            var filePath = Path.Combine(downloads, "text-to-speech.mp3");
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                fileStream.Write(bytes, 0, bytes.Length);
+            }
 
             return File(bytes, System.Net.Mime.MediaTypeNames.Application.Octet, "text-to-speech.mp3");
+            //testing
+            //var testFilePath = Path.Combine(downloads, "bassmusic.mp3");
+            //byte[] readBytes;
+            //using (var fileStream = new FileStream(testFilePath, FileMode.Open))
+            //{
+            //    readBytes = new byte[fileStream.Length];
+            //    fileStream.Read(readBytes, 0, (int)fileStream.Length);
+            //}
+            //return File(readBytes, System.Net.Mime.MediaTypeNames.Application.Octet, "bassmusic.mp3");
         }
 
         private byte[] ConvertToByteArrayContent(IFormFile audofile)

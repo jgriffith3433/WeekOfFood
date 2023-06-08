@@ -4,6 +4,7 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Common;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -38,6 +39,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             };
             productStockEntity.Product = productEntity;
             _repository.ProductStocks.Add(productStockEntity);
+            model.Response.ChatMessages.Add(new ChatMessageVM
+            {
+                Content = "Success",
+                RawContent = "Success",
+                Name = StaticValues.ChatMessageRoles.System,
+                Role = StaticValues.ChatMessageRoles.System,
+            });
+            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;
         }
     }

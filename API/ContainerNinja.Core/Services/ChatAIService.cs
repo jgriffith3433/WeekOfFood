@@ -9,6 +9,9 @@ using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
+using Google.Protobuf.WellKnownTypes;
+using System.Drawing;
+using System.Text.RegularExpressions;
 
 namespace ContainerNinja.Core.Services
 {
@@ -162,13 +165,13 @@ namespace ContainerNinja.Core.Services
         {
             return new string[]
             {
-            "home",
-            "todo",
-            "product stocks",
-            "products",
-            "completed orders",
-            "recipes",
-            "cooked recipes",
+                "home",
+                "todo",
+                "product stocks",
+                "products",
+                "completed orders",
+                "recipes",
+                "cooked recipes",
                 "called ingredients"
             };
         }
@@ -196,24 +199,32 @@ namespace ContainerNinja.Core.Services
             var chatPromptList = new List<ChatMessage>
                 {
                     ChatMessage.FromSystem(
-                        "You are a website assistant. You must respond only with JSON and no extra text. The cmd and response fields are required. " +
-                        "The user is on the home page. The available commands you can return are: none, go_to_page. The available pages are " + string.Join(", ", GetPages()) + ".",
+                        "You are a kitchen assistant. You must respond only with JSON and no extra text. The cmd and response fields are required. " +
+                        "The user is on the home page. The available commands you can return are: " + GetAllCommands() + ".",
                         StaticValues.ChatMessageRoles.System
                         ),
-                    ChatMessage.FromAssistant(
-                        @"{
-        ""cmd"": ""none"",
-        ""response"": ""How can I help you manage your home page?"",
-        }",
-                        StaticValues.ChatMessageRoles.Assistant),
                     ChatMessage.FromUser("Hello", StaticValues.ChatMessageRoles.User),
                     ChatMessage.FromAssistant(
-        @"{
-        ""cmd"": ""none"",
-        ""response"": ""Hello, is there anything I can help with on your home page?"",
-        }",
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Hello, how can I help you manage your kitchen?"",
+}",
                         StaticValues.ChatMessageRoles.Assistant
-                        )
+                        ),
+                        ChatMessage.FromUser("Go to the forum", StaticValues.ChatMessageRoles.User),
+                        ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""go_to_page"",
+    ""page"": ""forum"",
+}",
+                        StaticValues.ChatMessageRoles.Assistant),
+                        ChatMessage.FromSystem("Error: Unknown page forum. The available pages are:" + string.Join(", ", GetPages()), StaticValues.ChatMessageRoles.User),
+                        ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""I'm sorry, I cannot navigate to the forum page. The available pages are: " + string.Join(", ", GetPages()) + @"."",
+}",
+                        StaticValues.ChatMessageRoles.Assistant),
                 };
             if (currentUrl != "home")
             {
@@ -221,170 +232,259 @@ namespace ContainerNinja.Core.Services
                         {
                         ChatMessage.FromUser("Go to " + currentUrl, StaticValues.ChatMessageRoles.User),
                         ChatMessage.FromAssistant(
-        @"{
-        ""cmd"": ""go_to_page"",
-        ""response"": ""Okay, navigating to "
-                            + currentUrl + @""",
-        ""page"": """ + currentUrl + @""",
-        }",
+@"{
+    ""cmd"": ""go_to_page"",
+    ""response"": ""Okay, navigating to " + currentUrl + @""",
+    ""page"": """ + currentUrl + @""",
+}",
                         StaticValues.ChatMessageRoles.Assistant
                         ),
-                        ChatMessage.FromSystem(
-                            "The user is on the " + currentUrl + " page. The available commands you can return are: " + string.Join(", ", GetCommandsForCurrentUrl(currentUrl)) + ".",
-                            StaticValues.ChatMessageRoles.System
-                        ),
+                        ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
                         ChatMessage.FromAssistant(
-        @"{
-        ""cmd"": ""none"",
-        ""response"": ""How can I help you manage your " + currentUrl + @""",
-        }",
-                        StaticValues.ChatMessageRoles.Assistant),
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Okay, navigating to " + currentUrl + @""",
+}",
+                        StaticValues.ChatMessageRoles.Assistant
+                        ),
                     });
             }
             switch (currentUrl)
             {
                 case "recipes":
                     chatPromptList.AddRange(new List<ChatMessage>
-                            {
-                            ChatMessage.FromUser("Change the bienenstich recipe to yummy", StaticValues.ChatMessageRoles.User),
+                        {
+                            ChatMessage.FromUser("Change the bienenstich recipe to bienenstich 1", StaticValues.ChatMessageRoles.User),
                             ChatMessage.FromAssistant(
-        @"{
-        ""cmd"": ""edit_recipe_name"",
-          ""response"": ""Okay, I have updated your recipe."",
-          ""original"": ""bienenstich"",
-          ""new"": ""yummy""
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
-                            ChatMessage.FromUser("Can you substitute the bread for gluten free bread in the sandwich recipe?", StaticValues.ChatMessageRoles.User),
-                            ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""edit_recipe_ingredient"",
-          ""response"": ""Okay, I have substituted the bread ingredient for Gluten_free bread."",
-          ""recipe"": ""sandwich"",
-          ""original"": ""bread"",
-          ""new"": ""Gluten_free bread""
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
+@"{
+    ""cmd"": ""edit_recipe_name"",
+    ""original"": ""bienenstich"",
+    ""new"": ""yummy""
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
 
-                            ChatMessage.FromUser("Create a new recipe that has chicken", StaticValues.ChatMessageRoles.User),
+                            ChatMessage.FromSystem("Error: Multiple records found: bienenstich_1, bienenstich_2", StaticValues.ChatMessageRoles.System),
+
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""create_recipe"",
-          ""response"": ""Created."",
-          ""name"": ""Chicken Pot Pie"",
-          ""serves"": 2,
-          ""ingredients"": [
-            {
-              ""name"": ""chicken breast"",
-              ""units"": 2,
-              ""unittype"": ""cups""
-            },
-            {
-              ""name"": ""mixed vegetables"",
-              ""units"": 1,
-              ""unittype"": ""can""
-            },
-            {
-              ""name"": ""condensed cream of chicken soup"",
-              ""units"": 1,
-              ""unittype"": ""can""
-            },
-            {
-              ""name"": ""milk"",
-              ""units"": 0.5,
-              ""unittype"": ""cups""
-            },
-            {
-              ""name"": ""deep_dish frozen pie crusts"",
-              ""units"": 2,
-              ""unittype"": ""whole""
-            },
-          ]
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
-                            ChatMessage.FromUser("Give me a barbeque chicken recipe", StaticValues.ChatMessageRoles.User),
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Do you want to change bienenstich_1 or bienenstich_2?"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromUser("bienenstich_1", StaticValues.ChatMessageRoles.User),
+
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""create_recipe"",
-          ""response"": ""Created."",
-          ""name"": ""Barbeque Chicken Thighs"",
-          ""serves"": 2,
-          ""ingredients"": [
-            {
-              ""name"": ""boneless chicken thighs"",
-              ""units"": 3,
-              ""unittype"": ""pounds""
-            },
-            {
-              ""name"": ""garlic powder"",
-              ""units"": .5,
-              ""unittype"": ""teaspoons""
-            },
-            {
-              ""name"": ""BBQ sauce"",
-              ""units"": 1,
-              ""unittype"": ""bottle""
-            },
-          ]
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
+@"{
+    ""cmd"": ""edit_recipe_name"",
+    ""original"": ""bienenstich_1"",
+    ""new"": ""bienenstich 1""
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+                            
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Okay, I have changed bienenstich_1 to bienenstich."",
+}",
+                                StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromUser("Can you substitute the bread for gluten-free bread in the ham sandwich recipe?", StaticValues.ChatMessageRoles.User),
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""edit_recipe_ingredient"",
+    ""recipe"": ""ham sandwich"",
+    ""original"": ""bread"",
+    ""new"": ""gluten-free bread""
+}",
+                                StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Okay, I have substituted the bread ingredient for Gluten-free bread."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromUser("Give me a barbeque chicken recipe.", StaticValues.ChatMessageRoles.User),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Sure. Do you want it sweet or savory?"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromUser("Both.", StaticValues.ChatMessageRoles.User),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""create_recipe"",
+    ""name"": ""Honey Barbeque Chicken Thighs"",
+    ""serves"": 2,
+    ""ingredients"": [
+        {
+            ""name"": ""Boneless chicken thighs"",
+            ""units"": 3,
+            ""unittype"": ""pounds""
+        },
+        {
+            ""name"": ""BBQ sauce"",
+            ""units"": 1,
+            ""unittype"": ""bottle""
+        },
+        {
+            ""name"": ""Honey"",
+            ""units"": 2,
+            ""unittype"": ""tablespoons""
+        },
+        {
+            ""name"": ""Soy sauce"",
+            ""units"": 2,
+            ""unittype"": ""tablespoons""
+        },
+    ]
+}",
+                                StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Created."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromUser("I don't really like honey bbq.", StaticValues.ChatMessageRoles.User),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Would you like to use brown sugar instead?."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromUser("Sure.", StaticValues.ChatMessageRoles.User),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""edit_recipe_ingredient"",
+    ""recipe"": ""Honey Barbeque Chicken Thighs"",
+    ""original"": ""Honey"",
+    ""new"": ""Brown sugar"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""edit_recipe_name"",
+    ""original"": ""Honey Barbeque Chicken Thighs"",
+    ""new"": ""Brown Sugar BBQ Chicken Thighs""
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Okay, I substituted honey for brown sugar and renamed the recipe to Brown Sugar BBQ Chicken Thighs."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
                             ChatMessage.FromUser("Remove the spaghetti with meat sauce recipe", StaticValues.ChatMessageRoles.User),
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""delete_recipe"",
-          ""response"": ""Removed."",
-          ""recipe"": ""spaghetti with meat sauce"",
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
+@"{
+    ""cmd"": ""delete_recipe"",
+    ""recipe"": ""spaghetti with meat sauce"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Removed."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
                             ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe", StaticValues.ChatMessageRoles.User),
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""edit_recipe_ingredient_unittype"",
-          ""response"": ""Changed the butter unit type to tablespoons."",
-          ""recipe"": ""eggs and spinach"",
-          ""ingredient"": ""butter"",
-          ""unittype"": ""tablespoons"",
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
+@"{
+    ""cmd"": ""edit_recipe_ingredient_unittype"",
+    ""recipe"": ""eggs and spinach"",
+    ""ingredient"": ""butter"",
+    ""unittype"": ""tablespoons"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+
+                            ChatMessage.FromSystem("Success: Unit type changed from cups to tablespoons.", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Okay I changed it from cupts to tablespoons."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
                             ChatMessage.FromUser("Add two teaspoons of pepper to the spicy chili recipe", StaticValues.ChatMessageRoles.User),
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""add_recipe_ingredient"",
-          ""response"": ""Added."",
-          ""recipe"": ""spicy chili"",
-          ""ingredient"": ""pepper"",
-          ""unittype"": ""teaspoons"",
-          ""units"": 2
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
-                            ChatMessage.FromUser("Substitute sesame oil for vegetable oil in the orange chicken recipe", StaticValues.ChatMessageRoles.User),
+@"{
+    ""cmd"": ""add_recipe_ingredient"",
+    ""recipe"": ""spicy chili"",
+    ""ingredient"": ""pepper"",
+    ""unittype"": ""teaspoons"",
+    ""units"": 2
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""substitute_recipe_ingredient"",
-          ""response"": ""Substituted."",
-          ""recipe"": ""orange chicken"",
-          ""original"": ""sesame oil"",
-          ""new"": ""vegetable oil"",
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                ),
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Added."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+
                             ChatMessage.FromUser("Remove the onions from the spicy chili recipe", StaticValues.ChatMessageRoles.User),
+
                             ChatMessage.FromAssistant(
-        @"{
-          ""cmd"": ""remove_recipe_ingredient"",
-          ""response"": ""Removed."",
-          ""recipe"": ""spicy chili"",
-          ""ingredient"": ""onions"",
-        }",
-                                StaticValues.ChatMessageRoles.Assistant
-                                )
+@"{
+    ""cmd"": ""remove_recipe_ingredient"",
+    ""recipe"": ""spicy chili"",
+    ""ingredient"": ""onions"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Error: No ingredient 'onions' found on recipe 'spicy chili'. The ingredients are: ground beef, white onion, garlic, bell pepper, diced tomatoes, kidney beans, black beans, tomato paste, chili powder, cumin, paprika, cayenne pepper, salt, pepper", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""remove_recipe_ingredient"",
+    ""recipe"": ""spicy chili"",
+    ""ingredient"": ""white onion"",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
+
+                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
+
+                            ChatMessage.FromAssistant(
+@"{
+    ""cmd"": ""none"",
+    ""response"": ""Removed."",
+}",
+                            StaticValues.ChatMessageRoles.Assistant),
                         });
                     break;
                 case "cooked_recipes":

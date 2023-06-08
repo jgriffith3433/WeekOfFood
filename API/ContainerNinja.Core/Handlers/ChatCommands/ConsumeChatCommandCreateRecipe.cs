@@ -5,6 +5,7 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Common;
+using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -26,16 +27,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandCreateRecipe model, CancellationToken cancellationToken)
         {
-            //var response = _mediator.Send(new CreateRecipeCommand
-            //{
-            //    Name = createRecipe.Name,
-            //    UserImport = notification.ChatCommand.RawReponse
-            //});
             var recipeEntity = new Recipe();
 
             recipeEntity.Name = model.Command.Name;
-            //entity.Serves = createRecipe.Serves.Value;
-            //recipeEntity.UserImport = model.RawChatAICommand;
 
             foreach (var createRecipeIngredient in model.Command.Ingredients)
             {
@@ -51,13 +45,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
 
             _repository.Recipes.Add(recipeEntity);
-            //await _repository.CommitAsync();
-
-            //if (entity.UserImport != null)
-            //{
-            //    entity.AddDomainEvent(new RecipeUserImportEvent(entity));
-            //}
-            //await _repository.SaveChangesAsync(cancellationToken);
+            model.Response.ChatMessages.Add(new ChatMessageVM
+            {
+                Content = "Success",
+                RawContent = "Success",
+                Name = StaticValues.ChatMessageRoles.System,
+                Role = StaticValues.ChatMessageRoles.System,
+            });
+            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;
         }
     }
