@@ -1,8 +1,8 @@
 
 export interface ChatMessageVm {
-  role?: string;
+  from?: string;
   content?: string;
   received: boolean;
   rawContent?: string;
-  name?: string;
+  to?: string;
 }

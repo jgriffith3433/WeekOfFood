@@ -6,6 +6,6 @@ namespace ContainerNinja.Contracts.Services
     {
         Task<string> GetChatResponse(List<ChatMessageVM> chatMessages, string currentUrl);
         Task<string> GetNormalChatResponse(List<ChatMessageVM> chatMessages);
-        Task<string> GetTextFromSpeech(byte[] speechBytes);
+        Task<string> GetTextFromSpeech(byte[] speechBytes, string? previousMessage);
     }
 }

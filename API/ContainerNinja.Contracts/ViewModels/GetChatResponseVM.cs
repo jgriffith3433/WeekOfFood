@@ -6,6 +6,5 @@ namespace ContainerNinja.Contracts.ViewModels
         public List<ChatMessageVM> ChatMessages { get; set; }
         public int ChatConversationId { get; set; }
         public string CurrentUrl { get; set; }
-        public string SendToRole { get; set; }
     }
 }

@@ -26,13 +26,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public async Task<ChatResponseVM> Handle(ConsumeChatCommandGoToPage model, CancellationToken cancellationToken)
         {
             model.Response.NavigateToPage = string.Join('-', model.Command.Page.Split(' '));
-            model.Response.ChatMessages.Add(new ChatMessageVM
-            {
-                Content = "Success",
-                RawContent = "Success",
-                Name = StaticValues.ChatMessageRoles.System,
-                Role = StaticValues.ChatMessageRoles.System,
-            });
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;
         }

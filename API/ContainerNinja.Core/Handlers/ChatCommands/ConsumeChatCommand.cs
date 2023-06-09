@@ -73,25 +73,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                                 Dirty = request.Dirty,
                             });
 
-                            var messageCountBefore = request.ChatMessages.Count;
-
                             chatResponseVM = await _mediator.Send(chatCommandConsumer, cancellationToken) as ChatResponseVM;
-
-                            var messageCountAfter = chatResponseVM.ChatMessages.Count;
-
-                            if (messageCountBefore < messageCountAfter)
+                            chatResponseVM.ChatMessages.Add(new ChatMessageVM
                             {
-                                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                                {
-                                    ChatMessages = chatResponseVM.ChatMessages,
-                                    ChatConversation = request.ChatConversation,
-                                    CurrentUrl = request.CurrentUrl,
-                                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
-                                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                                    NavigateToPage = chatResponseVM.NavigateToPage,
-                                    Dirty = chatResponseVM.Dirty,
-                                });
-                            }
+                                Content = "Success",
+                                RawContent = "Success",
+                                From = StaticValues.ChatMessageRoles.System,
+                                To = StaticValues.ChatMessageRoles.Assistant,
+                            });
                         }
                     }
                 }
@@ -148,7 +137,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     Content = ex.Message,
                     RawContent = ex.Message,
-                    Name = StaticValues.ChatMessageRoles.System
+                    To = StaticValues.ChatMessageRoles.System
                 });
                 request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
 

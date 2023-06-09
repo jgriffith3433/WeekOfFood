@@ -60,13 +60,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
                 recipe.CookedRecipes.Add(cookedRecipe);
                 _repository.Recipes.Update(recipe);
-                model.Response.ChatMessages.Add(new ChatMessageVM
-                {
-                    Content = "Success",
-                    RawContent = "Success",
-                    Name = StaticValues.ChatMessageRoles.System,
-                    Role = StaticValues.ChatMessageRoles.System,
-                });
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return model.Response;

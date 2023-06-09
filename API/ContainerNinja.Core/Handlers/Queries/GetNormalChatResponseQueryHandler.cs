@@ -18,7 +18,6 @@ namespace ContainerNinja.Core.Handlers.Queries
         public List<ChatMessageVM> ChatMessages { get; set; }
         public ChatConversation ChatConversation { get; set; }
         public string CurrentUrl { get; set; }
-        public string SendToRole { get; set; }
     }
 
     public class GetNormalChatResponseQueryHandler : IRequestHandler<GetNormalChatResponseQuery, ChatResponseVM>
@@ -40,18 +39,31 @@ namespace ContainerNinja.Core.Handlers.Queries
 
         public async Task<ChatResponseVM> Handle(GetNormalChatResponseQuery request, CancellationToken cancellationToken)
         {
+            foreach (var chatMessage in request.ChatMessages)
+            {
+                if (chatMessage.To == StaticValues.ChatMessageRoles.System)
+                {
+                    chatMessage.Received = true;
+                }
+            }
             ChatResponseVM chatResponseVM;
 
             try
             {
                 var rawAssistantResponseMessage = await _chatAIService.GetNormalChatResponse(request.ChatMessages);
-
+                foreach (var chatMessage in request.ChatMessages)
+                {
+                    if (chatMessage.To == StaticValues.ChatMessageRoles.Assistant)
+                    {
+                        chatMessage.Received = true;
+                    }
+                }
                 request.ChatMessages.Add(new ChatMessageVM
                 {
                     Content = rawAssistantResponseMessage,
                     RawContent = rawAssistantResponseMessage,
-                    Role = StaticValues.ChatMessageRoles.Assistant,
-                    Name = StaticValues.ChatMessageRoles.Assistant,
+                    From = StaticValues.ChatMessageRoles.Assistant,
+                    To = StaticValues.ChatMessageRoles.User,
                 });
                 chatResponseVM = new ChatResponseVM
                 {
@@ -66,7 +78,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     ChatConversationId = request.ChatConversation.Id,
                     //CreateNewChat = true,
                     ChatMessages = request.ChatMessages,
-                    Error = true
+                    Error = true,
                 };
                 request.ChatConversation.Error = FlattenException(e);
             }

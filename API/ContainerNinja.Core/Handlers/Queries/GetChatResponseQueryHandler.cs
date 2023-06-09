@@ -9,9 +9,7 @@ using System.Text;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
 using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
-using FluentValidation;
 using ContainerNinja.Core.Exceptions;
-using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -20,7 +18,6 @@ namespace ContainerNinja.Core.Handlers.Queries
         public List<ChatMessageVM> ChatMessages { get; set; }
         public ChatConversation ChatConversation { get; set; }
         public string CurrentUrl { get; set; }
-        public string SendToRole { get; set; }
         public bool NormalChat { get; set; }
         public int CurrentSystemToAssistantChatCalls { get; set; }
         public string NavigateToPage { get; set; }
@@ -46,126 +43,109 @@ namespace ContainerNinja.Core.Handlers.Queries
 
         public async Task<ChatResponseVM> Handle(GetChatResponseQuery request, CancellationToken cancellationToken)
         {
+            foreach (var chatMessage in request.ChatMessages)
+            {
+                if (chatMessage.To == StaticValues.ChatMessageRoles.System)
+                {
+                    chatMessage.Received = true;
+                }
+            }
             ChatResponseVM chatResponseVM;
 
             try
             {
-                if (request.SendToRole == StaticValues.ChatMessageRoles.Assistant)
+                request.CurrentSystemToAssistantChatCalls++;
+                var rawAssistantResponseMessage = await _chatAIService.GetChatResponse(request.ChatMessages, request.CurrentUrl);
+                foreach (var chatMessage in request.ChatMessages)
                 {
-                    request.CurrentSystemToAssistantChatCalls++;
-                    var rawAssistantResponseMessage = await _chatAIService.GetChatResponse(request.ChatMessages, request.CurrentUrl);
-                    var startIndex = rawAssistantResponseMessage.IndexOf('{');
-                    var endIndex = rawAssistantResponseMessage.LastIndexOf('}');
-                    if (startIndex != -1 && endIndex == -1)
+                    if (chatMessage.To == StaticValues.ChatMessageRoles.Assistant)
                     {
-                        request.ChatMessages.Add(new ChatMessageVM
-                        {
-                            Content = rawAssistantResponseMessage,
-                            RawContent = rawAssistantResponseMessage,
-                            Role = StaticValues.ChatMessageRoles.Assistant,
-                            Name = StaticValues.ChatMessageRoles.Assistant,
-                        });
-                        //partial json response
-                        chatResponseVM = new ChatResponseVM
-                        {
-                            ChatConversationId = request.ChatConversation.Id,
-                            //CreateNewChat = true,
-                            ChatMessages = request.ChatMessages
-                        };
-                        var systemResponse = "I'm sorry, the AI has sent back a partial response.";
-                        chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                        {
-                            Content = systemResponse,
-                            RawContent = systemResponse,
-                            Role = StaticValues.ChatMessageRoles.System,
-                            Name = StaticValues.ChatMessageRoles.System,
-                        });
-                    }
-                    else if (startIndex != -1 && endIndex != -1)
-                    {
-                        //json response
-                        var chatAICommand = JsonConvert.DeserializeObject<ChatAICommandDTO>(rawAssistantResponseMessage.Substring(startIndex, endIndex - startIndex + 1));
-
-                        //sometimes the ai sends the response before the json brackets
-                        if (string.IsNullOrEmpty(chatAICommand.Response))
-                        {
-                            //to account for newlines, skip the first 2 characters when deciding if the response is outside
-                            if (startIndex > 2)
-                            {
-                                chatAICommand.Response = rawAssistantResponseMessage.Substring(0, startIndex + 1);
-                            }
-                        }
-
-                        request.ChatMessages.Add(new ChatMessageVM
-                        {
-                            Content = chatAICommand.Response,
-                            RawContent = rawAssistantResponseMessage,
-                            Role = StaticValues.ChatMessageRoles.Assistant,
-                            Name = StaticValues.ChatMessageRoles.Assistant,
-                        });
-                        chatResponseVM = await _mediator.Send(new ConsumeChatCommand
-                        {
-                            ChatConversation = request.ChatConversation,
-                            ChatMessages = request.ChatMessages,
-                            ChatAICommand = chatAICommand,
-                            RawChatAICommand = rawAssistantResponseMessage,
-                            CurrentUrl = request.CurrentUrl,
-                            CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                            NavigateToPage = request.NavigateToPage,
-                            Dirty = request.Dirty,
-                        });
-                    }
-                    else
-                    {
-                        request.ChatMessages.Add(new ChatMessageVM
-                        {
-                            Content = rawAssistantResponseMessage,
-                            RawContent = rawAssistantResponseMessage,
-                            Role = StaticValues.ChatMessageRoles.Assistant,
-                            Name = StaticValues.ChatMessageRoles.Assistant,
-                        });
-                        //no json in response. send to user
-                        chatResponseVM = new ChatResponseVM
-                        {
-                            ChatConversationId = request.ChatConversation.Id,
-                            ChatMessages = request.ChatMessages,
-                        };
+                        chatMessage.Received = true;
                     }
                 }
-                else if (request.SendToRole == StaticValues.ChatMessageRoles.System)
+                var startIndex = rawAssistantResponseMessage.IndexOf('{');
+                var endIndex = rawAssistantResponseMessage.LastIndexOf('}');
+                if (startIndex != -1 && endIndex == -1)
                 {
+                    //partial json response
+
+                    //Since there was a curly bracket in the response
+                    //Assume the message was for the system
+                    request.ChatMessages.Add(new ChatMessageVM
+                    {
+                        Content = rawAssistantResponseMessage,
+                        RawContent = rawAssistantResponseMessage,
+                        From = StaticValues.ChatMessageRoles.Assistant,
+                        To = StaticValues.ChatMessageRoles.System,
+                    });
                     chatResponseVM = new ChatResponseVM
                     {
                         ChatConversationId = request.ChatConversation.Id,
-                        //CreateNewChat = true,
                         ChatMessages = request.ChatMessages,
+                        Error = true,
+                        UnknownCommand = true,
                     };
-                    //TODO: Could implement website AI
-                    var systemResponse = "Hello, I cannot receive direct messages yet.";
+                    var systemResponse = "I'm sorry, the AI has sent back a partial response.";
                     chatResponseVM.ChatMessages.Add(new ChatMessageVM
                     {
                         Content = systemResponse,
                         RawContent = systemResponse,
-                        Role = StaticValues.ChatMessageRoles.System,
-                        Name = StaticValues.ChatMessageRoles.System,
+                        From = StaticValues.ChatMessageRoles.System,
+                        To = StaticValues.ChatMessageRoles.User,
+                    });
+                }
+                else if (startIndex != -1 && endIndex != -1)
+                {
+                    //json response
+                    var chatAICommand = JsonConvert.DeserializeObject<ChatAICommandDTO>(rawAssistantResponseMessage.Substring(startIndex, endIndex - startIndex + 1));
+
+                    //sometimes the ai sends the response before the json brackets
+                    if (string.IsNullOrEmpty(chatAICommand.Response))
+                    {
+                        //to account for newlines, skip the first 2 characters when deciding if the response is outside
+                        if (startIndex > 2)
+                        {
+                            chatAICommand.Response = rawAssistantResponseMessage.Substring(0, startIndex + 1);
+                        }
+                    }
+
+                    //by default all json responses go to the system
+                    //the system will then determine if the chat command is 'None'
+                    //then the response will go to the user
+                    request.ChatMessages.Add(new ChatMessageVM
+                    {
+                        Content = chatAICommand.Response,
+                        RawContent = rawAssistantResponseMessage,
+                        From = StaticValues.ChatMessageRoles.Assistant,
+                        To = StaticValues.ChatMessageRoles.System,
+                    });
+                    chatResponseVM = await _mediator.Send(new ConsumeChatCommand
+                    {
+                        ChatConversation = request.ChatConversation,
+                        ChatMessages = request.ChatMessages,
+                        ChatAICommand = chatAICommand,
+                        RawChatAICommand = rawAssistantResponseMessage,
+                        CurrentUrl = request.CurrentUrl,
+                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
+                        NavigateToPage = request.NavigateToPage,
+                        Dirty = request.Dirty,
                     });
                 }
                 else
                 {
+                    //no json in response. send to user
+                    request.ChatMessages.Add(new ChatMessageVM
+                    {
+                        Content = rawAssistantResponseMessage,
+                        RawContent = rawAssistantResponseMessage,
+                        From = StaticValues.ChatMessageRoles.Assistant,
+                        To = StaticValues.ChatMessageRoles.User,
+                    });
                     chatResponseVM = new ChatResponseVM
                     {
                         ChatConversationId = request.ChatConversation.Id,
-                        //CreateNewChat = true,
                         ChatMessages = request.ChatMessages,
                     };
-                    //TODO: Could implement user to user chat?
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = request.ChatMessages[request.ChatMessages.Count - 1].Content,
-                        RawContent = request.ChatMessages[request.ChatMessages.Count - 1].Content,
-                        Role = StaticValues.ChatMessageRoles.User,
-                        Name = StaticValues.ChatMessageRoles.User,
-                    });
                 }
             }
             catch (ApiValidationException ex)
@@ -186,15 +166,14 @@ namespace ContainerNinja.Core.Handlers.Queries
                 {
                     Content = systemResponse,
                     RawContent = systemResponse,
-                    Name = StaticValues.ChatMessageRoles.System,
-                    Role = StaticValues.ChatMessageRoles.System,
+                    From = StaticValues.ChatMessageRoles.System,
+                    To = StaticValues.ChatMessageRoles.Assistant,
                 });
                 chatResponseVM = await _mediator.Send(new GetChatResponseQuery
                 {
                     ChatMessages = chatResponseVM.ChatMessages,
                     ChatConversation = request.ChatConversation,
                     CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
                     CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
                     NavigateToPage = request.NavigateToPage,
                     Dirty = chatResponseVM.Dirty,
@@ -211,15 +190,14 @@ namespace ContainerNinja.Core.Handlers.Queries
                 {
                     Content = ex.Message,
                     RawContent = ex.Message,
-                    Name = StaticValues.ChatMessageRoles.System,
-                    Role = StaticValues.ChatMessageRoles.System,
+                    From = StaticValues.ChatMessageRoles.System,
+                    To = StaticValues.ChatMessageRoles.Assistant,
                 });
                 chatResponseVM = await _mediator.Send(new GetChatResponseQuery
                 {
                     ChatMessages = chatResponseVM.ChatMessages,
                     ChatConversation = request.ChatConversation,
                     CurrentUrl = request.CurrentUrl,
-                    SendToRole = StaticValues.ChatMessageRoles.Assistant,
                     CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
                     NavigateToPage = request.NavigateToPage,
                     Dirty = chatResponseVM.Dirty,

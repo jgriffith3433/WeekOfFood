@@ -88,16 +88,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 };
                 recipe.CalledIngredients.Add(calledIngredient);
                 _repository.Recipes.Update(recipe);
-                model.Response.ChatMessages.Add(new ChatMessageVM
-                {
-                    Content = "Success",
-                    RawContent = "Success",
-                    Name = StaticValues.ChatMessageRoles.System,
-                    Role = StaticValues.ChatMessageRoles.System,
-                });
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            await _repository.CommitAsync();
             return model.Response;
         }
     }

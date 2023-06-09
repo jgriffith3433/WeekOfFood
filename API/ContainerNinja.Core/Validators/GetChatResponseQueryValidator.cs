@@ -15,13 +15,6 @@ namespace ContainerNinja.Core.Validators
             RuleFor(v => v.ChatConversation)
                 .NotEmpty().WithMessage("ChatConversation is required");
 
-            RuleFor(v => v.SendToRole)
-                .Must(v =>
-                v == StaticValues.ChatMessageRoles.Assistant ||
-                v == StaticValues.ChatMessageRoles.User ||
-                v == StaticValues.ChatMessageRoles.System)
-                .WithMessage($"SendToRole must be {StaticValues.ChatMessageRoles.Assistant}, {StaticValues.ChatMessageRoles.User}, or {StaticValues.ChatMessageRoles.System}");
-
             RuleFor(v => v.CurrentUrl)
                 .NotEmpty().WithMessage("CurrentUrl is required");
 
@@ -39,7 +32,7 @@ namespace ContainerNinja.Core.Validators
                 {
                     if (cm.Count >= 3 && cm[cm.Count - 3].RawContent == cm[cm.Count - 1].RawContent)
                     {
-                        if (cm[cm.Count - 3].Role == StaticValues.ChatMessageRoles.System)
+                        if (cm[cm.Count - 3].From == StaticValues.ChatMessageRoles.System)
                         {
                             //Loop detected
                             return false;

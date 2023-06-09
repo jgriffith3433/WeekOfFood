@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import {
   HttpInterceptor,
   HttpRequest,
@@ -17,7 +17,11 @@ import { environment } from '../environments/environment';
 @Injectable()
 export class HttpErrorInterceptor implements HttpInterceptor {
 
-  constructor(private tokenService: TokenService, private router: Router) { }
+  constructor(
+    private tokenService: TokenService,
+    private router: Router,
+    private zone: NgZone
+  ) { }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let token = this.tokenService.getToken();
@@ -45,7 +49,9 @@ export class HttpErrorInterceptor implements HttpInterceptor {
           case 400:
             return throwError(() => response.error);
           case 401:
-            this.router.navigate(['login']);
+            this.zone.run(() => {
+              this.router.navigate(['login']);
+            });
             return throwError(() => response);
           default:
             return EMPTY;

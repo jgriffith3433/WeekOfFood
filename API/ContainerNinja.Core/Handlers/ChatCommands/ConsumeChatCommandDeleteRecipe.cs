@@ -92,13 +92,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         _repository.CalledIngredients.Delete(calledIngredient.Id);
                     }
                     _repository.Recipes.Delete(recipe.Id);
-                    model.Response.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = "Success",
-                        RawContent = "Success",
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

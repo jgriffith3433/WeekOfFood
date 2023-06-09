@@ -8,6 +8,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 {
     public record GetChatTextFromSpeechQuery : IRequest<GetChatTextFromSpeechVm>
     {
+        public string PreviousMessage { get; set; }
         public byte[] Speech { get; set; }
     }
 
@@ -28,7 +29,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
         public async Task<GetChatTextFromSpeechVm> Handle(GetChatTextFromSpeechQuery request, CancellationToken cancellationToken)
         {
-            var speechToTextMessage = await _chatAIService.GetTextFromSpeech(request.Speech);
+            var speechToTextMessage = await _chatAIService.GetTextFromSpeech(request.Speech, request.PreviousMessage);
 
             return new GetChatTextFromSpeechVm
             {

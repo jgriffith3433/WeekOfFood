@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OpenAI.ObjectModels;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -34,10 +35,6 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ChatResponseVM>> Create(GetChatResponseVM getChatResponse)
         {
-            foreach (var chatMessage in getChatResponse.ChatMessages)
-            {
-                chatMessage.Received = true;
-            }
             var chatConversation = await _mediator.Send(new GetChatConversation
             {
                 ChatConversationId = getChatResponse.ChatConversationId,
@@ -46,7 +43,6 @@ namespace ContainerNinja.Controllers.V1
             {
                 ChatMessages = getChatResponse.ChatMessages,
                 CurrentUrl = getChatResponse.CurrentUrl,
-                SendToRole = getChatResponse.SendToRole,
                 ChatConversation = chatConversation,
                 CurrentSystemToAssistantChatCalls = 1,
             });
@@ -66,10 +62,6 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<ChatResponseVM>> CreateNormal(GetChatResponseVM getChatResponse)
         {
-            foreach (var chatMessage in getChatResponse.ChatMessages)
-            {
-                chatMessage.Received = true;
-            }
             var chatConversation = await _mediator.Send(new GetChatConversation
             {
                 ChatConversationId = getChatResponse.ChatConversationId,
@@ -78,7 +70,6 @@ namespace ContainerNinja.Controllers.V1
             {
                 ChatMessages = getChatResponse.ChatMessages,
                 CurrentUrl = getChatResponse.CurrentUrl,
-                SendToRole = getChatResponse.SendToRole,
                 ChatConversation = chatConversation,
             });
             if (response.Error)
@@ -105,12 +96,24 @@ namespace ContainerNinja.Controllers.V1
             }
 
             var fileName = speech.FileName;
-            if (!fileName.Contains(".webm"))
+            var filePathNew = Path.Combine(uploads, fileName + "_1.wav");
+            var filePath2nd = Path.Combine(uploads, fileName + "_2.wav");
+            var filePath3rd = Path.Combine(uploads, fileName + "_3.wav");
+
+            if (System.IO.File.Exists(filePath3rd))
             {
-                fileName += ".webm";
+                System.IO.File.Delete(filePath3rd);
             }
-            var filePath = Path.Combine(uploads, fileName);
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            if (System.IO.File.Exists(filePath2nd))
+            {
+                System.IO.File.Move(filePath2nd, filePath3rd);
+            }
+            if (System.IO.File.Exists(filePathNew))
+            {
+                System.IO.File.Move(filePathNew, filePath2nd);
+            }
+
+            using (var fileStream = new FileStream(filePathNew, FileMode.Create))
             {
                 await speech.CopyToAsync(fileStream);
             }
@@ -123,10 +126,10 @@ namespace ContainerNinja.Controllers.V1
 
 
         [MapToApiVersion("1.0")]
-        [HttpGet("TextToSpeech")]
+        [HttpPost("TextToSpeech")]
         [ProducesResponseType(typeof(FileResult), (int)HttpStatusCode.Created)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<FileResult> TextToSpeech([FromQuery] GetChatTextToSpeechQuery query)
+        public async Task<FileResult> TextToSpeech(GetChatTextToSpeechQuery query)
         {
             var bytes = await _mediator.Send(query);
             var downloads = Path.Combine(_webHostEnvironment.WebRootPath, "downloads");

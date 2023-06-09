@@ -47,13 +47,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     cookedRecipeCalledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
                     _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
-                    model.Response.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = "Success",
-                        RawContent = "Success",
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

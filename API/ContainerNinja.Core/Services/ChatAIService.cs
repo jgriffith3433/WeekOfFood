@@ -33,7 +33,7 @@ namespace ContainerNinja.Core.Services
         public async Task<string> GetChatResponse(List<ChatMessageVM> chatMessages, string currentUrl)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(currentUrl);
-            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.Role, cm.RawContent, cm.Name)));
+            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.From, cm.RawContent, cm.From)));
             var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
             if (completionResult.Error != null)
             {
@@ -48,7 +48,7 @@ namespace ContainerNinja.Core.Services
         public async Task<string> GetNormalChatResponse(List<ChatMessageVM> chatMessages)
         {
             var chatCompletionCreateRequest = CreateNormalChatCompletionCreateRequest();
-            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.Role, cm.RawContent, cm.Name)));
+            chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.From, cm.RawContent, cm.From)));
             var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
             if (completionResult.Error != null)
             {
@@ -634,14 +634,17 @@ namespace ContainerNinja.Core.Services
             return chatPromptList;
         }
 
-        public async Task<string> GetTextFromSpeech(byte[] speechBytes)
+        public async Task<string> GetTextFromSpeech(byte[] speechBytes, string? previousMessage)
         {
             var response = await _openAIService.Audio.CreateTranscription(new AudioCreateTranscriptionRequest
             {
-                FileName = "blob.webm",
+                FileName = "blob.wav",
                 File = speechBytes,
                 Model = Models.WhisperV1,
-                ResponseFormat = StaticValues.AudioStatics.ResponseFormat.VerboseJson
+                ResponseFormat = StaticValues.AudioStatics.ResponseFormat.VerboseJson,
+                Prompt = previousMessage,
+                Temperature = 0.2f,
+                Language = "en",
             });
             if (!response.Successful)
             {

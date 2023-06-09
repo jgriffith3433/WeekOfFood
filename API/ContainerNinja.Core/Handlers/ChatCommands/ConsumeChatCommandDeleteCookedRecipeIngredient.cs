@@ -46,13 +46,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     cookedRecipe.CookedRecipeCalledIngredients.Remove(cookedRecipeCalledIngredient);
                     _repository.CookedRecipes.Update(cookedRecipe);
-                    model.Response.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = "Success",
-                        RawContent = "Success",
-                        Name = StaticValues.ChatMessageRoles.System,
-                        Role = StaticValues.ChatMessageRoles.System,
-                    });
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

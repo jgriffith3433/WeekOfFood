@@ -4,5 +4,4 @@ export interface GetChatResponseQuery {
   chatMessages?: ChatMessageVm[];
   chatConversationId?: number | undefined;
   currentUrl?: string;
-  sendToRole?: string;
 }
