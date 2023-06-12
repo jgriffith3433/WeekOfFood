@@ -19,6 +19,7 @@ import { TokenService } from '../../app/providers/token.service';
 import { PicoService } from '../providers/pico.service';
 import { GetChatResponseVm } from '../models/GetChatResponseVm';
 import { AuthService } from '../../app/providers/auth.service';
+import { ChatInputComponent } from '../chat-input/chat-input.component';
 
 //read online that maybe you want to use this instead?
 //import { Blob } from 'buffer';
@@ -38,6 +39,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('recordingVisualizer') recordingVisualizerRef: ElementRef;
   @ViewChild('recordingFrequenciesVisualizer') recordingFrequenciesVisualizerRef: ElementRef;
   @ViewChild('speechToTextVisualizer') textToSpeechVisualizerRef: ElementRef;
+  @ViewChild('chatInput') chatInputRef: ChatInputComponent;
   @Input() public theme: 'blue' | 'grey' | 'red' = 'blue';
   public _visible = false;
   public _refreshing = false;
@@ -52,7 +54,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   mediaRecorder: MediaRecorder | undefined;
   keepRecording: boolean = false;
   lastTimeDetected: number = 0;
+  lastTimeNoSoundDetected: number = 0;
   timeSinceDetected: number = 0;
+  timeSinceNoSoundDetected: number = 0;
   soundDetectedSendToServer: boolean = false;
   soundDetectedLastSecond: boolean = false;
   soundWasDetectedSinceSpeechSent: boolean = false;
@@ -73,6 +77,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   textToSpeechVisualAnalyserAnimationFrameHandle: number | undefined;
   textToSpeechPlaying: boolean = false;
   synthvolume: number = 1;
+  musicPlaying: boolean = false;
   finalRecordingAudioSourceNode: MediaStreamAudioSourceNode;
   recordingVisualAnalyserAudioStreamSource: MediaStreamAudioSourceNode;
   recordingVisualAnalyser: AnalyserNode;
@@ -95,7 +100,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   numberOfGainNodesToApply = 3;
   recordingAudioHeadGainNode: GainNode;
   recordingAudioGainNodes: GainNode[] = [];
-  gainValue = 10;
+  gainValue = 0;
   micVolumeOverTimeStart = performance.now();
   micVolumeOverTimeLowest: number = Number.POSITIVE_INFINITY;
   micVolumeOverTimeLowAverage: number = 0;
@@ -110,9 +115,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   micVolumeOverTimeHighTotal = 0;
 
   MIC_VOLUME_DETECTION_TIME = 5;
-  ROOM_DETECTION_VOLUME = 20;
-  SPEECH_DETECTION_VOLUME = 50;
-  SPEECH_CLIPPING_VOLUME = 200;
+  ROOM_DETECTION_VOLUME = 50;
+  SPEECH_DETECTION_VOLUME = 150;
+  SPEECH_DETECTION_ENV = 150;
+  SPEECH_CLIPPING_VOLUME = 300;
 
   gainChanged(event: any) {
     this.gainValue = event.target.value;
@@ -293,14 +299,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         this.recordingVisualFrequenciesAnalyserAudioStreamSource.connect(this.recordingVisualFrequenciesAnalyser);
 
 
-        //this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
-        this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.soundDetectorAudioStreamDestination.stream);
+        this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
+        //this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.soundDetectorAudioStreamDestination.stream);
         this.recordingSoundAnalyser = this.audioContext.createAnalyser();
         this.recordingSoundAnalyser.fftSize = 256;
         //this.recordingSoundAnalyser.minDecibels = this.MIN_DECIBELS;
         this.recordingSoundAnalyserBufferLength = this.recordingSoundAnalyser.frequencyBinCount;
         this.recordingSoundAnalyserDataArray = new Uint8Array(this.recordingSoundAnalyserBufferLength);
-
         this.recordingSoundAnalyserAudioStreamSource.connect(this.recordingSoundAnalyser);
 
 
@@ -400,10 +405,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                     //this.recordingCompressor.connect(this.recordingBandPassCreateBiquadFilter);
                     //this.recordingBandPassCreateBiquadFilter.connect(this.recordingAudioStreamDestination);
 
+
+
                     //testing
                     //so you can hear the recording
-                    this.finalRecordingAudioSourceNode = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
-                    this.finalRecordingAudioSourceNode.connect(this.audioContext.destination);
+                    //this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.audioContext.destination);
+
                     if (this.recordingVisualAnalyserAnimationFrameHandle) {
                       window.cancelAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandle);
                       this.recordingVisualAnalyserAnimationFrameHandle = undefined;
@@ -431,6 +438,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       }
     });
   }
+
+  disconnectMicrophone() {
+    //this.finalRecordingAudioSourceNode.disconnect(this.audioContext.destination);
+    this.source.disconnect(this.recordingAudioHeadGainNode);
+  }
+
   textToSpeechAudioGainNode: GainNode;
   //public focusMessage() {
   //  this.focus.next(true)
@@ -457,6 +470,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       if (this.visible) {
         if (this.recording) {
           this.lastTimeDetected = performance.now();
+          this.lastTimeNoSoundDetected = performance.now();
         }
         else {
           this.record();
@@ -481,12 +495,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         this.mediaStreamConstraints = {
           audio: {
             noiseSuppression: false,
-            suppressLocalAudioPlayback: false,
+            suppressLocalAudioPlayback: true,
             advanced: [{
               noiseSuppression: false,
               sampleRate: capabilities.sampleRate?.max,
               sampleSize: capabilities.sampleSize?.max,
-              suppressLocalAudioPlayback: false,
+              suppressLocalAudioPlayback: true,
             }]
           }
         } as MediaStreamConstraints;
@@ -516,6 +530,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     this.keywordSubscription = this.picoService.keywordDetectionListener.subscribe(porcupineSubscription => {
       this.currentWakeWord = porcupineSubscription.label;
+      if (this.textToSpeechPlaying) {
+        this.audioPlayer.pause();
+      }
       if (!this.visible) {
         this.toggleChat();
       }
@@ -651,10 +668,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       }
-      //TODO: turning off recording for now
-      //if (!this.recording) {
-      //  this.record(false);
-      //}
+      if (!this.recording) {
+        this.record(false);
+      }
     }
     else {
       if (this.recording) {
@@ -892,6 +908,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       this.timeSinceDetected = 0;
       this.lastTimeDetected = performance.now();
+      this.lastTimeNoSoundDetected = performance.now();
       this.keepRecording = this.visible;
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
         console.log("This browser does not support the API yet");
@@ -911,10 +928,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           audioBitsPerSecond: 128000
         } as MediaRecorderOptions;
 
-        //this.mediaRecorder = new MediaRecorder(this.recordingAudioStreamDestination.stream, mediaRecorderOptions);
-        this.mediaRecorder = new MediaRecorder(this.recordingAudioStreamDestination.stream);
-        //this.mediaRecorder.(16 * 44100);
-        //this.mediaRecorder.setAudioSamplingRate(44100);
+
+        this.finalRecordingAudioSourceNode = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
+
+        this.mediaRecorder = new MediaRecorder(this.finalRecordingAudioSourceNode.mediaStream);
 
         this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
           if (this.mediaRecorder) {
@@ -928,6 +945,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
               if (this.soundWasDetectedSinceLastAvailableData || this.soundDetectedLastSecond) {
                 console.log("middle sound captured");
                 this.soundWasDetectedSinceLastAvailableData = false;
+              }
+              if (this.timeSinceNoSoundDetected >= 3) {
+                this.lastTimeNoSoundDetected = performance.now();
+                this.timeSinceNoSoundDetected = 0;
+                this.sendSpeech(false, true);
               }
               if (this.timeSinceDetected > 2) {
                 //this.mediaRecorder.requestData();
@@ -944,16 +966,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
               else {
                 if (this.timeSinceDetected > 6) {
                   console.log("stop recording");
-                  this.mediaRecorder.stop();
                   this.timeSinceDetected = 0;
                   this.lastTimeDetected = performance.now();
+                  this.lastTimeNoSoundDetected = performance.now();
+                  this.mediaRecorder.stop();
                 }
-              }
-              if (this.mediaRecorder.state == "inactive") {
-                console.log("mediaRecorder inactive");
-                this.mediaRecorder.ondataavailable = null;
-                this.mediaRecorder = undefined;
-                //this.mediaRecorder.stop();
               }
             }
           }
@@ -971,31 +988,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         }
 
         this.mediaRecorder.onstop = e => {
-
-
-          this.finalRecordingAudioSourceNode.disconnect(this.audioContext.destination);
-          //this.recordingBandPassCreateBiquadFilter.disconnect(this.recordingAudioStreamDestination);
-
-          //this.recordingCompressor.disconnect(this.recordingBandPassCreateBiquadFilter);
-
-          this.recordingHighPassCreateBiquadFilter.disconnect(this.recordingCompressor.threshold);
-          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.recordingAudioStreamDestination);
-          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.recordingHighPassCreateBiquadFilter);
-          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.soundDetectorAudioStreamDestination);
-
-          //uncomment to disconnect the uncompressed audio
-          //this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.recordingBandPassCreateBiquadFilter);
-          this.source.disconnect(this.recordingAudioHeadGainNode);
-
           console.log("Recording ended.");
           if (this.soundDetectedSendToServer) {
             console.log("Sound detected. Sending to server");
             this.soundDetectedSendToServer = false;
-            this.sendSpeech(true);
+            this.sendSpeech(false, false);
           }
           else {
             this.audioBlobsToSend = [];
             console.log("No sound detected. Nothing sent to server");
+          }
+          if (this.mediaRecorder) {
+            this.mediaRecorder.ondataavailable = null;
+            this.mediaRecorder.onerror = null;
+            this.mediaRecorder.onstart = null;
+            this.mediaRecorder.onstop = null;
+            this.mediaRecorder = undefined;
           }
         };
 
@@ -1068,15 +1076,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
     let sliceWidth = visualAnalyserBufferLength / 100;
     let x = 0;
-    let heighestV = 0;
+    let highestV = 0;
     for (let i = 0; i < visualAnalyserBufferLength; i++) {
       let v = visualAnalyserDataArray[i] / 128.0;
-      if (v > heighestV) {
-        heighestV = v;
+      if (v > highestV) {
+        highestV = v;
       }
       x += sliceWidth;
     }
-    let audioGain = heighestV;
+    let audioGain = highestV;
     audioGain = audioGain - 1;
     if (audioGain > 1) {
       audioGain = 1;
@@ -1084,16 +1092,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     if (audioGain < 0) {
       audioGain = 0;
     }
-    if (1 - (audioGain * 2.5) > this.textToSpeechAudioGainNode.gain.value) {
+    if (1 - (audioGain * 25) > this.textToSpeechAudioGainNode.gain.value) {
       this.textToSpeechAudioGainNode.gain.value += .0005;
       if (this.textToSpeechAudioGainNode.gain.value > 1) {
         this.textToSpeechAudioGainNode.gain.value = 1;
       }
     }
-    else if (1 - (audioGain * 2.5) < this.textToSpeechAudioGainNode.gain.value) {
+    else if (1 - (audioGain * 25) < this.textToSpeechAudioGainNode.gain.value) {
       this.textToSpeechAudioGainNode.gain.value -= .05;
-      if (this.textToSpeechAudioGainNode.gain.value < .1) {
-        this.textToSpeechAudioGainNode.gain.value = .1;
+      if (this.textToSpeechAudioGainNode.gain.value < .3) {
+        this.textToSpeechAudioGainNode.gain.value = .3;
       }
     }
     this.synthvolume = this.textToSpeechAudioGainNode.gain.value;
@@ -1159,15 +1167,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-
-
-
   recordingSoundAnalyserAnimationFrameHandler = () => {
     this.detectSound(this.recordingSoundAnalyser, this.recordingSoundAnalyserDataArray, this.recordingSoundAnalyserBufferLength);
     this.recordingSoundAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandler);
   }
 
   detectSound(soundAnalyser: AnalyserNode, soundDataArray: Uint8Array, soundAnalyserBufferLength: number) {
+    //if (!this.recording) {
+    //  return;
+    //}
     //console.log('compression: ' + this.recordingCompressor.reduction);
     //https://stackoverflow.com/questions/24083349/understanding-getbytetimedomaindata-and-getbytefrequencydata-in-web-audio
     soundAnalyser.getByteFrequencyData(soundDataArray);
@@ -1230,26 +1238,25 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     if (this.micVolumeOverTimeLowAverage < this.ROOM_DETECTION_VOLUME &&
-      this.micVolumeOverTimeHighAverage < this.SPEECH_CLIPPING_VOLUME &&
-      this.micVolumeOverTimeHighest < this.SPEECH_CLIPPING_VOLUME
+      this.micVolumeOverTimeHighest < this.SPEECH_CLIPPING_VOLUME &&
+      this.micVolumeOverTimeAverage < this.SPEECH_DETECTION_VOLUME && this.soundDetectedLastSecond == false
     ) {
-      this.gainValue += 0.1;
+      this.gainValue += .5;
       resetMicVolumeOverTime = true;
     }
     else if ((this.micVolumeOverTimeHighAverage > this.SPEECH_DETECTION_VOLUME &&
       this.micVolumeOverTimeLowAverage > this.ROOM_DETECTION_VOLUME) ||
       this.micVolumeOverTimeHighest >= this.SPEECH_CLIPPING_VOLUME
     ) {
-      this.gainValue -= 0.1;
+      this.gainValue -= 0.5;
       resetMicVolumeOverTime = true;
     }
 
-    //https://decibelpro.app/blog/how-many-decibels-does-a-human-speak-normally/
-    //let detected = this.micv > this.SPEECH_DETECTION_VOLUME;
-
-    this.recordingAudioHeadGainNode.gain.value = this.gainValue * .03;
-    for (var i = 0; i < this.recordingAudioGainNodes.length; i++) {
-      this.recordingAudioGainNodes[i].gain.value = this.recordingAudioHeadGainNode.gain.value;
+    if (Number.isFinite(this.gainValue)) {
+      this.recordingAudioHeadGainNode.gain.value = this.gainValue * .03;
+      for (var i = 0; i < this.recordingAudioGainNodes.length; i++) {
+        this.recordingAudioGainNodes[i].gain.value = this.recordingAudioHeadGainNode.gain.value;
+      }
     }
 
     if (resetMicVolumeOverTime) {
@@ -1273,18 +1280,30 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     //  }
     //}
 
+    //https://decibelpro.app/blog/how-many-decibels-does-a-human-speak-normally/
+    let voiceDetected = this.micVolumeOverTimeAverage >= this.ROOM_DETECTION_VOLUME &&
+      this.micVolumeOverTimeHighest - this.micVolumeOverTimeLowest > this.SPEECH_DETECTION_ENV;
 
-    if (false) {
-      this.timeSinceDetected = 0;
+    let noVoiceDetected = this.micVolumeOverTimeAverage < this.SPEECH_DETECTION_VOLUME;
+    //&& this.micVolumeOverTimeHighest - this.micVolumeOverTimeLowest <= this.SPEECH_DETECTION_ENV;
+
+
+    if (voiceDetected) {
       this.soundDetectedLastSecond = true;
       this.lastTimeDetected = performance.now();
       this.soundWasDetectedSinceLastAvailableData = true;
       this.soundWasDetectedSinceSpeechSent = true;
     }
-    else {
-      this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
-      this.soundDetectedLastSecond = this.timeSinceDetected <= 1;
+    else if (noVoiceDetected) {
+      this.lastTimeNoSoundDetected = performance.now();
+      //this.soundDetectedLastSecond = this.timeSinceDetected <= 1;
+      this.soundDetectedLastSecond = false;
     }
+    else {
+      //unknown
+    }
+    this.timeSinceNoSoundDetected = Math.floor((performance.now() - this.lastTimeNoSoundDetected)) / 1000;
+    this.timeSinceDetected = Math.floor((performance.now() - this.lastTimeDetected)) / 1000;
   }
 
   combineAudioBlobs(audioBlobs: Blob[]): Promise<Blob> {
@@ -1314,16 +1333,19 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  sendSpeech(compress = false) {
+  sendSpeech(compress: boolean, add: boolean) {
     if (this.textToSpeechPlaying) {
       this.audioPlayer.pause();
     }
     let clone = [...this.audioBlobsToSend];
-    this.audioBlobsToSend = [];
+    if (!add) {
+      this.audioBlobsToSend = [];
+    }
 
     this.combineAudioBlobs(clone).then(blobToSend => {
       blobToSend.arrayBuffer().then(arrayBuffer => {
         if (arrayBuffer.byteLength == 0) {
+          console.log('byte length 0');
           return;
         }
         if (this.audioContextOptions.sampleRate) {
@@ -1332,6 +1354,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           });
           audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
             if (audioBuffer.duration <= .25) {
+              console.log('audioBuffer duration less than .25');
               return;
             }
             //const newAudioBuffer = audioContext.createBuffer(
@@ -1349,7 +1372,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
             let threshold = this.calculateSilenceThresholdRMS(audioBuffer, 4);
-            if (threshold < .1) {
+            if (threshold > .1) {
               threshold = .1;
             }
             //console.log('threshold: ' + threshold);
@@ -1394,10 +1417,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                   let waveBlob = this.bufferToWave(renderedBuffer, offlineAudioCtx.length)
                   //var waveFile = URL.createObjectURL(waveBlob);
                   if (duration >= .25) {
-                    this.sendSpeechToServer(waveBlob);
-                  }
-                  if (this.keepRecording) {
-                    this.record();
+                    this.sendSpeechToServer(waveBlob, add);
                   }
 
                   soundSource.loop = false;
@@ -1407,6 +1427,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
                 soundSource.start(0);
               }
+            }
+            else {
+              console.log('trimmed');
             }
           }).catch(err => {
             console.log(err);
@@ -1419,7 +1442,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  sendSpeechToServer(trimmedBlob: Blob) {
+  sendSpeechToServer(trimmedBlob: Blob, add: boolean) {
     let lastMessage: string | undefined = undefined;
     for (let i = this.chatMessages.length - 1; i >= 0; i--) {
       if (this.chatMessages[i].from == this.user.name) {
@@ -1448,11 +1471,43 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
             }
           }
           let speechText = sentence.trim();
-          if (speechText.toLowerCase() == 'stop') {
+          if (speechText.toLowerCase() == 'stop' || speechText.toLowerCase() == 'stop.') {
+            console.log('stop command');
             speechText = "";
           }
-          if (speechText) {
-            this.sendMessage(speechText);
+          if (speechText.toLowerCase().indexOf('thanks for watching') != -1 ||
+            speechText.toLowerCase().indexOf('thank you for watching') != -1 ||
+            speechText.toLowerCase().indexOf('please subscribe to my channel.') != -1
+          ) {
+            //the openai must have been trained on video data? thanks for watching usually comes back when it's just noise
+            speechText = "";
+          }
+          this.musicPlaying = speechText == '🎶';
+
+          if (this.musicPlaying) {
+            this.stopRecording();
+          }
+          if (add) {
+            if (this.chatInputRef.getMessage() == speechText) {
+              this.chatInputRef.clearMessage();
+              console.log("no change in s2t");
+              this.soundDetectedSendToServer = true;
+              this.timeSinceDetected = 0;
+              this.lastTimeDetected = performance.now();
+              this.lastTimeNoSoundDetected = performance.now();
+              if (this.mediaRecorder) {
+                this.mediaRecorder.stop();
+              }
+            }
+            else {
+              this.chatInputRef.setMessage(speechText);
+            }
+          }
+          else {
+            if (speechText) {
+              this.sendMessage(speechText);
+              this.chatInputRef.clearMessage();
+            }
           }
         }
       },

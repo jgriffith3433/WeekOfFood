@@ -88,35 +88,35 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<GetChatTextFromSpeechVm>> Speech([FromForm] IFormFile speech)
         {
-            var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+            //var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
 
-            if (!Directory.Exists(uploads))
-            {
-                Directory.CreateDirectory(uploads);
-            }
+            //if (!Directory.Exists(uploads))
+            //{
+            //    Directory.CreateDirectory(uploads);
+            //}
 
-            var fileName = speech.FileName;
-            var filePathNew = Path.Combine(uploads, fileName + "_1.wav");
-            var filePath2nd = Path.Combine(uploads, fileName + "_2.wav");
-            var filePath3rd = Path.Combine(uploads, fileName + "_3.wav");
+            //var fileName = speech.FileName;
+            //var filePathNew = Path.Combine(uploads, fileName + "_1.wav");
+            //var filePath2nd = Path.Combine(uploads, fileName + "_2.wav");
+            //var filePath3rd = Path.Combine(uploads, fileName + "_3.wav");
 
-            if (System.IO.File.Exists(filePath3rd))
-            {
-                System.IO.File.Delete(filePath3rd);
-            }
-            if (System.IO.File.Exists(filePath2nd))
-            {
-                System.IO.File.Move(filePath2nd, filePath3rd);
-            }
-            if (System.IO.File.Exists(filePathNew))
-            {
-                System.IO.File.Move(filePathNew, filePath2nd);
-            }
+            //if (System.IO.File.Exists(filePath3rd))
+            //{
+            //    System.IO.File.Delete(filePath3rd);
+            //}
+            //if (System.IO.File.Exists(filePath2nd))
+            //{
+            //    System.IO.File.Move(filePath2nd, filePath3rd);
+            //}
+            //if (System.IO.File.Exists(filePathNew))
+            //{
+            //    System.IO.File.Move(filePathNew, filePath2nd);
+            //}
 
-            using (var fileStream = new FileStream(filePathNew, FileMode.Create))
-            {
-                await speech.CopyToAsync(fileStream);
-            }
+            //using (var fileStream = new FileStream(filePathNew, FileMode.Create))
+            //{
+            //    await speech.CopyToAsync(fileStream);
+            //}
 
             return await _mediator.Send(new GetChatTextFromSpeechQuery
             {
@@ -139,11 +139,11 @@ namespace ContainerNinja.Controllers.V1
                 Directory.CreateDirectory(downloads);
             }
 
-            var filePath = Path.Combine(downloads, "text-to-speech.mp3");
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                fileStream.Write(bytes, 0, bytes.Length);
-            }
+            //var filePath = Path.Combine(downloads, "text-to-speech.mp3");
+            //using (var fileStream = new FileStream(filePath, FileMode.Create))
+            //{
+            //    fileStream.Write(bytes, 0, bytes.Length);
+            //}
 
             return File(bytes, System.Net.Mime.MediaTypeNames.Application.Octet, "text-to-speech.mp3");
             //testing

@@ -10,7 +10,6 @@ import { PicoModels } from '../models/PicoModels';
   providedIn: 'root'
 })
 export class PicoService implements OnDestroy {
-  private keywords: Array<string>;
   public autoStart: boolean = false;
   public isLoaded: boolean = false;
   public isListening: boolean = false;
@@ -29,7 +28,6 @@ export class PicoService implements OnDestroy {
     private tokenService: TokenService,
     private porcupineService: PorcupineService,
   ) {
-    this.keywords = PicoModels.porcupineKeywords.map((k: any) => k.label ?? k.builtin);
 
     this.isLoadedSubscription = this.porcupineService.isLoaded$.subscribe(isLoaded => {
       this.isLoaded = isLoaded;
@@ -83,8 +81,7 @@ export class PicoService implements OnDestroy {
               try {
                 this.porcupineService.init(
                   this.tokenService.getPico() as string,
-                  // @ts-ignore
-                  this.keywords[0],
+                  PicoModels.porcupineKeywords[0],
                   PicoModels.porcupineModel
                 );
               }

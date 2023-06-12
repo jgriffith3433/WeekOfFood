@@ -1,3 +1,4 @@
+import { PorcupineKeyword } from '@picovoice/porcupine-web';
 
 export class PicoModels {
   public static porcupineModel = {
@@ -5,11 +6,12 @@ export class PicoModels {
     forceWrite: true
   }
 
-  public static porcupineKeywords = [
+  public static porcupineKeywords: PorcupineKeyword[] = [
     {
       label: 'Bumblebee',
       publicPath: 'assets/bumblebee_wasm.ppn',
       forceWrite: true,
+      sensitivity: 1,
     },
   ]
 }

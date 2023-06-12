@@ -31,6 +31,10 @@ export class ChatInputComponent implements OnInit {
     return this.message.nativeElement.value
   }
 
+  public setMessage(str: string) {
+    this.message.nativeElement.value = str;
+  }
+
   public clearMessage() {
     this.message.nativeElement.value = ''
   }

@@ -31,7 +31,7 @@
       </ng-container>
     </div>
     <div class="chat-box-footer">
-      <chat-input (send)="userSendMessage($event)" (dismiss)="userToggleChat()"></chat-input>
+      <chat-input id="chatInput" (send)="userSendMessage($event)" (dismiss)="userToggleChat()" #chatInput></chat-input>
       <canvas id="recordingVisualizer" class="visualizer" height="30" #recordingVisualizer></canvas>
       <canvas id="speechToTextVisualizer" class="visualizer" height="30" #speechToTextVisualizer></canvas>
       <canvas id="recordingFrequenciesVisualizer" class="visualizer" height="30" #recordingFrequenciesVisualizer></canvas>
@@ -41,6 +41,8 @@
       <span>{{'Currently Detected: ' + soundDetectedLastSecond}}</span>
       <br />
       <span>{{'Detected: ' + timeSinceDetected.toFixed(2)}}</span>
+      <br />
+      <span>{{'Not Detected: ' + timeSinceNoSoundDetected.toFixed(2)}}</span>
       <br />
       <span>{{'Synth Volume: ' + synthvolume.toFixed(2)}}</span>
       <br />
