@@ -32,7 +32,9 @@
     </div>
     <div class="chat-box-footer">
       <chat-input (send)="userSendMessage($event)" (dismiss)="userToggleChat()"></chat-input>
-      <canvas id="visualizer" class="visualizer" height="30" #visualizer></canvas>
+      <canvas id="recordingVisualizer" class="visualizer" height="30" #recordingVisualizer></canvas>
+      <canvas id="speechToTextVisualizer" class="visualizer" height="30" #speechToTextVisualizer></canvas>
+      <canvas id="recordingFrequenciesVisualizer" class="visualizer" height="30" #recordingFrequenciesVisualizer></canvas>
       <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
     </div>
     <div style="left: 20px; margin-top: 40px;">
@@ -42,8 +44,22 @@
       <br />
       <span>{{'Synth Volume: ' + synthvolume.toFixed(2)}}</span>
       <br />
-      <span>{{'Mic Volume: ' + recordingvolume.toFixed(2)}}</span>
+      <input id="gainValue" name="gainValue" value="{{gainValue}}" (change)="gainChanged($event)" />
+      <br />
+      <span>{{'Mic Lowest: ' + micVolumeOverTimeLowest.toFixed(2)}}</span>
+      <br />
+      <span>{{'Mic Low Avg: ' + micVolumeOverTimeLowAverage.toFixed(2)}}</span>
+      <br />
+      <span>{{'Mic Average: ' + micVolumeOverTimeAverage.toFixed(2)}}</span>
+      <br />
+      <span>{{'Mic High Avg: ' + micVolumeOverTimeHighAverage.toFixed(2)}}</span>
+      <br />
+      <span>{{'Mic Highest: ' + micVolumeOverTimeHighest.toFixed(2)}}</span>
+      <br />
     </div>
+    <!--<button class="chat-button" (click)="detectRoomVolume()" style="right:340px;"><span>Detect Room</span></button>
+    <button class="chat-button" (click)="detectSpeechVolume()" style="right:440px;"><span>Detect Speech</span></button>
+    <button class="chat-button" (click)="detectRoomAndSpeechVolume()" style="right:600px;"><span>Detect Both</span></button>-->
   </div>
   <button class="chat-button" (click)="userToggleChat()">
     <span [@fadeIn] *ngIf="visible && !recording">X</span>

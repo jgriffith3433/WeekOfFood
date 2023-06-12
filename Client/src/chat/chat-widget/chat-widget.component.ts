@@ -35,7 +35,9 @@ const rand = (max: number) => Math.floor(Math.random() * max)
 export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('bottom') bottom: ElementRef;
   @ViewChild('audio') audioPlayerRef: ElementRef;
-  @ViewChild('visualizer') visualizerRef: ElementRef;
+  @ViewChild('recordingVisualizer') recordingVisualizerRef: ElementRef;
+  @ViewChild('recordingFrequenciesVisualizer') recordingFrequenciesVisualizerRef: ElementRef;
+  @ViewChild('speechToTextVisualizer') textToSpeechVisualizerRef: ElementRef;
   @Input() public theme: 'blue' | 'grey' | 'red' = 'blue';
   public _visible = false;
   public _refreshing = false;
@@ -56,10 +58,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   soundWasDetectedSinceSpeechSent: boolean = false;
   soundWasDetectedSinceLastAvailableData: boolean = false;
   audioBlobsToSend: Blob[] = [];
-  canvasCtx: any;
+  recordingVisualizerCanvasCtx: any;
+  recordingFrequenciesVisualizerCanvasCtx: any;
+  textToSpeechVisualizerCanvasCtx: any;
   audioContext: AudioContext;
   recordingBufferSource: AudioBufferSourceNode;
   recordingAudioStreamDestination: MediaStreamAudioDestinationNode;
+  soundDetectorAudioStreamDestination: MediaStreamAudioDestinationNode;
   audioPlayer: HTMLAudioElement;
   textToSpeechAudioStreamSource: MediaElementAudioSourceNode;
   textToSpeechVisualAnalyser: AnalyserNode;
@@ -68,11 +73,17 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   textToSpeechVisualAnalyserAnimationFrameHandle: number | undefined;
   textToSpeechPlaying: boolean = false;
   synthvolume: number = 1;
+  finalRecordingAudioSourceNode: MediaStreamAudioSourceNode;
   recordingVisualAnalyserAudioStreamSource: MediaStreamAudioSourceNode;
   recordingVisualAnalyser: AnalyserNode;
   recordingVisualAnalyserDataArray: Uint8Array;
   recordingVisualAnalyserBufferLength: number;
   recordingVisualAnalyserAnimationFrameHandle: number | undefined;
+  recordingVisualFrequenciesAnalyserAudioStreamSource: MediaStreamAudioSourceNode;
+  recordingVisualFrequenciesAnalyser: AnalyserNode;
+  recordingVisualFrequenciesAnalyserDataArray: Uint8Array;
+  recordingVisualFrequenciesAnalyserBufferLength: number;
+  recordingVisualFrequenciesAnalyserAnimationFrameHandle: number | undefined;
   recordingSoundAnalyserAudioStreamSource: MediaStreamAudioSourceNode;
   recordingCompressor: DynamicsCompressorNode;
   recordingHighPassCreateBiquadFilter: BiquadFilterNode;
@@ -81,6 +92,32 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   recordingSoundAnalyserDataArray: Uint8Array;
   recordingSoundAnalyserBufferLength: number;
   recordingSoundAnalyserAnimationFrameHandle: number | undefined;
+  numberOfGainNodesToApply = 3;
+  recordingAudioHeadGainNode: GainNode;
+  recordingAudioGainNodes: GainNode[] = [];
+  gainValue = 10;
+  micVolumeOverTimeStart = performance.now();
+  micVolumeOverTimeLowest: number = Number.POSITIVE_INFINITY;
+  micVolumeOverTimeLowAverage: number = 0;
+  micVolumeOverTimeLowCount = 0;
+  micVolumeOverTimeLowTotal = 0;
+  micVolumeOverTimeAverage: number = 0;
+  micVolumeOverTimeAverageCount = 0;
+  micVolumeOverTimeAverageTotal = 0;
+  micVolumeOverTimeHighest: number = Number.NEGATIVE_INFINITY;
+  micVolumeOverTimeHighAverage: number = 0;
+  micVolumeOverTimeHighCount = 0;
+  micVolumeOverTimeHighTotal = 0;
+
+  MIC_VOLUME_DETECTION_TIME = 5;
+  ROOM_DETECTION_VOLUME = 20;
+  SPEECH_DETECTION_VOLUME = 50;
+  SPEECH_CLIPPING_VOLUME = 200;
+
+  gainChanged(event: any) {
+    this.gainValue = event.target.value;
+  }
+
   MIN_DECIBELS = -35;
   badWordAndWakeWordRegex: RegExp = new RegExp("^bumble *bee*|[a@][s\$][s\$]$|[a@][s\$][s\$]h[o0][l1][e3][s\$]?|b[a@][s\$][t\+][a@]rd|b[e3][a@][s\$][t\+][i1][a@]?[l1]([i1][t\+]y)?|b[e3][a@][s\$][t\+][i1][l1][i1][t\+]y|b[e3][s\$][t\+][i1][a@][l1]([i1][t\+]y)?|b[i1][t\+]ch[s\$]?|b[i1][t\+]ch[e3]r[s\$]?|b[i1][t\+]ch[e3][s\$]|b[i1][t\+]ch[i1]ng?|b[l1][o0]wj[o0]b[s\$]?|c[l1][i1][t\+]|^(c|k|ck|q)[o0](c|k|ck|q)[s\$]?$|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[e3]d|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[e3]r|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[i1]ng|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[s\$]|^cum[s\$]?$|cumm??[e3]r|cumm?[i1]ngcock|(c|k|ck|q)um[s\$]h[o0][t\+]|(c|k|ck|q)un[i1][l1][i1]ngu[s\$]|(c|k|ck|q)un[i1][l1][l1][i1]ngu[s\$]|(c|k|ck|q)unn[i1][l1][i1]ngu[s\$]|(c|k|ck|q)un[t\+][s\$]?|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)[e3]r|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)[i1]ng|cyb[e3]r(ph|f)u(c|k|ck|q)|d[a@]mn|d[i1]ck|d[i1][l1]d[o0]|d[i1][l1]d[o0][s\$]|d[i1]n(c|k|ck|q)|d[i1]n(c|k|ck|q)[s\$]|[e3]j[a@]cu[l1]|(ph|f)[a@]g[s\$]?|(ph|f)[a@]gg[i1]ng|(ph|f)[a@]gg?[o0][t\+][s\$]?|(ph|f)[a@]gg[s\$]|(ph|f)[e3][l1][l1]?[a@][t\+][i1][o0]|(ph|f)u(c|k|ck|q)|(ph|f)u(c|k|ck|q)[s\$]?|g[a@]ngb[a@]ng[s\$]?|g[a@]ngb[a@]ng[e3]d|g[a@]y|h[o0]m?m[o0]|h[o0]rny|j[a@](c|k|ck|q)\-?[o0](ph|f)(ph|f)?|j[e3]rk\-?[o0](ph|f)(ph|f)?|j[i1][s\$z][s\$z]?m?|[ck][o0]ndum[s\$]?|mast(e|ur)b(8|ait|ate)|n+[i1]+[gq]+[e3]*r+[s\$]*|[o0]rg[a@][s\$][i1]m[s\$]?|[o0]rg[a@][s\$]m[s\$]?|p[e3]nn?[i1][s\$]|p[i1][s\$][s\$]|p[i1][s\$][s\$][o0](ph|f)(ph|f)|p[o0]rn|p[o0]rn[o0][s\$]?|p[o0]rn[o0]gr[a@]phy|pr[i1]ck[s\$]?|pu[s\$][s\$][i1][e3][s\$]|pu[s\$][s\$]y[s\$]?|[s\$][e3]x|[s\$]h[i1][t\+][s\$]?|[s\$][l1]u[t\+][s\$]?|[s\$]mu[t\+][s\$]?|[s\$]punk[s\$]?|[t\+]w[a@][t\+][s\$]?");
   //endSilenceDetected: boolean = false;
@@ -103,7 +140,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   ) {
     this.http = http;
     this.baseUrl = baseUrl !== undefined && baseUrl !== null ? baseUrl : "";
-    this.router.events.forEach((event) => {
+    this.router.events.forEach((event: any) => {
       // NavigationCancel
       // NavigationError
       // RoutesRecognized
@@ -151,13 +188,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   public get visible() {
     return this._visible
-  }
-
-  public get recordingvolume() {
-    if (this.recordingAudioGainNode) {
-      return this.recordingAudioGainNode.gain.value;
-    }
-    return 1;
   }
 
   @Input() public set visible(visible) {
@@ -225,91 +255,182 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ensureAudioContextCreated() {
-    if (!this.audioContext) {
-      this.audioContext = new AudioContext(this.audioContextOptions);
-      this.recordingBufferSource = this.audioContext.createBufferSource();
-      this.recordingAudioStreamDestination = this.audioContext.createMediaStreamDestination();
+    return new Promise((resolve, reject) => {
+      if (this.audioContext) {
+        resolve(this.audioContext);
+      }
+      else {
+        this.audioContext = new AudioContext(this.audioContextOptions);
+        this.recordingBufferSource = this.audioContext.createBufferSource();
+        this.recordingAudioStreamDestination = this.audioContext.createMediaStreamDestination();
+        this.soundDetectorAudioStreamDestination = this.audioContext.createMediaStreamDestination();
 
-      this.recordingVisualAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
-      this.recordingVisualAnalyser = this.audioContext.createAnalyser();
-      this.recordingVisualAnalyser.fftSize = 2048;
-      this.recordingVisualAnalyserBufferLength = this.recordingVisualAnalyser.frequencyBinCount;
-      this.recordingVisualAnalyserDataArray = new Uint8Array(this.recordingVisualAnalyserBufferLength);
-      this.recordingVisualAnalyserAudioStreamSource.connect(this.recordingVisualAnalyser);
+        this.recordingAudioHeadGainNode = this.audioContext.createGain();
+        for (let i = 0; i < this.numberOfGainNodesToApply; i++) {
+          let thisGainNode = this.audioContext.createGain();
+          if (this.recordingAudioGainNodes.length == 0) {
+            this.recordingAudioHeadGainNode.connect(thisGainNode);
+            this.recordingAudioGainNodes.push(thisGainNode);
+          }
+          else {
+            this.recordingAudioGainNodes[i - 1].connect(thisGainNode);
+            this.recordingAudioGainNodes.push(thisGainNode);
+          }
+        }
 
+        this.recordingVisualAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
+        this.recordingVisualAnalyser = this.audioContext.createAnalyser();
+        this.recordingVisualAnalyser.fftSize = 2048;
+        this.recordingVisualAnalyserBufferLength = this.recordingVisualAnalyser.frequencyBinCount;
+        this.recordingVisualAnalyserDataArray = new Uint8Array(this.recordingVisualAnalyserBufferLength);
+        this.recordingVisualAnalyserAudioStreamSource.connect(this.recordingVisualAnalyser);
 
-      this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
-      this.recordingSoundAnalyser = this.audioContext.createAnalyser();
-      this.recordingSoundAnalyser.fftSize = 2048;
-      this.recordingSoundAnalyser.minDecibels = this.MIN_DECIBELS;
-      this.recordingSoundAnalyserBufferLength = this.recordingSoundAnalyser.frequencyBinCount;
-      this.recordingSoundAnalyserDataArray = new Uint8Array(this.recordingSoundAnalyserBufferLength);
-      this.recordingSoundAnalyserAudioStreamSource.connect(this.recordingSoundAnalyser);
-
-
-      //narrow band
-      //https://en.wikipedia.org/wiki/Voice_frequency
-      //	300–3,400
-      //let q = 1550 / (3400 - 300);
-      //this.recordingHighPassCreateBiquadFilter = new BiquadFilterNode(this.audioContext, {
-      //  type: "highpass",
-      //  //middle of narrow band
-      //  frequency: 1550,
-      //  //https://en.wikipedia.org/wiki/Q_factor
-      //  Q: q,
-      //  gain: -10,
-      //} as BiquadFilterOptions);
-
-      this.recordingBandPassCreateBiquadFilter = this.audioContext.createBiquadFilter();
-      this.recordingBandPassCreateBiquadFilter.type = "bandpass";
-      this.recordingBandPassCreateBiquadFilter.frequency.value = 300;
-
-      
-      this.recordingHighPassCreateBiquadFilter = this.audioContext.createBiquadFilter();
-      this.recordingHighPassCreateBiquadFilter.type = "highpass";
-      this.recordingHighPassCreateBiquadFilter.frequency.value = 3000;
-      this.recordingHighPassCreateBiquadFilter.gain.value = 200;
-
-      this.recordingCompressor = this.audioContext.createDynamicsCompressor();
-
-      this.recordingCompressor.threshold.setValueAtTime(-20, this.audioContext.currentTime);
-      this.recordingCompressor.knee.setValueAtTime(0, this.audioContext.currentTime);
-      this.recordingCompressor.ratio.setValueAtTime(20, this.audioContext.currentTime);
-      this.recordingCompressor.attack.setValueAtTime(0, this.audioContext.currentTime);
-      this.recordingCompressor.release.setValueAtTime(0.25, this.audioContext.currentTime);
+        this.recordingVisualFrequenciesAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
+        this.recordingVisualFrequenciesAnalyser = this.audioContext.createAnalyser();
+        this.recordingVisualFrequenciesAnalyser.fftSize = 256;
+        this.recordingVisualFrequenciesAnalyserBufferLength = this.recordingVisualFrequenciesAnalyser.frequencyBinCount;
+        this.recordingVisualFrequenciesAnalyserDataArray = new Uint8Array(this.recordingVisualFrequenciesAnalyserBufferLength);
+        this.recordingVisualFrequenciesAnalyserAudioStreamSource.connect(this.recordingVisualFrequenciesAnalyser);
 
 
-      this.textToSpeechAudioStreamSource = this.audioContext.createMediaElementSource(this.audioPlayer);
-      this.textToSpeechVisualAnalyser = this.audioContext.createAnalyser();
-      this.textToSpeechVisualAnalyser.fftSize = 2048;
-      this.textToSpeechVisualAnalyserBufferLength = this.textToSpeechVisualAnalyser.frequencyBinCount;
-      this.textToSpeechVisualAnalyserDataArray = new Uint8Array(this.textToSpeechVisualAnalyserBufferLength);
-      this.textToSpeechAudioStreamSource.connect(this.textToSpeechVisualAnalyser);
+        //this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
+        this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.soundDetectorAudioStreamDestination.stream);
+        this.recordingSoundAnalyser = this.audioContext.createAnalyser();
+        this.recordingSoundAnalyser.fftSize = 256;
+        //this.recordingSoundAnalyser.minDecibels = this.MIN_DECIBELS;
+        this.recordingSoundAnalyserBufferLength = this.recordingSoundAnalyser.frequencyBinCount;
+        this.recordingSoundAnalyserDataArray = new Uint8Array(this.recordingSoundAnalyserBufferLength);
 
-      //this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
-      //this.textToSpeechAudioGainNode = this.audioContext.createGain();
-      //this.textToSpeechAudioStreamSource.connect(this.textToSpeechAudioGainNode);
-      //this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
-
-      //let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
-      //mediaStream.connect(this.audioContext.destination);
-
-      this.source2 = this.textToSpeechAudioStreamSource;
-      //this.source2 = this.audioContext.createMediaElementSource(this.audioPlayer);
-      this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
-      this.textToSpeechAudioGainNode = this.audioContext.createGain();
-      this.source2.connect(this.textToSpeechAudioGainNode);
-      this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
-      let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
-      mediaStream.connect(this.audioContext.destination);
+        this.recordingSoundAnalyserAudioStreamSource.connect(this.recordingSoundAnalyser);
 
 
+        //narrow band
+        //https://en.wikipedia.org/wiki/Voice_frequency
+        //	300–3,400
+        //let q = 1550 / (3400 - 300);
+        //this.recordingHighPassCreateBiquadFilter = new BiquadFilterNode(this.audioContext, {
+        //  type: "highpass",
+        //  //middle of narrow band
+        //  frequency: 1550,
+        //  //https://en.wikipedia.org/wiki/Q_factor
+        //  Q: q,
+        //  gain: -10,
+        //} as BiquadFilterOptions);
+
+        this.recordingBandPassCreateBiquadFilter = this.audioContext.createBiquadFilter();
+        this.recordingBandPassCreateBiquadFilter.type = "bandpass";
+        this.recordingBandPassCreateBiquadFilter.frequency.value = 1000;
+        this.recordingBandPassCreateBiquadFilter.Q.value = 4;
+
+
+        this.recordingHighPassCreateBiquadFilter = this.audioContext.createBiquadFilter();
+        this.recordingHighPassCreateBiquadFilter.type = "highpass";
+        this.recordingHighPassCreateBiquadFilter.frequency.value = 1000;
+        this.recordingHighPassCreateBiquadFilter.Q.value = 20;
+
+        this.recordingCompressor = this.audioContext.createDynamicsCompressor();
+
+        this.recordingCompressor.threshold.setValueAtTime(-20, this.audioContext.currentTime);
+        this.recordingCompressor.knee.setValueAtTime(0, this.audioContext.currentTime);
+        this.recordingCompressor.ratio.setValueAtTime(20, this.audioContext.currentTime);
+        this.recordingCompressor.attack.setValueAtTime(0, this.audioContext.currentTime);
+        this.recordingCompressor.release.setValueAtTime(0.25, this.audioContext.currentTime);
+
+
+        this.textToSpeechAudioStreamSource = this.audioContext.createMediaElementSource(this.audioPlayer);
+        this.textToSpeechVisualAnalyser = this.audioContext.createAnalyser();
+        this.textToSpeechVisualAnalyser.fftSize = 2048;
+        this.textToSpeechVisualAnalyserBufferLength = this.textToSpeechVisualAnalyser.frequencyBinCount;
+        this.textToSpeechVisualAnalyserDataArray = new Uint8Array(this.textToSpeechVisualAnalyserBufferLength);
+        this.textToSpeechAudioStreamSource.connect(this.textToSpeechVisualAnalyser);
+
+        //this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
+        //this.textToSpeechAudioGainNode = this.audioContext.createGain();
+        //this.textToSpeechAudioStreamSource.connect(this.textToSpeechAudioGainNode);
+        //this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
+
+        //let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
+        //mediaStream.connect(this.audioContext.destination);
+
+        this.source2 = this.textToSpeechAudioStreamSource;
+        //this.source2 = this.audioContext.createMediaElementSource(this.audioPlayer);
+        this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
+        this.textToSpeechAudioGainNode = this.audioContext.createGain();
+        this.source2.connect(this.textToSpeechAudioGainNode);
+        this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
+        let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
+        mediaStream.connect(this.audioContext.destination);
 
 
 
-    }
+        let hasMicrophone = false;
+        navigator.mediaDevices.enumerateDevices().then((devices) => {
+          devices.forEach((device) => {
+            if (device.kind == 'audioinput') {
+              hasMicrophone = true;
+            }
+          });
+        }).catch(function (err) {
+          console.log(err.name + ": " + err.message);
+        }).then(() => {
+          if (hasMicrophone) {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(checkStream => {
+              if (checkStream.getAudioTracks().length > 0) {
+                navigator.mediaDevices.getUserMedia(this.mediaStreamConstraints).then(stream => {
+                  console.log('audio tracks: ' + stream.getAudioTracks().length);
+                  if (stream.getAudioTracks().length > 0) {
+                    let track = stream.getAudioTracks()[0];
+                    let constraints = track.getConstraints();
+                    console.log('Track Constraints:');
+                    console.log(constraints);
+
+                    let mediaTrackSettings = track.getSettings();
+                    console.log('Track Settings:');
+                    console.log(mediaTrackSettings);
+
+                    this.source = this.audioContext.createMediaStreamSource(stream);
+                    this.source.connect(this.recordingAudioHeadGainNode);
+                    //uncomment to send uncompressed audio to recording destination
+                    //this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingBandPassCreateBiquadFilter);
+                    this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.soundDetectorAudioStreamDestination);
+                    this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingHighPassCreateBiquadFilter);
+                    this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingAudioStreamDestination);
+                    this.recordingHighPassCreateBiquadFilter.connect(this.recordingCompressor.threshold);
+
+                    //this.recordingCompressor.connect(this.recordingBandPassCreateBiquadFilter);
+                    //this.recordingBandPassCreateBiquadFilter.connect(this.recordingAudioStreamDestination);
+
+                    //testing
+                    //so you can hear the recording
+                    this.finalRecordingAudioSourceNode = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
+                    this.finalRecordingAudioSourceNode.connect(this.audioContext.destination);
+                    if (this.recordingVisualAnalyserAnimationFrameHandle) {
+                      window.cancelAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandle);
+                      this.recordingVisualAnalyserAnimationFrameHandle = undefined;
+                    }
+                    this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+
+                    if (this.recordingVisualFrequenciesAnalyserAnimationFrameHandle) {
+                      window.cancelAnimationFrame(this.recordingVisualFrequenciesAnalyserAnimationFrameHandle);
+                      this.recordingVisualFrequenciesAnalyserAnimationFrameHandle = undefined;
+                    }
+                    this.recordingVisualFrequenciesAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualFrequenciesAnalyserAnimationFrameHandler);
+
+                    if (this.recordingSoundAnalyserAnimationFrameHandle) {
+                      window.cancelAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandle);
+                      this.recordingSoundAnalyserAnimationFrameHandle = undefined;
+                    }
+                    this.recordingSoundAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandler);
+                    resolve(this.audioContext);
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
   }
-  recordingAudioGainNode: GainNode;
   textToSpeechAudioGainNode: GainNode;
   //public focusMessage() {
   //  this.focus.next(true)
@@ -317,7 +438,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.audioPlayer = this.audioPlayerRef.nativeElement as HTMLAudioElement;
-    this.canvasCtx = this.visualizerRef.nativeElement.getContext("2d");
+    this.recordingVisualizerCanvasCtx = this.recordingVisualizerRef.nativeElement.getContext("2d");
+    this.textToSpeechVisualizerCanvasCtx = this.textToSpeechVisualizerRef.nativeElement.getContext("2d");
+    this.recordingFrequenciesVisualizerCanvasCtx = this.recordingFrequenciesVisualizerRef.nativeElement.getContext("2d");
 
     this.audioPlayer.crossOrigin = "anonymous";
     this.audioPlayer.oncanplaythrough = e => {
@@ -342,12 +465,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     this.audioPlayer.onpause = e => {
       this.textToSpeechPlaying = false;
-      if (this.recording) {
-        this.lastTimeDetected = performance.now();
-      }
-      else {
-        this.record();
-      }
     }
   }
   mediaStreamConstraints: MediaStreamConstraints;
@@ -431,15 +548,89 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       this.recordingVisualAnalyserAnimationFrameHandle = undefined;
     }
 
+    if (this.recordingVisualFrequenciesAnalyserAnimationFrameHandle) {
+      window.cancelAnimationFrame(this.recordingVisualFrequenciesAnalyserAnimationFrameHandle);
+      this.recordingVisualFrequenciesAnalyserAnimationFrameHandle = undefined;
+    }
+
     if (this.recordingSoundAnalyserAnimationFrameHandle) {
       window.cancelAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandle);
       this.recordingSoundAnalyserAnimationFrameHandle = undefined;
     }
   }
 
+  public detectRoomVolume() {
+    this.ensureAudioContextCreated().then(ac => {
+      this.gainValue = 0;
+      this.soundDetectedLastSecond = false;
+      this.source.connect(this.recordingAudioHeadGainNode);
+      this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.soundDetectorAudioStreamDestination);
+      let increaseGainVolume = () => {
+        if (this.soundDetectedLastSecond == false) {
+          if (this.gainValue < 100) {
+            this.gainValue += .05;
+            setTimeout(increaseGainVolume, 50);
+          }
+        }
+        else {
+          console.log('room sound detected at: ' + this.gainValue);
+          this.source.disconnect(this.recordingAudioHeadGainNode);
+          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.soundDetectorAudioStreamDestination);
+        }
+      };
+      increaseGainVolume();
+    });
+  }
+
+  //public detectSpeechVolume() {
+  //  this.ensureAudioContextCreated().then(ac => {
+  //    this.gainValue = 0;
+  //    this.source.connect(this.recordingAudioHeadGainNode);
+  //    this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.soundDetectorAudioStreamDestination);
+  //    let micVolumeHighCount = 0;
+  //    let micVolumeHighTotal = 0;
+  //    let checkMicLevel = () => {
+  //      micVolumeHighTotal += this.micVolumeHigh;
+  //      micVolumeHighCount++;
+  //      if (micVolumeHighCount == 20) {
+  //        let averageHigh = micVolumeHighTotal / micVolumeHighCount;
+  //        console.log('averageHigh: ' + averageHigh);
+  //        if (averageHigh >= this.SPEECH_DETECTION_VOLUME) {
+  //          console.log('Speech sound detected at: ' + this.gainValue);
+  //          this.source.disconnect(this.recordingAudioHeadGainNode);
+  //          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.soundDetectorAudioStreamDestination);
+  //        }
+  //        else {
+  //          if (this.gainValue < 100) {
+  //            this.gainValue += 5;
+  //            micVolumeHighTotal = 0;
+  //            micVolumeHighCount = 0;
+  //            alert('Two blue fish swam in the tank.');
+  //            setTimeout(checkMicLevel, 100);
+  //          }
+  //          else {
+  //            console.log('No speech sound detected.');
+  //          }
+  //        }
+  //      }
+  //      else {
+  //        setTimeout(checkMicLevel, 100);
+  //      }
+  //    }
+  //    checkMicLevel();
+  //  });
+  //}
+
+  public detectRoomAndSpeechVolume() {
+    alert('todo');
+  }
+
+
+
   public userToggleChat() {
-    this.ensureAudioContextCreated();
-    this.toggleChat();
+    this.ensureAudioContextCreated().then(ac => {
+      this.toggleChat();
+    });
   }
 
   public toggleChat() {
@@ -460,9 +651,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       }
-      if (!this.recording) {
-        this.record(false);
-      }
+      //TODO: turning off recording for now
+      //if (!this.recording) {
+      //  this.record(false);
+      //}
     }
     else {
       if (this.recording) {
@@ -476,8 +668,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public userSendMessage({ message }: any) {
-    this.ensureAudioContextCreated();
-    this.sendMessage(message);
+    this.ensureAudioContextCreated().then(ac => {
+      this.sendMessage(message);
+    });
   }
 
   public sendMessage(message: string) {
@@ -680,191 +873,141 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.mediaRecorder) {
       return;
     }
-    this.ensureAudioContextCreated();
-    if (respond) {
-      this.receiveMessage({
-        chatConversationId: this._chatConversationId,
-        chatMessages: [...this.chatMessages, {
-          content: 'How can I help you manage your ' + this.getCurrentPageName(),
-          rawContent: 'How can I help you manage your ' + this.getCurrentPageName(),
-          from: this.assistant.name,
-          to: this.user.name,
-          received: true
-        }],
-        createNewChat: false,
-        dirty: false,
-        error: false,
-        navigateToPage: undefined
-      } as GetChatResponseVm);
-    }
-    this.timeSinceDetected = 0;
-    this.lastTimeDetected = performance.now();
-    this.keepRecording = this.visible;
-    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
-      console.log("This browser does not support the API yet");
-    }
+    this.ensureAudioContextCreated().then(ac => {
+      if (respond) {
+        this.receiveMessage({
+          chatConversationId: this._chatConversationId,
+          chatMessages: [...this.chatMessages, {
+            content: 'How can I help you manage your ' + this.getCurrentPageName(),
+            rawContent: 'How can I help you manage your ' + this.getCurrentPageName(),
+            from: this.assistant.name,
+            to: this.user.name,
+            received: true
+          }],
+          createNewChat: false,
+          dirty: false,
+          error: false,
+          navigateToPage: undefined
+        } as GetChatResponseVm);
+      }
+      this.timeSinceDetected = 0;
+      this.lastTimeDetected = performance.now();
+      this.keepRecording = this.visible;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        console.log("This browser does not support the API yet");
+      }
+
+      console.log('recording audio tracks: ' + this.recordingAudioStreamDestination.stream.getAudioTracks().length);
+      if (this.recordingAudioStreamDestination.stream.getAudioTracks().length > 0) {
+        let recordingTrack = this.recordingAudioStreamDestination.stream.getAudioTracks()[0];
+        //this.endSilenceDetected = false;
+        this.soundDetectedSendToServer = false;
+        this.soundWasDetectedSinceSpeechSent = false;
+        this.soundWasDetectedSinceLastAvailableData = false;
 
 
-    let hasMicrophone = false;
-    navigator.mediaDevices.enumerateDevices().then((devices) => {
-      devices.forEach((device) => {
-        if (device.kind == 'audioinput') {
-          hasMicrophone = true;
-        }
-      });
-    }).catch(function (err) {
-      console.log(err.name + ": " + err.message);
-    }).then(() => {
-      if (hasMicrophone) {
+        let mediaRecorderOptions = {
+          mimeType: 'audio/ogg',
+          audioBitsPerSecond: 128000
+        } as MediaRecorderOptions;
 
-        navigator.mediaDevices.getUserMedia({ audio: true }).then(checkStream => {
-          if (checkStream.getAudioTracks().length > 0) {
-            navigator.mediaDevices.getUserMedia(this.mediaStreamConstraints).then(stream => {
-              console.log('audio tracks: ' + stream.getAudioTracks().length);
-              if (stream.getAudioTracks().length > 0) {
-                let track = stream.getAudioTracks()[0];
-                let constraints = track.getConstraints();
-                console.log('Track Constraints:');
-                console.log(constraints);
+        //this.mediaRecorder = new MediaRecorder(this.recordingAudioStreamDestination.stream, mediaRecorderOptions);
+        this.mediaRecorder = new MediaRecorder(this.recordingAudioStreamDestination.stream);
+        //this.mediaRecorder.(16 * 44100);
+        //this.mediaRecorder.setAudioSamplingRate(44100);
 
-                let mediaTrackSettings = track.getSettings();
-                console.log('Track Settings:');
-                console.log(mediaTrackSettings);
-
-                this.source = this.audioContext.createMediaStreamSource(stream);
-                this.recordingAudioGainNode = this.audioContext.createGain();
-                this.source.connect(this.recordingAudioGainNode);
-                //no compression
-                //this.recordingAudioGainNode.connect(this.recordingAudioStreamDestination);
-
-                //testing
-                this.recordingAudioGainNode.gain.value = 1;
-                this.recordingAudioGainNode.connect(this.recordingBandPassCreateBiquadFilter);
-                //this.recordingBandPassCreateBiquadFilter.connect(this.recordingAudioStreamDestination);
-
-                this.recordingAudioGainNode.connect(this.recordingHighPassCreateBiquadFilter);
-                this.recordingHighPassCreateBiquadFilter.connect(this.recordingCompressor.threshold);
-                this.recordingAudioGainNode.connect(this.recordingCompressor);
-                this.recordingCompressor.connect(this.recordingBandPassCreateBiquadFilter);
-
-                this.recordingBandPassCreateBiquadFilter.connect(this.recordingAudioStreamDestination);
-
-                let mediaStreamSourceNode = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
-                mediaStreamSourceNode.connect(this.audioContext.destination);
-
-                console.log('recording audio tracks: ' + this.recordingAudioStreamDestination.stream.getAudioTracks().length);
-                if (this.recordingAudioStreamDestination.stream.getAudioTracks().length > 0) {
-                  let recordingTrack = this.recordingAudioStreamDestination.stream.getAudioTracks()[0];
-                  //this.endSilenceDetected = false;
-                  this.soundDetectedSendToServer = false;
-                  this.soundWasDetectedSinceSpeechSent = false;
-                  this.soundWasDetectedSinceLastAvailableData = false;
-
-
-                  let mediaRecorderOptions = {
-                    mimeType: 'audio/ogg',
-                    audioBitsPerSecond: 128000
-                  } as MediaRecorderOptions;
-
-                  //this.mediaRecorder = new MediaRecorder(this.recordingAudioStreamDestination.stream, mediaRecorderOptions);
-                  this.mediaRecorder = new MediaRecorder(this.recordingAudioStreamDestination.stream);
-                  //this.mediaRecorder.(16 * 44100);
-                  //this.mediaRecorder.setAudioSamplingRate(44100);
-
-                  this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
-                    if (this.mediaRecorder) {
-                      this.audioBlobsToSend.push(event.data);
-                      // capture beginning of file
-                      if (this.audioBlobsToSend.length == 0) {
-                        console.log("beginning audio blob");
-                      }
-                      // capture middle and trim if no sound is detected
-                      if (this.soundWasDetectedSinceSpeechSent) {
-                        if (this.soundWasDetectedSinceLastAvailableData || this.soundDetectedLastSecond) {
-                          console.log("middle sound captured");
-                          this.soundWasDetectedSinceLastAvailableData = false;
-                        }
-                        if (this.timeSinceDetected > 2) {
-                          //this.mediaRecorder.requestData();
-                          console.log("stop and send recording");
-                          this.mediaRecorder.stop();
-                          this.soundDetectedSendToServer = true;
-                          this.soundWasDetectedSinceSpeechSent = false;
-                        }
-                      } else {
-                        console.log("no middle sound detected");
-                        if (this.textToSpeechPlaying) {
-                          this.lastTimeDetected = performance.now();
-                        }
-                        else {
-                          if (this.timeSinceDetected > 10) {
-                            console.log("stop recording");
-                            this.mediaRecorder.stop();
-                            this.timeSinceDetected = 0;
-                            this.lastTimeDetected = performance.now();
-                          }
-                        }
-                        if (this.mediaRecorder.state == "inactive") {
-                          console.log("mediaRecorder inactive");
-                          this.mediaRecorder.ondataavailable = null;
-                          this.mediaRecorder = undefined;
-                          //this.mediaRecorder.stop();
-                        }
-                      }
-                    }
-                  };
-
-                  this.mediaRecorder.onerror = e => {
-                    if (this.mediaRecorder) {
-                      this.mediaRecorder.ondataavailable = null;
-                      this.mediaRecorder = undefined;
-                    }
-                  }
-
-                  this.mediaRecorder.onstart = e => {
-                    console.log("recording");
-                    if (this.recordingVisualAnalyserAnimationFrameHandle) {
-                      window.cancelAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandle);
-                      this.recordingVisualAnalyserAnimationFrameHandle = undefined;
-                    }
-                    this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
-
-                    if (this.recordingSoundAnalyserAnimationFrameHandle) {
-                      window.cancelAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandle);
-                      this.recordingSoundAnalyserAnimationFrameHandle = undefined;
-                    }
-                    this.recordingSoundAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandler);
-                  }
-
-                  this.mediaRecorder.onstop = e => {
-                    console.log("Recording ended.");
-                    if (this.soundDetectedSendToServer) {
-                      console.log("Sound detected. Sending to server");
-                      this.soundDetectedSendToServer = false;
-                      this.sendSpeech(true);
-                    }
-                    else {
-                      this.audioBlobsToSend = [];
-                      console.log("No sound detected. Nothing sent to server");
-                    }
-                  };
-
-                  this.mediaRecorder.start(1000);
+        this.mediaRecorder.ondataavailable = (event: { data: Blob; }) => {
+          if (this.mediaRecorder) {
+            this.audioBlobsToSend.push(event.data);
+            // capture beginning of file
+            if (this.audioBlobsToSend.length == 0) {
+              console.log("beginning audio blob");
+            }
+            // capture middle and trim if no sound is detected
+            if (this.soundWasDetectedSinceSpeechSent) {
+              if (this.soundWasDetectedSinceLastAvailableData || this.soundDetectedLastSecond) {
+                console.log("middle sound captured");
+                this.soundWasDetectedSinceLastAvailableData = false;
+              }
+              if (this.timeSinceDetected > 2) {
+                //this.mediaRecorder.requestData();
+                console.log("stop and send recording");
+                this.mediaRecorder.stop();
+                this.soundDetectedSendToServer = true;
+                this.soundWasDetectedSinceSpeechSent = false;
+              }
+            } else {
+              console.log("no middle sound detected");
+              if (this.textToSpeechPlaying) {
+                this.lastTimeDetected = performance.now();
+              }
+              else {
+                if (this.timeSinceDetected > 6) {
+                  console.log("stop recording");
+                  this.mediaRecorder.stop();
+                  this.timeSinceDetected = 0;
+                  this.lastTimeDetected = performance.now();
                 }
               }
-            }, function (error) {
-              console.log(error);
-            });
+              if (this.mediaRecorder.state == "inactive") {
+                console.log("mediaRecorder inactive");
+                this.mediaRecorder.ondataavailable = null;
+                this.mediaRecorder = undefined;
+                //this.mediaRecorder.stop();
+              }
+            }
           }
-        });
+        };
+
+        this.mediaRecorder.onerror = e => {
+          if (this.mediaRecorder) {
+            this.mediaRecorder.ondataavailable = null;
+            this.mediaRecorder = undefined;
+          }
+        }
+
+        this.mediaRecorder.onstart = e => {
+          console.log("recording");
+        }
+
+        this.mediaRecorder.onstop = e => {
+
+
+          this.finalRecordingAudioSourceNode.disconnect(this.audioContext.destination);
+          //this.recordingBandPassCreateBiquadFilter.disconnect(this.recordingAudioStreamDestination);
+
+          //this.recordingCompressor.disconnect(this.recordingBandPassCreateBiquadFilter);
+
+          this.recordingHighPassCreateBiquadFilter.disconnect(this.recordingCompressor.threshold);
+          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.recordingAudioStreamDestination);
+          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.recordingHighPassCreateBiquadFilter);
+          this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.soundDetectorAudioStreamDestination);
+
+          //uncomment to disconnect the uncompressed audio
+          //this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].disconnect(this.recordingBandPassCreateBiquadFilter);
+          this.source.disconnect(this.recordingAudioHeadGainNode);
+
+          console.log("Recording ended.");
+          if (this.soundDetectedSendToServer) {
+            console.log("Sound detected. Sending to server");
+            this.soundDetectedSendToServer = false;
+            this.sendSpeech(true);
+          }
+          else {
+            this.audioBlobsToSend = [];
+            console.log("No sound detected. Nothing sent to server");
+          }
+        };
+
+        this.mediaRecorder.start(1000);
       }
     });
   }
 
   textToSpeechVisualAnalyserAnimationFrameHandler = () => {
-    this.visualizeSound(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
-    if (this.recordingAudioGainNode) {
-      //this.unduckRecordingAudio(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
+    this.visualizeSound(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength, this.textToSpeechVisualizerRef, this.textToSpeechVisualizerCanvasCtx);
+    if (this.recordingAudioHeadGainNode) {
+      this.unduckRecordingAudio(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
     }
     this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
   }
@@ -890,24 +1033,34 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     if (audioGain < 0) {
       audioGain = 0;
     }
-    if (1 + (audioGain * 2.5) > this.recordingAudioGainNode.gain.value) {
-      this.recordingAudioGainNode.gain.value += .1;
-      if (this.recordingAudioGainNode.gain.value > 3) {
-        this.recordingAudioGainNode.gain.value = 3;
+    //TODO: don't wanna blow my ears out
+    return;
+    if (1 + (audioGain * 2.5) > this.recordingAudioHeadGainNode.gain.value) {
+      this.recordingAudioHeadGainNode.gain.value += .1;
+      if (this.recordingAudioHeadGainNode.gain.value > 3) {
+        this.recordingAudioHeadGainNode.gain.value = 3;
       }
     }
-    else if (1 + (audioGain * 2.5) < this.recordingAudioGainNode.gain.value) {
-      this.recordingAudioGainNode.gain.value -= .005;
-      if (this.recordingAudioGainNode.gain.value < 1) {
-        this.recordingAudioGainNode.gain.value = 1;
+    else if (1 + (audioGain * 2.5) < this.recordingAudioHeadGainNode.gain.value) {
+      this.recordingAudioHeadGainNode.gain.value -= .005;
+      if (this.recordingAudioHeadGainNode.gain.value < 1) {
+        this.recordingAudioHeadGainNode.gain.value = 1;
       }
+    }
+    for (var i = 0; i < this.recordingAudioGainNodes.length; i++) {
+      this.recordingAudioGainNodes[i].gain.value = this.recordingAudioHeadGainNode.gain.value;
     }
   }
 
   recordingVisualAnalyserAnimationFrameHandler = () => {
-    this.visualizeSound(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength);
+    this.visualizeSound(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength, this.recordingVisualizerRef, this.recordingVisualizerCanvasCtx);
     this.duckTextToSpeechAudio(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength);
     this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
+  }
+
+  recordingVisualFrequenciesAnalyserAnimationFrameHandler = () => {
+    this.visualizeSoundFrequencies(this.recordingVisualFrequenciesAnalyser, this.recordingVisualFrequenciesAnalyserDataArray, this.recordingVisualFrequenciesAnalyserBufferLength, this.recordingFrequenciesVisualizerRef, this.recordingFrequenciesVisualizerCanvasCtx);
+    this.recordingVisualFrequenciesAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualFrequenciesAnalyserAnimationFrameHandler);
   }
 
   duckTextToSpeechAudio(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number) {
@@ -939,24 +1092,24 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     else if (1 - (audioGain * 2.5) < this.textToSpeechAudioGainNode.gain.value) {
       this.textToSpeechAudioGainNode.gain.value -= .05;
-      if (this.textToSpeechAudioGainNode.gain.value < .3) {
-        this.textToSpeechAudioGainNode.gain.value = .3;
+      if (this.textToSpeechAudioGainNode.gain.value < .1) {
+        this.textToSpeechAudioGainNode.gain.value = .1;
       }
     }
     this.synthvolume = this.textToSpeechAudioGainNode.gain.value;
   }
 
-  visualizeSound(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number) {
-    const WIDTH = this.visualizerRef.nativeElement.width
-    const HEIGHT = this.visualizerRef.nativeElement.height;
+  visualizeSound(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number, visualizerRef: ElementRef, canvasCtx: any) {
+    const WIDTH = visualizerRef.nativeElement.width
+    const HEIGHT = visualizerRef.nativeElement.height;
 
     visualAnalyser.getByteTimeDomainData(visualAnalyserDataArray);
 
-    this.canvasCtx.fillStyle = 'rgb(200, 200, 200)';
-    this.canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-    this.canvasCtx.lineWidth = 2;
-    this.canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-    this.canvasCtx.beginPath();
+    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+    canvasCtx.lineWidth = 2;
+    canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+    canvasCtx.beginPath();
 
     let sliceWidth = WIDTH * 1.0 / visualAnalyserBufferLength;
     let x = 0;
@@ -967,17 +1120,47 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       let y = v * HEIGHT / 2;
 
       if (i === 0) {
-        this.canvasCtx.moveTo(x, y);
+        canvasCtx.moveTo(x, y);
       } else {
-        this.canvasCtx.lineTo(x, y);
+        canvasCtx.lineTo(x, y);
       }
 
       x += sliceWidth;
     }
 
-    this.canvasCtx.lineTo(this.visualizerRef.nativeElement.width, this.visualizerRef.nativeElement.height / 2);
-    this.canvasCtx.stroke();
+    canvasCtx.lineTo(visualizerRef.nativeElement.width, visualizerRef.nativeElement.height / 2);
+    canvasCtx.stroke();
   }
+
+  visualizeSoundFrequencies(visualAnalyser: AnalyserNode, visualAnalyserDataArray: Uint8Array, visualAnalyserBufferLength: number, visualizerRef: ElementRef, canvasCtx: any) {
+    const WIDTH = visualizerRef.nativeElement.width
+    const HEIGHT = visualizerRef.nativeElement.height;
+
+    visualAnalyser.getByteFrequencyData(visualAnalyserDataArray);
+
+    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+    canvasCtx.lineWidth = 2;
+    canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+    canvasCtx.beginPath();
+
+
+    const barWidth = (WIDTH / visualAnalyserBufferLength) * 2.5;
+    let barHeight;
+    let x = 0;
+
+    for (let i = 0; i < visualAnalyserBufferLength; i++) {
+      barHeight = visualAnalyserDataArray[i] / 4;
+
+      canvasCtx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+      canvasCtx.fillRect(x, HEIGHT - barHeight / 2, barWidth, barHeight);
+
+      x += barWidth + 1;
+    }
+  }
+
+
+
 
   recordingSoundAnalyserAnimationFrameHandler = () => {
     this.detectSound(this.recordingSoundAnalyser, this.recordingSoundAnalyserDataArray, this.recordingSoundAnalyserBufferLength);
@@ -985,19 +1168,113 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   detectSound(soundAnalyser: AnalyserNode, soundDataArray: Uint8Array, soundAnalyserBufferLength: number) {
-    console.log('compression: ' + this.recordingCompressor.reduction);
-
+    //console.log('compression: ' + this.recordingCompressor.reduction);
+    //https://stackoverflow.com/questions/24083349/understanding-getbytetimedomaindata-and-getbytefrequencydata-in-web-audio
     soundAnalyser.getByteFrequencyData(soundDataArray);
-    let detected = false;
-    for (let i = 0; i < soundAnalyserBufferLength; i++) {
-      const value = soundDataArray[i];
 
-      if (value > 0) {
-        detected = true;
-        break;
+    //https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode/getFloatFrequencyData
+    //0 - 24000 hz
+    //narrow band
+    //https://en.wikipedia.org/wiki/Voice_frequency
+    //300–3,400
+    let minFreq = 300;
+    let maxFreq = 3400;
+    let currentFreq = 0;
+    let freqPerDataPoint = 24000 / soundAnalyserBufferLength;
+    let numOfDataPointsProcessed = 0;
+
+    let sum = 1;
+    for (let i = 0; i < soundAnalyserBufferLength; i++) {
+      currentFreq = i * freqPerDataPoint;
+      if (currentFreq >= minFreq && currentFreq <= maxFreq) {
+        let amplitude = soundDataArray[i];
+        sum += amplitude;
+        numOfDataPointsProcessed++;
       }
     }
-    if (detected) {
+    let micVolumeAverage = sum / numOfDataPointsProcessed;
+
+    let micVolumeLowest = Number.POSITIVE_INFINITY;
+    let micVolumeHighest = Number.NEGATIVE_INFINITY;
+    for (const amplitude of soundDataArray) {
+      if (amplitude < micVolumeLowest) {
+        micVolumeLowest = amplitude;
+      }
+      if (amplitude > micVolumeHighest) {
+        micVolumeHighest = amplitude;
+      }
+    }
+
+    this.micVolumeOverTimeLowCount++;
+    this.micVolumeOverTimeLowTotal += micVolumeLowest;
+    this.micVolumeOverTimeLowAverage = this.micVolumeOverTimeLowTotal / this.micVolumeOverTimeLowCount;
+
+    this.micVolumeOverTimeAverageCount++;
+    this.micVolumeOverTimeAverageTotal += micVolumeAverage;
+    this.micVolumeOverTimeAverage = this.micVolumeOverTimeAverageTotal / this.micVolumeOverTimeAverageCount;
+
+    this.micVolumeOverTimeHighCount++;
+    this.micVolumeOverTimeHighTotal += micVolumeHighest;
+    this.micVolumeOverTimeHighAverage = this.micVolumeOverTimeHighTotal / this.micVolumeOverTimeHighCount;
+
+    if (micVolumeHighest > this.micVolumeOverTimeHighest) {
+      this.micVolumeOverTimeHighest = micVolumeHighest;
+    }
+
+    if (micVolumeLowest < this.micVolumeOverTimeLowest) {
+      this.micVolumeOverTimeLowest = micVolumeLowest;
+    }
+    let resetMicVolumeOverTime = false;
+    if (performance.now() - this.micVolumeOverTimeStart >= this.MIC_VOLUME_DETECTION_TIME) {
+      resetMicVolumeOverTime = true;
+    }
+
+    if (this.micVolumeOverTimeLowAverage < this.ROOM_DETECTION_VOLUME &&
+      this.micVolumeOverTimeHighAverage < this.SPEECH_CLIPPING_VOLUME &&
+      this.micVolumeOverTimeHighest < this.SPEECH_CLIPPING_VOLUME
+    ) {
+      this.gainValue += 0.1;
+      resetMicVolumeOverTime = true;
+    }
+    else if ((this.micVolumeOverTimeHighAverage > this.SPEECH_DETECTION_VOLUME &&
+      this.micVolumeOverTimeLowAverage > this.ROOM_DETECTION_VOLUME) ||
+      this.micVolumeOverTimeHighest >= this.SPEECH_CLIPPING_VOLUME
+    ) {
+      this.gainValue -= 0.1;
+      resetMicVolumeOverTime = true;
+    }
+
+    //https://decibelpro.app/blog/how-many-decibels-does-a-human-speak-normally/
+    //let detected = this.micv > this.SPEECH_DETECTION_VOLUME;
+
+    this.recordingAudioHeadGainNode.gain.value = this.gainValue * .03;
+    for (var i = 0; i < this.recordingAudioGainNodes.length; i++) {
+      this.recordingAudioGainNodes[i].gain.value = this.recordingAudioHeadGainNode.gain.value;
+    }
+
+    if (resetMicVolumeOverTime) {
+      this.micVolumeOverTimeStart = performance.now();
+      this.micVolumeOverTimeLowest = micVolumeLowest;
+      this.micVolumeOverTimeLowCount = 1;
+      this.micVolumeOverTimeLowTotal = this.micVolumeOverTimeLowAverage;
+      this.micVolumeOverTimeAverageCount = 1;
+      this.micVolumeOverTimeAverageTotal = this.micVolumeOverTimeAverage;
+      this.micVolumeOverTimeHighest = micVolumeHighest;
+      this.micVolumeOverTimeHighCount = 1;
+      this.micVolumeOverTimeHighTotal = this.micVolumeOverTimeHighAverage;
+    }
+
+    //soundAnalyser.getByteFrequencyData(soundDataArray);
+    //for (let i = 0; i < soundAnalyserBufferLength; i++) {
+    //  const value = soundDataArray[i];
+    //  if (value > 0) {
+    //    detected = true;
+    //    break;
+    //  }
+    //}
+
+
+    if (false) {
       this.timeSinceDetected = 0;
       this.soundDetectedLastSecond = true;
       this.lastTimeDetected = performance.now();
@@ -1080,54 +1357,56 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
             const frameSize = 2048;
             const hopSize = 1024;
             const trimmedBuffer = this.trimSilenceWithRoom(audioBuffer, threshold, hopSize, frameSize, audioContext, 1, 1);
-            console.log('duration after trim: ' + trimmedBuffer.duration);
-            if (this.audioContextOptions.sampleRate) {
-              var offlineAudioCtx = new OfflineAudioContext({
-                numberOfChannels: 1,
-                length: this.audioContextOptions.sampleRate * trimmedBuffer.duration,
-                sampleRate: this.audioContextOptions.sampleRate,
-              });
+            if (trimmedBuffer) {
+              console.log('duration after trim: ' + trimmedBuffer.duration);
+              if (this.audioContextOptions.sampleRate) {
+                var offlineAudioCtx = new OfflineAudioContext({
+                  numberOfChannels: 1,
+                  length: this.audioContextOptions.sampleRate * trimmedBuffer.duration,
+                  sampleRate: this.audioContextOptions.sampleRate,
+                });
 
-              let soundSource = offlineAudioCtx.createBufferSource();
-              soundSource.buffer = trimmedBuffer;
+                let soundSource = offlineAudioCtx.createBufferSource();
+                soundSource.buffer = trimmedBuffer;
 
-              if (compress) {
-                // Create Compressor Node
-                var compressor = offlineAudioCtx.createDynamicsCompressor();
-                compressor.threshold.setValueAtTime(-50, offlineAudioCtx.currentTime);
-                compressor.knee.setValueAtTime(40, offlineAudioCtx.currentTime);
-                compressor.ratio.setValueAtTime(12, offlineAudioCtx.currentTime);
-                compressor.attack.setValueAtTime(0, offlineAudioCtx.currentTime);
-                compressor.release.setValueAtTime(1, offlineAudioCtx.currentTime);
+                if (compress) {
+                  // Create Compressor Node
+                  var compressor = offlineAudioCtx.createDynamicsCompressor();
+                  compressor.threshold.setValueAtTime(-50, offlineAudioCtx.currentTime);
+                  compressor.knee.setValueAtTime(40, offlineAudioCtx.currentTime);
+                  compressor.ratio.setValueAtTime(12, offlineAudioCtx.currentTime);
+                  compressor.attack.setValueAtTime(0, offlineAudioCtx.currentTime);
+                  compressor.release.setValueAtTime(1, offlineAudioCtx.currentTime);
 
-                // Connect nodes to destination
-                soundSource.connect(compressor);
-                compressor.connect(offlineAudioCtx.destination);
-              }
-              else {
-                soundSource.connect(offlineAudioCtx.destination);
-              }
-
-              offlineAudioCtx.startRendering().then((renderedBuffer) => {
-                var duration = renderedBuffer.duration;
-                console.log("rendered duration: " + duration);
-                let rate = renderedBuffer.sampleRate;
-                let offset = 0;
-                let waveBlob = this.bufferToWave(renderedBuffer, offlineAudioCtx.length)
-                //var waveFile = URL.createObjectURL(waveBlob);
-                if (duration >= .25) {
-                  this.sendSpeechToServer(waveBlob);
+                  // Connect nodes to destination
+                  soundSource.connect(compressor);
+                  compressor.connect(offlineAudioCtx.destination);
                 }
-                if (this.keepRecording) {
-                  this.record();
+                else {
+                  soundSource.connect(offlineAudioCtx.destination);
                 }
 
-                soundSource.loop = false;
-              }).catch((error) => {
-                console.error(error);
-              });
+                offlineAudioCtx.startRendering().then((renderedBuffer) => {
+                  var duration = renderedBuffer.duration;
+                  console.log("rendered duration: " + duration);
+                  let rate = renderedBuffer.sampleRate;
+                  let offset = 0;
+                  let waveBlob = this.bufferToWave(renderedBuffer, offlineAudioCtx.length)
+                  //var waveFile = URL.createObjectURL(waveBlob);
+                  if (duration >= .25) {
+                    this.sendSpeechToServer(waveBlob);
+                  }
+                  if (this.keepRecording) {
+                    this.record();
+                  }
 
-              soundSource.start(0);
+                  soundSource.loop = false;
+                }).catch((error) => {
+                  console.error(error);
+                });
+
+                soundSource.start(0);
+              }
             }
           }).catch(err => {
             console.log(err);
@@ -1294,7 +1573,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   MIN_SILENCE_DURATION = 0.5;
 
-  trimSilence(audioBuffer: AudioBuffer, threshold: number, hopSize: number, frameSize: number, audioContext: AudioContext) {
+  trimSilence(audioBuffer: AudioBuffer, threshold: number, hopSize: number, frameSize: number, audioContext: AudioContext): AudioBuffer | undefined {
     const channelData = audioBuffer.getChannelData(0); // Assuming mono audio
     const sampleRate = audioBuffer.sampleRate;
 
@@ -1350,32 +1629,37 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       return duration + (section.end - section.start);
     }, 0);
 
-    const newBuffer = audioContext.createBuffer(1, Math.floor(newNonSilentDuration * sampleRate), sampleRate);
+    if (newNonSilentDuration > 0) {
 
-    let newBufferOffset = 0;
+      const newBuffer = audioContext.createBuffer(1, Math.floor(newNonSilentDuration * sampleRate), sampleRate);
 
-    for (const section of mergedSections) {
-      const startSample = Math.floor(section.start * sampleRate);
-      const endSample = Math.ceil(section.end * sampleRate);
-      const sectionDuration = section.end - section.start;
+      let newBufferOffset = 0;
 
-      for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
-        const channelData = audioBuffer.getChannelData(channel);
-        const newChannelData = newBuffer.getChannelData(channel);
+      for (const section of mergedSections) {
+        const startSample = Math.floor(section.start * sampleRate);
+        const endSample = Math.ceil(section.end * sampleRate);
+        const sectionDuration = section.end - section.start;
 
-        for (let i = startSample; i < endSample; i++) {
-          newChannelData[newBufferOffset + i - startSample] = channelData[i];
+        for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
+          const channelData = audioBuffer.getChannelData(channel);
+          const newChannelData = newBuffer.getChannelData(channel);
+
+          for (let i = startSample; i < endSample; i++) {
+            newChannelData[newBufferOffset + i - startSample] = channelData[i];
+          }
         }
+
+        newBufferOffset += Math.floor(sectionDuration * sampleRate);
       }
-
-      newBufferOffset += Math.floor(sectionDuration * sampleRate);
+      return newBuffer;
     }
-
-    return newBuffer;
+    else {
+      return undefined;
+    }
   }
 
 
-  trimSilenceWithRoom(audioBuffer: AudioBuffer, threshold: number, hopSize: number, frameSize: number, audioContext: AudioContext, preCaptureSeconds: number, postCaptureSeconds: number) {
+  trimSilenceWithRoom(audioBuffer: AudioBuffer, threshold: number, hopSize: number, frameSize: number, audioContext: AudioContext, preCaptureSeconds: number, postCaptureSeconds: number): AudioBuffer | undefined {
     const channelData = audioBuffer.getChannelData(0); // Assuming mono audio
     const sampleRate = audioBuffer.sampleRate;
 
@@ -1469,28 +1753,33 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       return duration + (section.end - section.start);
     }, 0);
 
-    const newBuffer = audioContext.createBuffer(1, Math.floor(newNonSilentDuration * sampleRate), sampleRate);
+    if (newNonSilentDuration > 0) {
+      const newBuffer = audioContext.createBuffer(1, Math.floor(newNonSilentDuration * sampleRate), sampleRate);
 
-    let newBufferOffset = 0;
+      let newBufferOffset = 0;
 
-    for (const section of mergedSections) {
-      const startSample = Math.floor(section.start * sampleRate);
-      const endSample = Math.ceil(section.end * sampleRate);
-      const sectionDuration = section.end - section.start;
+      for (const section of mergedSections) {
+        const startSample = Math.floor(section.start * sampleRate);
+        const endSample = Math.ceil(section.end * sampleRate);
+        const sectionDuration = section.end - section.start;
 
-      for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
-        const channelData = audioBuffer.getChannelData(channel);
-        const newChannelData = newBuffer.getChannelData(channel);
+        for (let channel = 0; channel < newBuffer.numberOfChannels; channel++) {
+          const channelData = audioBuffer.getChannelData(channel);
+          const newChannelData = newBuffer.getChannelData(channel);
 
-        for (let i = startSample; i < endSample; i++) {
-          newChannelData[newBufferOffset + i - startSample] = channelData[i];
+          for (let i = startSample; i < endSample; i++) {
+            newChannelData[newBufferOffset + i - startSample] = channelData[i];
+          }
         }
+
+        newBufferOffset += Math.floor(sectionDuration * sampleRate);
       }
 
-      newBufferOffset += Math.floor(sectionDuration * sampleRate);
+      return newBuffer;
     }
-
-    return newBuffer;
+    else {
+      return undefined;
+    }
   }
 
 
