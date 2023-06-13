@@ -5,7 +5,7 @@
         <div class="system-status">
           {{system.status}}
           <span class="system-status-online">●</span>
-          <button class="chat-button-header" (click)="toggleChat()">✕</button>
+          <button class="chat-button-header" (click)="userToggleChat()">✕</button>
         </div>
         <chat-avatar [image]="system.avatar"></chat-avatar>
         <h3 class="system-greeting">
@@ -38,12 +38,6 @@
       <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
     </div>
     <div style="left: 20px; margin-top: 40px;">
-      <span>{{'Currently Detected: ' + soundDetectedLastSecond}}</span>
-      <br />
-      <span>{{'Detected: ' + timeSinceDetected.toFixed(2)}}</span>
-      <br />
-      <span>{{'Not Detected: ' + timeSinceNoSoundDetected.toFixed(2)}}</span>
-      <br />
       <span>{{'Synth Volume: ' + synthvolume.toFixed(2)}}</span>
       <br />
       <input id="gainValue" name="gainValue" value="{{gainValue}}" (change)="gainChanged($event)" />

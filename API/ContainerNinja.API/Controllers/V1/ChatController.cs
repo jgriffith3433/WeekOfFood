@@ -1,5 +1,6 @@
 using ContainerNinja.Contracts.Constants;
 using ContainerNinja.Contracts.DTO;
+using ContainerNinja.Contracts.Services;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Handlers.Queries;
 using MediatR;
@@ -22,11 +23,13 @@ namespace ContainerNinja.Controllers.V1
     {
         private readonly IMediator _mediator;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly INAudioService _nAudioService;
 
-        public ChatController(IMediator mediator, IWebHostEnvironment webHostEnvironment)
+        public ChatController(IMediator mediator, IWebHostEnvironment webHostEnvironment, INAudioService nAudioService)
         {
             _mediator = mediator;
             _webHostEnvironment = webHostEnvironment;
+            _nAudioService = nAudioService;
         }
 
         [MapToApiVersion("1.0")]
@@ -118,10 +121,27 @@ namespace ContainerNinja.Controllers.V1
             //    await speech.CopyToAsync(fileStream);
             //}
 
+            var audioData = ConvertToByteArrayContent(speech);
             return await _mediator.Send(new GetChatTextFromSpeechQuery
             {
-                Speech = ConvertToByteArrayContent(speech)
+                Speech = audioData
             });
+            //var strippedAudio = _nAudioService.StripNoise(audioData);
+
+            //if (strippedAudio.Length > 0)
+            //{
+            //    return await _mediator.Send(new GetChatTextFromSpeechQuery
+            //    {
+            //        Speech = strippedAudio
+            //    });
+            //}
+            //else
+            //{
+            //    return Ok(new GetChatTextFromSpeechVm
+            //    {
+            //        Text = ""
+            //    });
+            //}
         }
 
 
