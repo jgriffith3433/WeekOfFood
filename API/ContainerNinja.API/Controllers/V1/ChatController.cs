@@ -121,38 +121,38 @@ namespace ContainerNinja.Controllers.V1
 
 
 
-                var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                //var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
 
-                if (!Directory.Exists(uploads))
-                {
-                    Directory.CreateDirectory(uploads);
-                }
+                //if (!Directory.Exists(uploads))
+                //{
+                //    Directory.CreateDirectory(uploads);
+                //}
 
-                var fileName = speech.FileName;
-                var filePathBefore = Path.Combine(uploads, fileName + "_before.wav");
-                var filePathAfter = Path.Combine(uploads, fileName + "_after.wav");
+                //var fileName = speech.FileName;
+                //var filePathBefore = Path.Combine(uploads, fileName + "_before.wav");
+                //var filePathAfter = Path.Combine(uploads, fileName + "_after.wav");
 
-                if (System.IO.File.Exists(filePathBefore))
-                {
-                    System.IO.File.Delete(filePathBefore);
-                }
-                if (System.IO.File.Exists(filePathAfter))
-                {
-                    System.IO.File.Delete(filePathAfter);
-                }
+                //if (System.IO.File.Exists(filePathBefore))
+                //{
+                //    System.IO.File.Delete(filePathBefore);
+                //}
+                //if (System.IO.File.Exists(filePathAfter))
+                //{
+                //    System.IO.File.Delete(filePathAfter);
+                //}
 
-                using (var fileStream = new FileStream(filePathBefore, FileMode.Create))
-                {
-                    await speech.CopyToAsync(fileStream);
-                }
+                //using (var fileStream = new FileStream(filePathBefore, FileMode.Create))
+                //{
+                //    await speech.CopyToAsync(fileStream);
+                //}
 
                 var audioData = ConvertToByteArrayContent(speech);
                 var strippedAudio = _audioService.StripNoiseAndTrimSilence(audioData);
 
-                using (var fileStream = new FileStream(filePathAfter, FileMode.Create))
-                {
-                    fileStream.Write(strippedAudio, 0, strippedAudio.Length);
-                }
+                //using (var fileStream = new FileStream(filePathAfter, FileMode.Create))
+                //{
+                //    fileStream.Write(strippedAudio, 0, strippedAudio.Length);
+                //}
 
                 if (strippedAudio.Length > 256)
                 {
