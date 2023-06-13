@@ -15,7 +15,7 @@
 		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
 		<PackageReference Include="MediatR" Version="9.0.0" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="10.3.4" />
-		<PackageReference Include="NAudio.Core" Version="2.1.0" />
+		<PackageReference Include="NAudio" Version="2.1.0" />
 		<PackageReference Include="NCache.Microsoft.Extensions.Caching" Version="5.1.0" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.30.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />

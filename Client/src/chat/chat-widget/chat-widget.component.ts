@@ -100,7 +100,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   sendingSpeech: boolean = false;
   sendingSpeechPromise: Promise<boolean>;
   lastTimeSpeechSent = performance.now();
-  speechToTextMessage = "";
+  speechToTextMessage: string | undefined = undefined;
   micVolumeOverTimeStart = performance.now();
   micVolumeOverTimeLowest: number = Number.POSITIVE_INFINITY;
   micVolumeOverTimeLowAverage: number = 0;
@@ -302,7 +302,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           this.recordingVisualFrequenciesAnalyserDataArray = new Uint8Array(this.recordingVisualFrequenciesAnalyserBufferLength);
           this.recordingVisualFrequenciesAnalyserAudioStreamSource.connect(this.recordingVisualFrequenciesAnalyser);
 
-
           this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
           //this.recordingSoundAnalyserAudioStreamSource = this.audioContext.createMediaStreamSource(this.soundDetectorAudioStreamDestination.stream);
           this.recordingSoundAnalyser = this.audioContext.createAnalyser();
@@ -353,13 +352,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           this.textToSpeechVisualAnalyserDataArray = new Uint8Array(this.textToSpeechVisualAnalyserBufferLength);
           this.textToSpeechAudioStreamSource.connect(this.textToSpeechVisualAnalyser);
 
-          //this.textToSpeechDestination = this.audioContext.createMediaStreamDestination();
-          //this.textToSpeechAudioGainNode = this.audioContext.createGain();
-          //this.textToSpeechAudioStreamSource.connect(this.textToSpeechAudioGainNode);
-          //this.textToSpeechAudioGainNode.connect(this.textToSpeechDestination);
-
-          //let mediaStream = this.audioContext.createMediaStreamSource(this.textToSpeechDestination.stream);
-          //mediaStream.connect(this.audioContext.destination);
 
           this.source2 = this.textToSpeechAudioStreamSource;
           //this.source2 = this.audioContext.createMediaElementSource(this.audioPlayer);
@@ -399,15 +391,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
                       this.source = this.audioContext.createMediaStreamSource(stream);
                       this.source.connect(this.recordingAudioHeadGainNode);
-                      //uncomment to send uncompressed audio to recording destination
-                      //this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingBandPassCreateBiquadFilter);
                       this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.soundDetectorAudioStreamDestination);
-                      this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingHighPassCreateBiquadFilter);
-                      this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingAudioStreamDestination);
-                      this.recordingHighPassCreateBiquadFilter.connect(this.recordingCompressor.threshold);
 
-                      //this.recordingCompressor.connect(this.recordingBandPassCreateBiquadFilter);
-                      //this.recordingBandPassCreateBiquadFilter.connect(this.recordingAudioStreamDestination);
+                      //send straight to recording destination
+                      //this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingAudioStreamDestination);
+                      //or
+                      //filter and compress
+                      this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingHighPassCreateBiquadFilter);
+                      this.recordingHighPassCreateBiquadFilter.connect(this.recordingCompressor.threshold);
+                      this.recordingAudioGainNodes[this.recordingAudioGainNodes.length - 1].connect(this.recordingCompressor);
+                      this.recordingCompressor.connect(this.recordingAudioStreamDestination);
 
                       if (this.recordingVisualAnalyserAnimationFrameHandle) {
                         window.cancelAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandle);
@@ -949,12 +942,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.recordingAudioStreamDestination.stream.getAudioTracks().length > 0) {
       let recordingTrack = this.recordingAudioStreamDestination.stream.getAudioTracks()[0];
 
-      let mediaRecorderOptions = {
-        mimeType: 'audio/ogg',
-        audioBitsPerSecond: 128000
-      } as MediaRecorderOptions;
-
-
       this.finalRecordingAudioSourceNode = this.audioContext.createMediaStreamSource(this.recordingAudioStreamDestination.stream);
 
       this.mediaRecorder = new MediaRecorder(this.finalRecordingAudioSourceNode.mediaStream);
@@ -971,8 +958,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
               this.lastTimeSpeechSent = performance.now();
             }
             else {
-              if (performance.now() - this.lastTimeSpeechSent >= this.SPEECH_TO_TEXT_INTERVAL_TIME) {
-                this.sendSpeech(false, true);
+              if (performance.now() - this.lastTimeSpeechSent >= this.SPEECH_TO_TEXT_INTERVAL_TIME && !this.sendingSpeech) {
+                this.sendSpeech(true, false, false);
               }
             }
           }
@@ -1230,7 +1217,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       this.micVolumeOverTimeLowest = micVolumeLowest;
     }
 
-    if (this.micVolumeOverTimeHighAverage < this.SPEECH_DETECTION_VOLUME) {
+    if (this.micVolumeOverTimeHighAverage < this.SPEECH_DETECTION_VOLUME && !this.recording) {
       this.gainValue += .1;
     }
     else {
@@ -1284,10 +1271,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  sendSpeech(compress: boolean, add: boolean): Promise<boolean> {
+  sendSpeech(add: boolean, compress: boolean, trim: boolean): Promise<boolean> {
     this.lastTimeSpeechSent = performance.now();
     if (this.sendingSpeech) {
-      this.sendingSpeechPromise = this.sendingSpeechPromise.finally(() => this.sendSpeech(compress, add));
+      this.sendingSpeechPromise = this.sendingSpeechPromise.finally(() => {
+        this.sendingSpeech = false;
+        this.sendSpeech(add, compress, trim)
+      });
     }
     else {
       this.sendingSpeechPromise = new Promise((resolve, reject) => {
@@ -1318,183 +1308,183 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                 audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
                   if (audioBuffer.duration <= .25) {
                     console.log('audioBuffer duration less than .25');
+                    resolve(false);
                     return;
                   }
-                  //const newAudioBuffer = audioContext.createBuffer(
-                  //  audioBuffer.numberOfChannels,
-                  //  audioBuffer.length,
-                  //  audioBuffer.sampleRate
-                  //);
-
-                  //// Copy the modified audio data to the new audio buffer
-                  //for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
-                  //  const channelData = newAudioBuffer.getChannelData(channel);
-                  //  const originalChannelData = audioBuffer.getChannelData(channel);
-                  //  channelData.set(originalChannelData);
-                  //}
-
-
+                  /*
+                //compress and trim
+                var buffer = audioBuffer;
+                if (trim) {
                   let threshold = this.calculateSilenceThresholdRMS(audioBuffer, 4);
                   if (threshold > .1) {
                     threshold = .1;
                   }
-                  //console.log('threshold: ' + threshold);
-                  //let threshold = .1;
                   const frameSize = 2048;
                   const hopSize = 1024;
-                  const trimmedBuffer = this.trimSilenceWithRoom(audioBuffer, threshold, hopSize, frameSize, audioContext, 1, 1);
-                  if (trimmedBuffer) {
-                    console.log('duration after trim: ' + trimmedBuffer.duration);
-                    if (this.audioContextOptions.sampleRate) {
-                      var offlineAudioCtx = new OfflineAudioContext({
-                        numberOfChannels: 1,
-                        length: this.audioContextOptions.sampleRate * trimmedBuffer.duration,
-                        sampleRate: this.audioContextOptions.sampleRate,
-                      });
+                  buffer = this.trimSilenceWithRoom(audioBuffer, threshold, hopSize, frameSize, audioContext, 1, 1);
+                  console.log('duration after trim: ' + buffer.duration);
+                }
+                  if (this.audioContextOptions.sampleRate) {
+                    var offlineAudioCtx = new OfflineAudioContext({
+                      numberOfChannels: 1,
+                      length: this.audioContextOptions.sampleRate * buffer.duration,
+                      sampleRate: this.audioContextOptions.sampleRate,
+                    });
 
-                      let soundSource = offlineAudioCtx.createBufferSource();
-                      soundSource.buffer = trimmedBuffer;
+                    let soundSource = offlineAudioCtx.createBufferSource();
+                    soundSource.buffer = buffer;
 
-                      if (compress) {
-                        // Create Compressor Node
-                        var compressor = offlineAudioCtx.createDynamicsCompressor();
-                        compressor.threshold.setValueAtTime(-50, offlineAudioCtx.currentTime);
-                        compressor.knee.setValueAtTime(40, offlineAudioCtx.currentTime);
-                        compressor.ratio.setValueAtTime(12, offlineAudioCtx.currentTime);
-                        compressor.attack.setValueAtTime(0, offlineAudioCtx.currentTime);
-                        compressor.release.setValueAtTime(1, offlineAudioCtx.currentTime);
+                    if (compress) {
+                      // Create Compressor Node
+                      var compressor = offlineAudioCtx.createDynamicsCompressor();
+                      compressor.threshold.setValueAtTime(-50, offlineAudioCtx.currentTime);
+                      compressor.knee.setValueAtTime(40, offlineAudioCtx.currentTime);
+                      compressor.ratio.setValueAtTime(12, offlineAudioCtx.currentTime);
+                      compressor.attack.setValueAtTime(0, offlineAudioCtx.currentTime);
+                      compressor.release.setValueAtTime(1, offlineAudioCtx.currentTime);
 
-                        // Connect nodes to destination
-                        soundSource.connect(compressor);
-                        compressor.connect(offlineAudioCtx.destination);
+                      // Connect nodes to destination
+                      soundSource.connect(compressor);
+                      compressor.connect(offlineAudioCtx.destination);
+                    }
+                    else {
+                      soundSource.connect(offlineAudioCtx.destination);
+                    }
+
+                    offlineAudioCtx.startRendering().then((renderedBuffer) => {
+
+                      soundSource.loop = false;
+                    }).catch((error) => {
+                      console.error(error);
+                      reject();
+                    });
+
+                    soundSource.start(0);
+                  }
+                  */
+                  var duration = audioBuffer.duration;
+                  console.log("duration: " + duration);
+                  let rate = audioBuffer.sampleRate;
+                  let offset = 0;
+                  let waveBlob = this.bufferToWave(audioBuffer, audioBuffer.length)
+                  //var waveFile = URL.createObjectURL(waveBlob);
+                  if (duration >= .25) {
+                    let lastMessage: string | undefined = undefined;
+                    for (let i = this.chatMessages.length - 1; i >= 0; i--) {
+                      if (this.chatMessages[i].from == this.user.name) {
+                        lastMessage = this.chatMessages[i].content;
+                        break;
                       }
-                      else {
-                        soundSource.connect(offlineAudioCtx.destination);
-                      }
-
-                      offlineAudioCtx.startRendering().then((renderedBuffer) => {
-                        var duration = renderedBuffer.duration;
-                        console.log("rendered duration: " + duration);
-                        let rate = renderedBuffer.sampleRate;
-                        let offset = 0;
-                        let waveBlob = this.bufferToWave(renderedBuffer, offlineAudioCtx.length)
-                        //var waveFile = URL.createObjectURL(waveBlob);
-                        if (duration >= .25) {
-                          let lastMessage: string | undefined = undefined;
-                          for (let i = this.chatMessages.length - 1; i >= 0; i--) {
-                            if (this.chatMessages[i].from == this.user.name) {
-                              lastMessage = this.chatMessages[i].content;
-                              break;
+                    }
+                    this.chatService.getChatSpeechToText(waveBlob, lastMessage).subscribe(
+                      result => {
+                        let speechText = "";
+                        if (result.text) {
+                          //remove bad words and wake words
+                          let sentence = "";
+                          if (result.text.indexOf(" ") != - 1) {
+                            for (let word of result.text.split(" ")) {
+                              if (this.badWordAndWakeWordRegex.test(word.toLowerCase())) {
+                                word = "";
+                              }
+                              else {
+                                sentence += word + " ";
+                              }
                             }
                           }
-                          this.chatService.getChatSpeechToText(waveBlob, lastMessage).subscribe(
-                            result => {
-                              this.sendingSpeech = false;
-                              let speechText = "";
-                              if (result.text) {
-                                //remove bad words and wake words
-                                let sentence = "";
-                                if (result.text.indexOf(" ") != - 1) {
-                                  for (let word of result.text.split(" ")) {
-                                    if (this.badWordAndWakeWordRegex.test(word.toLowerCase())) {
-                                      word = "";
-                                    }
-                                    else {
-                                      sentence += word + " ";
-                                    }
-                                  }
-                                }
-                                else {
-                                  if (!this.badWordAndWakeWordRegex.test(result.text)) {
-                                    sentence = result.text;
-                                  }
-                                }
-                                speechText = sentence.trim();
-                                if (speechText.toLowerCase() == 'stop' || speechText.toLowerCase() == 'stop.') {
-                                  console.log('stop command');
-                                  speechText = "";
-                                }
-                                if (speechText.toLowerCase().indexOf('thanks for watching') != -1 ||
-                                  speechText.toLowerCase().indexOf('thank you for watching') != -1 ||
-                                  speechText.toLowerCase().indexOf('please subscribe to my channel.') != -1
-                                ) {
-                                  //the openai must have been trained on video data? thanks for watching usually comes back when it's just noise
-                                  speechText = "";
-                                }
-                                this.musicPlaying = speechText == '🎶';
-
-                                if (this.musicPlaying) {
-                                  this.stopRecording();
-                                }
-                                if (add) {
-                                  if (this.speechToTextMessage == speechText) {
-                                    this.chatInputRef.clearMessage();
-                                    this.sendMessage(speechText);
-                                    this.stopRecording();
-                                  }
-                                  else {
-                                    this.chatInputRef.setMessage(speechText);
-                                  }
-                                }
-                                else {
-                                  if (speechText) {
-                                    this.sendMessage(speechText);
-                                    this.chatInputRef.clearMessage();
-                                  }
-                                  speechText = "";
-                                }
-                              }
-                              this.speechToTextMessage = speechText;
-                              resolve(true);
-                            },
-                            error => {
-                              if (error.ok === false) {
-                                switch (error.status) {
-                                  case 400:
-                                    this.addMessage({
-                                      content: 'An error while transcribing audio.',
-                                      rawContent: 'An error while transcribing audio.',
-                                      from: this.system.name,
-                                      to: this.user.name,
-                                      received: false
-                                    } as ChatMessageVm);
-                                    break;
-                                  case 401:
-                                    this.addMessage({
-                                      content: 'You must be logged in.',
-                                      rawContent: 'You must be logged in.',
-                                      from: this.system.name,
-                                      to: this.user.name,
-                                      received: false
-                                    } as ChatMessageVm);
-                                    break;
-                                  default:
-                                    this.addMessage({
-                                      content: 'An error while transcribing audio.',
-                                      rawContent: 'An error while transcribing audio.',
-                                      from: this.system.name,
-                                      to: this.user.name,
-                                      received: false
-                                    } as ChatMessageVm);
-                                    break;
-                                }
-                              }
-                              reject();
+                          else {
+                            if (!this.badWordAndWakeWordRegex.test(result.text)) {
+                              sentence = result.text;
                             }
-                          );
+                          }
+                          speechText = sentence.trim();
+                          if (speechText.toLowerCase() == 'stop' || speechText.toLowerCase() == 'stop.') {
+                            console.log('stop command');
+                            speechText = "";
+                          }
+                          if (speechText.toLowerCase().indexOf('That model is currently overloaded with other requests') != -1) {
+                            speechText = "";
+                          }
+                          if (speechText.toLowerCase() == 'you') {
+                            speechText = "";
+                          }
+                          if (speechText.toLowerCase().indexOf('thanks for watching') != -1 ||
+                            speechText.toLowerCase().indexOf('thank you for watching') != -1 ||
+                            speechText.toLowerCase().indexOf('please subscribe to my channel.') != -1
+                          ) {
+                            //the openai must have been trained on video data? thanks for watching usually comes back when it's just noise
+                            speechText = "";
+                          }
+                          this.musicPlaying = speechText == '🎶';
+
+                          if (this.musicPlaying) {
+                            this.stopRecording();
+                          }
                         }
-
-                        soundSource.loop = false;
-                      }).catch((error) => {
-                        console.error(error);
+                        if (add) {
+                          if (this.speechToTextMessage === speechText) {
+                            this.chatInputRef.clearMessage();
+                            this.sendMessage(speechText);
+                            this.stopRecording();
+                            this.speechToTextMessage = undefined;
+                          }
+                          else {
+                            this.chatInputRef.setMessage(speechText);
+                            this.speechToTextMessage = speechText;
+                          }
+                        }
+                        else {
+                          if (speechText) {
+                            this.chatInputRef.clearMessage();
+                            this.sendMessage(speechText);
+                            this.stopRecording();
+                            this.speechToTextMessage = undefined;
+                          }
+                          else {
+                            speechText = "";
+                            this.speechToTextMessage = speechText;
+                          }
+                        }
+                        resolve(true);
+                      },
+                      error => {
+                        if (error.ok === false) {
+                          switch (error.status) {
+                            case 400:
+                              this.addMessage({
+                                content: 'An error while transcribing audio.',
+                                rawContent: 'An error while transcribing audio.',
+                                from: this.system.name,
+                                to: this.user.name,
+                                received: false
+                              } as ChatMessageVm);
+                              break;
+                            case 401:
+                              this.addMessage({
+                                content: 'You must be logged in.',
+                                rawContent: 'You must be logged in.',
+                                from: this.system.name,
+                                to: this.user.name,
+                                received: false
+                              } as ChatMessageVm);
+                              break;
+                            default:
+                              this.addMessage({
+                                content: 'An error while transcribing audio.',
+                                rawContent: 'An error while transcribing audio.',
+                                from: this.system.name,
+                                to: this.user.name,
+                                received: false
+                              } as ChatMessageVm);
+                              break;
+                          }
+                        }
                         reject();
-                      });
-
-                      soundSource.start(0);
-                    }
+                      }
+                    );
                   }
                   else {
-                    console.log('trimmed');
+                    resolve(false);
                   }
                 }).catch(err => {
                   console.log(err);
@@ -1504,13 +1494,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
               else {
                 reject();
               }
+            }).catch(error => {
+              console.error(error);
+              reject();
             });
           }).catch(error => {
             console.error(error);
             reject();
           });
         }
-      });
+      }).then(() => this.sendingSpeech = false);
     }
     return this.sendingSpeechPromise;
   }

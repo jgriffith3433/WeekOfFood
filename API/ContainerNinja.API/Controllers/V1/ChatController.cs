@@ -23,13 +23,13 @@ namespace ContainerNinja.Controllers.V1
     {
         private readonly IMediator _mediator;
         private readonly IWebHostEnvironment _webHostEnvironment;
-        private readonly INAudioService _nAudioService;
+        private readonly IAudioService _audioService;
 
-        public ChatController(IMediator mediator, IWebHostEnvironment webHostEnvironment, INAudioService nAudioService)
+        public ChatController(IMediator mediator, IWebHostEnvironment webHostEnvironment, IAudioService audioService)
         {
             _mediator = mediator;
             _webHostEnvironment = webHostEnvironment;
-            _nAudioService = nAudioService;
+            _audioService = audioService;
         }
 
         [MapToApiVersion("1.0")]
@@ -91,57 +91,81 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<GetChatTextFromSpeechVm>> Speech([FromForm] IFormFile speech)
         {
-            //var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
-
-            //if (!Directory.Exists(uploads))
-            //{
-            //    Directory.CreateDirectory(uploads);
-            //}
-
-            //var fileName = speech.FileName;
-            //var filePathNew = Path.Combine(uploads, fileName + "_1.wav");
-            //var filePath2nd = Path.Combine(uploads, fileName + "_2.wav");
-            //var filePath3rd = Path.Combine(uploads, fileName + "_3.wav");
-
-            //if (System.IO.File.Exists(filePath3rd))
-            //{
-            //    System.IO.File.Delete(filePath3rd);
-            //}
-            //if (System.IO.File.Exists(filePath2nd))
-            //{
-            //    System.IO.File.Move(filePath2nd, filePath3rd);
-            //}
-            //if (System.IO.File.Exists(filePathNew))
-            //{
-            //    System.IO.File.Move(filePathNew, filePath2nd);
-            //}
-
-            //using (var fileStream = new FileStream(filePathNew, FileMode.Create))
-            //{
-            //    await speech.CopyToAsync(fileStream);
-            //}
-
-            var audioData = ConvertToByteArrayContent(speech);
-            return await _mediator.Send(new GetChatTextFromSpeechQuery
+            if (speech != null)
             {
-                Speech = audioData
-            });
-            //var strippedAudio = _nAudioService.StripNoise(audioData);
+                //var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
 
-            //if (strippedAudio.Length > 0)
-            //{
-            //    return await _mediator.Send(new GetChatTextFromSpeechQuery
-            //    {
-            //        Speech = strippedAudio
-            //    });
-            //}
-            //else
-            //{
-            //    return Ok(new GetChatTextFromSpeechVm
-            //    {
-            //        Text = ""
-            //    });
-            //}
+                //if (!Directory.Exists(uploads))
+                //{
+                //    Directory.CreateDirectory(uploads);
+                //}
+
+                //var fileName = speech.FileName;
+                //var filePathNew = Path.Combine(uploads, fileName + "_1.wav");
+                //var filePath2nd = Path.Combine(uploads, fileName + "_2.wav");
+                //var filePath3rd = Path.Combine(uploads, fileName + "_3.wav");
+
+                //if (System.IO.File.Exists(filePath3rd))
+                //{
+                //    System.IO.File.Delete(filePath3rd);
+                //}
+                //if (System.IO.File.Exists(filePath2nd))
+                //{
+                //    System.IO.File.Move(filePath2nd, filePath3rd);
+                //}
+                //if (System.IO.File.Exists(filePathNew))
+                //{
+                //    System.IO.File.Move(filePathNew, filePath2nd);
+                //}
+
+
+
+
+                var uploads = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+
+                if (!Directory.Exists(uploads))
+                {
+                    Directory.CreateDirectory(uploads);
+                }
+
+                var fileName = speech.FileName;
+                var filePathBefore = Path.Combine(uploads, fileName + "_before.wav");
+                var filePathAfter = Path.Combine(uploads, fileName + "_after.wav");
+
+                if (System.IO.File.Exists(filePathBefore))
+                {
+                    System.IO.File.Delete(filePathBefore);
+                }
+                if (System.IO.File.Exists(filePathAfter))
+                {
+                    System.IO.File.Delete(filePathAfter);
+                }
+
+                using (var fileStream = new FileStream(filePathBefore, FileMode.Create))
+                {
+                    await speech.CopyToAsync(fileStream);
+                }
+
+                var audioData = ConvertToByteArrayContent(speech);
+                var strippedAudio = _audioService.StripNoiseAndTrimSilence(audioData);
+
+                using (var fileStream = new FileStream(filePathAfter, FileMode.Create))
+                {
+                    fileStream.Write(strippedAudio, 0, strippedAudio.Length);
+                }
+
+                if (strippedAudio.Length > 256)
+                {
+                    return await _mediator.Send(new GetChatTextFromSpeechQuery
+                    {
+                        Speech = strippedAudio
+                    });
+                }
+            }
+            return Ok(new GetChatTextFromSpeechVm
+            {
+                Text = ""
+            });
         }
 
 
