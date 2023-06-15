@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CompletedOrderProductDTO> IRequestHandler<UpdateCompletedOrderProductCommand, CompletedOrderProductDTO>.Handle(UpdateCompletedOrderProductCommand request, CancellationToken cancellationToken)
         {
-            var completedOrderProductEntity = _repository.CompletedOrderProducts.Include<CompletedOrderProduct, Product>(cop => cop.Product).FirstOrDefault(cop => cop.Id == request.Id);
+            var completedOrderProductEntity = _repository.CompletedOrderProducts.Set.FirstOrDefault(cop => cop.Id == request.Id);
 
             if (completedOrderProductEntity == null)
             {
@@ -68,7 +68,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                         completedOrderProductEntity.WalmartItemResponse = serializedItemResponse;
                         completedOrderProductEntity.Name = itemResponse.name;
 
-                        var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
+                        var productEntity = _repository.Products.Set.FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
 
                         if (productEntity != null)
                         {
@@ -77,18 +77,18 @@ namespace ContainerNinja.Core.Handlers.Commands
                         }
                         else
                         {
-                            productEntity = new Product
+                            productEntity = _repository.Products.CreateProxy();
                             {
-                                Name = itemResponse.name,
-                                WalmartId = itemResponse.itemId,
+                                productEntity.Name = itemResponse.name;
+                                productEntity.WalmartId = itemResponse.itemId;
                             };
 
                             //always ensure a product stock record exists for each product
-                            productEntity.ProductStock = new ProductStock
+                            productEntity.ProductStock = _repository.ProductStocks.CreateProxy();
                             {
-                                Name = itemResponse.name,
-                                Units = 1,
-                                Product = productEntity
+                                productEntity.ProductStock.Name = itemResponse.name;
+                                productEntity.ProductStock.Units = 1;
+                                productEntity.ProductStock.Product = productEntity;
                             };
                             _repository.ProductStocks.Add(productEntity.ProductStock);
                             _repository.Products.Add(productEntity);

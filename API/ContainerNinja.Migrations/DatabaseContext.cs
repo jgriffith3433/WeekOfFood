@@ -10,7 +10,7 @@ namespace ContainerNinja.Migrations
 
         public DatabaseContext(DbContextOptions<DatabaseContext> options, IUserService user) : base(options)
         {
-            ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+            //ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             _user = user;
         }
 

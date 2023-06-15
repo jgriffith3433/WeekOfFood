@@ -24,7 +24,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(DeleteRecipeCommand request, CancellationToken cancellationToken)
         {
-            var recipeEntity = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(p => p.CalledIngredients).FirstOrDefault(p => p.Id == request.Id);
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(p => p.Id == request.Id);
 
             if (recipeEntity == null)
             {

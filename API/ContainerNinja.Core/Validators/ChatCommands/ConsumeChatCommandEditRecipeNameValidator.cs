@@ -7,11 +7,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandEditRecipeNameValidator()
         {
-            RuleFor(v => v.Command.Original)
-                .NotEmpty().WithMessage("original field is required.");
-
-            RuleFor(v => v.Command.New)
-                .NotEmpty().WithMessage("new field is required.");
+            RuleFor(v => v.Command.OriginalName).NotEmpty().WithMessage("OriginalName is required");
+            RuleFor(v => v.Command.NewName).NotEmpty().WithMessage("NewName is required");
         }
     }
 }

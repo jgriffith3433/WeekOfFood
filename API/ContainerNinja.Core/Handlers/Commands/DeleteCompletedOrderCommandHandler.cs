@@ -24,7 +24,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(DeleteCompletedOrderCommand request, CancellationToken cancellationToken)
         {
-            var completedOrderEntity = _repository.CompletedOrders.Include<CompletedOrder, IList<CompletedOrderProduct>>(p => p.CompletedOrderProducts).FirstOrDefault(p => p.Id == request.Id);
+            var completedOrderEntity = _repository.CompletedOrders.Set.FirstOrDefault(p => p.Id == request.Id);
 
             if (completedOrderEntity == null)
             {

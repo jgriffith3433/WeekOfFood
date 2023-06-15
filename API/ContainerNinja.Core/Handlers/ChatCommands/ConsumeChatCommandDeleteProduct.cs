@@ -31,25 +31,22 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public async Task<string> Handle(ConsumeChatCommandDeleteProduct model, CancellationToken cancellationToken)
         {
             var predicate = PredicateBuilder.New<Product>();
-            var searchTerms = string.Join(' ', model.Command.Product.ToLower().Split('-')).Split(' ');
+            var searchTerms = string.Join(' ', model.Command.ProductName.ToLower().Split('-')).Split(' ');
             foreach (var searchTerm in searchTerms)
             {
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
             }
-            var query = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock)
-                .AsNoTracking()
-                .AsExpandable()
-                .Where(predicate).ToList();
+            var query = _repository.Products.Set.AsExpandable().Where(predicate).ToList();
 
             Product product;
             if (query.Count == 0)
             {
-                var systemResponse = "Could not find product by name: " + model.Command.Product;
+                var systemResponse = "Could not find product by name: " + model.Command.ProductName;
                 throw new ChatAIException(systemResponse);
             }
             else if (query.Count == 1)
             {
-                if (query[0].Name.ToLower() == model.Command.Product.ToLower())
+                if (query[0].Name.ToLower() == model.Command.ProductName.ToLower())
                 {
                     //exact match
                     product = query[0];
@@ -57,13 +54,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //unsure, ask user
-                    var systemResponse = "Could not find product by name '" + model.Command.Product + "'. Did you mean: " + query[0].Name + "?";
+                    var systemResponse = "Could not find product by name '" + model.Command.ProductName + "'. Did you mean: " + query[0].Name + "?";
                     throw new ChatAIException(systemResponse);
                 }
             }
             else
             {
-                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.Product.ToLower());
+                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.ProductName.ToLower());
                 if (exactMatch != null)
                 {
                     //exact match

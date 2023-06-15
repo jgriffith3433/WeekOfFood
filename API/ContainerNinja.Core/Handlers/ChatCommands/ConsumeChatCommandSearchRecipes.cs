@@ -6,21 +6,12 @@ using ContainerNinja.Core.Common;
 using ContainerNinja.Contracts.Data.Entities;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "search_recipes" })]
-    [ChatCommandSpecification("search_recipes", "Searches for recipes by name.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""search"": {
-            ""type"": ""string"",
-            ""description"": ""The term to search by for recipe names.""
-        }
-    },
-    ""required"": [""search""]
-}")]
+    [ChatCommandModel(new[] { "search_recipes" })]
     public class ConsumeChatCommandSearchRecipes : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOSearchRecipes>
     {
         public ChatAICommandDTOSearchRecipes Command { get; set; }
@@ -45,12 +36,26 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
             }
 
-            var query = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients)
-                .AsNoTracking()
-                .AsExpandable()
-                .Where(predicate).ToList();
-
-            return "Results: " + string.Join(", ", query.Select(r => r.Name));
+            var query = _repository.Recipes.Set.AsExpandable().Where(predicate).ToList();
+            var results = new JArray();
+            foreach (var recipe in query)
+            {
+                var recipeObject = new JObject();
+                recipeObject["RecipeName"] = recipe.Name;
+                recipeObject["Serves"] = recipe.Serves;
+                var recipeIngredientsArray = new JArray();
+                foreach (var ingredient in recipe.CalledIngredients)
+                {
+                    var ingredientObject = new JObject();
+                    ingredientObject["IngredientName"] = ingredient.Name;
+                    ingredientObject["Units"] = ingredient.Units;
+                    ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                    recipeIngredientsArray.Add(ingredientObject);
+                }
+                recipeObject["Ingredients"] = recipeIngredientsArray;
+                results.Add(recipeObject);
+            }
+            return JsonConvert.SerializeObject(results);
         }
     }
 }

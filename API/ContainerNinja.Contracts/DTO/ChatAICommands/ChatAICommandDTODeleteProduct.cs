@@ -1,6 +1,13 @@
-﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+﻿using ContainerNinja.Contracts.Common;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
+namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+
+[ChatCommandSpecification("delete_product", "Deletes a product")]
 public record ChatAICommandDTODeleteProduct : ChatAICommandArgumentsDTO
 {
-    public string Product { get; set; }
+    [Required]
+    [Description("Name of the product")]
+    public string ProductName { get; set; }
 }

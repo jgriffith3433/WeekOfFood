@@ -38,7 +38,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<ProductDTO> IRequestHandler<UpdateProductNameCommand, ProductDTO>.Handle(UpdateProductNameCommand request, CancellationToken cancellationToken)
         {
-            var productEntity = _repository.Products.Include<Product, ProductStock>(p => p.ProductStock).FirstOrDefault(p => p.Id == request.Id);
+            var productEntity = _repository.Products.Set.FirstOrDefault(p => p.Id == request.Id);
 
             if (productEntity == null)
             {

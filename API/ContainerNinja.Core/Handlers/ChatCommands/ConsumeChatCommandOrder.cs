@@ -7,7 +7,7 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "order" })]
+    [ChatCommandModel(new [] { "create_order" })]
     public class ConsumeChatCommandOrder : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOOrder>
     {
         public ChatAICommandDTOOrder Command { get; set; }

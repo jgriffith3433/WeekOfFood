@@ -7,6 +7,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandTemplateValidator()
         {
+            RuleFor(v => v.Command.TemplateProperty).NotEmpty().WithMessage("TemplateProperty required");
         }
     }
 }

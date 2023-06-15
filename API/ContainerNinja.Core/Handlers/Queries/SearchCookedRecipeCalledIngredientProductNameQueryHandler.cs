@@ -33,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             var cookedRecipeCalledIngredientDTO = _cache.GetItem<CookedRecipeCalledIngredientDTO>($"cooked_recipe_called_ingredient_{request.Id}");
             if (cookedRecipeCalledIngredientDTO == null)
             {
-                var cookedRecipeCalledIngredientEntity = _repository.CookedRecipeCalledIngredients.Include<CookedRecipeCalledIngredient, ProductStock>(co => co.ProductStock).FirstOrDefault(co => co.Id == request.Id);
+                var cookedRecipeCalledIngredientEntity = _repository.CookedRecipeCalledIngredients.Set.FirstOrDefault(co => co.Id == request.Id);
 
                 if (cookedRecipeCalledIngredientEntity == null)
                 {
@@ -45,9 +45,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             }
 
             var cookedRecipeCalledIngredientDetailsDTO = _mapper.Map<CookedRecipeCalledIngredientDetailsDTO>(cookedRecipeCalledIngredientDTO);
-            var query = from ps in _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product)
-                        where EF.Functions.Like(ps.Name, string.Format("%{0}%", request.Search))
-                        select ps;
+            var query = from ps in _repository.ProductStocks.Set where EF.Functions.Like(ps.Name, string.Format("%{0}%", request.Search)) select ps;
 
             cookedRecipeCalledIngredientDetailsDTO.ProductStockSearchItems = _mapper.Map<List<ProductStockDTO>>(query.ToList());
 

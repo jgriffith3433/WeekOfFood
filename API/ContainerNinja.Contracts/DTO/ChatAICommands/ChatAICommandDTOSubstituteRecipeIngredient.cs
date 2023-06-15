@@ -1,20 +1,19 @@
-﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+﻿using ContainerNinja.Contracts.Common;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
+namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+
+[ChatCommandSpecification("substitute_recipe_ingredient", "Substitutes an ingredient in a recipe")]
 public record ChatAICommandDTOSubstituteRecipeIngredient : ChatAICommandArgumentsDTO
 {
-    public string Recipe { get; set; }
-
-    public string Original { get; set; }
-    public string Ingredient
-    {
-        get { return Original; }
-        set { Original = value; }
-    }
-
-    public string New { get; set; }
-    public string Substitute
-    {
-        get { return New; }
-        set { New = value; }
-    }
+    [Required]
+    [Description("Name of the recipe")]
+    public string RecipeName { get; set; }
+    [Required]
+    [Description("Name of the original ingredient")]
+    public string OriginalIngredient { get; set; }
+    [Required]
+    [Description("Name of the new ingredient")]
+    public string NewIngredient { get; set; }
 }

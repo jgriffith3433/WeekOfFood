@@ -30,26 +30,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public async Task<string> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
         {
             var predicate = PredicateBuilder.New<Recipe>();
-            var searchTerms = string.Join(' ', model.Command.Original.ToLower().Split('-')).Split(' ');
+            var searchTerms = string.Join(' ', model.Command.OriginalName.ToLower().Split('-')).Split(' ');
             foreach (var searchTerm in searchTerms)
             {
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
             }
 
-            var query = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients)
-                .AsNoTracking()
-                .AsExpandable()
-                .Where(predicate).ToList();
+            var query = _repository.Recipes.Set.AsExpandable().Where(predicate).ToList();
 
             Recipe recipe;
             if (query.Count == 0)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.Original;
+                var systemResponse = "Could not find recipe by name: " + model.Command.OriginalName;
                 throw new ChatAIException(systemResponse);
             }
             else if (query.Count == 1)
             {
-                if (query[0].Name.ToLower() == model.Command.Original.ToLower())
+                if (query[0].Name.ToLower() == model.Command.OriginalName.ToLower())
                 {
                     //exact match
                     recipe = query[0];
@@ -57,13 +54,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //unsure, ask user
-                    var systemResponse = "Could not find recipe by name '" + model.Command.Original + "'. Did you mean: " + query[0].Name + "?";
+                    var systemResponse = "Could not find recipe by name '" + model.Command.OriginalName + "'. Did you mean: " + query[0].Name + "?";
                     throw new ChatAIException(systemResponse);
                 }
             }
             else
             {
-                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.Original.ToLower());
+                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.OriginalName.ToLower());
                 if (exactMatch != null)
                 {
                     //exact match
@@ -78,14 +75,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             if (recipe != null)
             {
-                var existingRecipeWithName = _repository.Recipes.FirstOrDefault(r => r.Name.ToLower() == model.Command.New.ToLower());
+                var existingRecipeWithName = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.NewName.ToLower());
                 if (existingRecipeWithName != null)
                 {
-                    var systemResponse = "Recipe already exists: " + model.Command.New;
+                    var systemResponse = "Recipe already exists: " + model.Command.NewName;
                     throw new ChatAIException(systemResponse);
                 }
 
-                recipe.Name = model.Command.New;
+                recipe.Name = model.Command.NewName;
                 _repository.Recipes.Update(recipe);
             }
 

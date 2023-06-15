@@ -23,7 +23,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(DeleteTodoItemCommand request, CancellationToken cancellationToken)
         {
-            var todoItem = _repository.TodoItems.FirstOrDefault(x => x.Id == request.Id);
+            var todoItem = _repository.TodoItems.Set.FirstOrDefault(x => x.Id == request.Id);
             if (todoItem == null)
             {
                 throw new NotFoundException($"No TodoItem found for the Id {request.Id}");

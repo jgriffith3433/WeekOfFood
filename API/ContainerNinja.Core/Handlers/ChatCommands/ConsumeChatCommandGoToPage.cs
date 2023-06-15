@@ -6,19 +6,7 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "go_to", "go_to_page", "navigate" })]
-    [ChatCommandSpecification("go_to_page", "Navigate to page.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""page"": {
-            ""type"": ""string"",
-            ""enum"": [""home"", ""todo"", ""product stocks"", ""products"", ""completed orders"", ""recipes"", ""logged recipes"", ""called ingredients""],
-            ""description"": ""The page to navigate to.""
-        }
-    },
-    ""required"": [""page""]
-}")]
+    [ChatCommandModel(new [] { "go_to_page" })]
     public class ConsumeChatCommandGoToPage : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOGoToPage>
     {
         public ChatAICommandDTOGoToPage Command { get; set; }
@@ -36,7 +24,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandGoToPage model, CancellationToken cancellationToken)
         {
-            model.Response.NavigateToPage = string.Join('-', model.Command.Page.Split(' '));
+            model.Response.NavigateToPage = string.Join('-', model.Command.Page.Split(' ')).ToLower();
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return $"Navigation complete: The user is now on the {model.Command.Page} page.";
         }

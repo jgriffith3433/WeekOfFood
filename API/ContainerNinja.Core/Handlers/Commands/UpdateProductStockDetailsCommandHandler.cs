@@ -38,7 +38,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<ProductStockDetailsDTO> IRequestHandler<UpdateProductStockDetailsCommand, ProductStockDetailsDTO>.Handle(UpdateProductStockDetailsCommand request, CancellationToken cancellationToken)
         {
-            var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).FirstOrDefault(ps => ps.Id == request.Id);
+            var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == request.Id);
 
             if (productStockEntity == null)
             {
@@ -48,11 +48,11 @@ namespace ContainerNinja.Core.Handlers.Commands
             if (productStockEntity.Product == null || request.ProductId != productStockEntity.Product.Id)
             {
                 //First search for product stocks that are already linked to the product
-                var alreadyLinkedProductStock = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).Where(p => p.Product.Id == request.ProductId).FirstOrDefault();
+                var alreadyLinkedProductStock = _repository.ProductStocks.Set.Where(p => p.Product.Id == request.ProductId).FirstOrDefault();
                 if (alreadyLinkedProductStock != null)
                 {
                     //we found an existing product stock, merge
-                    var calledIngredients = _repository.CalledIngredients.Include<CalledIngredient, ProductStock>(ci => ci.ProductStock).Where(ci => ci.ProductStock != null && ci.ProductStock.Id == productStockEntity.Id);
+                    var calledIngredients = _repository.CalledIngredients.Set.Where(ci => ci.ProductStock != null && ci.ProductStock.Id == productStockEntity.Id);
                     foreach (var calledIngredient in calledIngredients)
                     {
                         calledIngredient.ProductStock = alreadyLinkedProductStock;

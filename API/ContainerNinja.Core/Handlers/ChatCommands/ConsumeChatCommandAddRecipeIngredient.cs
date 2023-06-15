@@ -12,30 +12,6 @@ using Microsoft.EntityFrameworkCore;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new[] { "add_recipe_ingredient" })]
-    [ChatCommandSpecification("add_recipe_ingredient", "Add an ingredient to a recipe.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""recipename"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the recipe.""
-        },
-        ""ingredientname"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the ingredient to add.""
-        },
-        ""units"": {
-            ""type"": ""number"",
-            ""description"": ""How many units of the ingredient.""
-        },
-        ""unittype"": {
-            ""type"": ""string"",
-            ""enum"": [""none"", ""bulk"", ""ounce"", ""teaspoon"", ""tablespoon"", ""pound"", ""cup"", ""clove"", ""can"", ""whole"", ""package"", ""bar"", ""bun"", ""bottle""],
-            ""description"": ""The unit type of the ingredient.""
-        }
-    },
-    ""required"": [""recipename"", ""ingredientname"", ""units"", ""unittype""]
-}")]
     public class ConsumeChatCommandAddRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddRecipeIngredient>
     {
         public ChatAICommandDTOAddRecipeIngredient Command { get; set; }
@@ -60,10 +36,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
             }
 
-            var query = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients)
-                .AsNoTracking()
-                .AsExpandable()
-                .Where(predicate).ToList();
+            var query = _repository.Recipes.Set.AsExpandable().Where(predicate).ToList();
             Recipe recipe;
             if (query.Count == 0)
             {
@@ -101,13 +74,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             if (recipe != null)
             {
-                var calledIngredient = new CalledIngredient
+                var calledIngredient = _repository.CalledIngredients.CreateProxy();
                 {
-                    Name = model.Command.IngredientName,
-                    Recipe = recipe,
-                    Verified = false,
-                    Units = model.Command.Units,
-                    UnitType = model.Command.UnitType.UnitTypeFromString()
+                    calledIngredient.Name = model.Command.IngredientName;
+                    calledIngredient.Recipe = recipe;
+                    calledIngredient.Verified = false;
+                    calledIngredient.Units = model.Command.Units;
+                    calledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
                 };
                 recipe.CalledIngredients.Add(calledIngredient);
                 _repository.Recipes.Update(recipe);

@@ -7,6 +7,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandEditProductUnitTypeValidator()
         {
+            RuleFor(v => v.Command.ProductName).NotEmpty().WithMessage("ProductName is required");
+            RuleFor(v => v.Command.UnitType).NotEmpty().WithMessage("UnitType is required");
         }
     }
 }

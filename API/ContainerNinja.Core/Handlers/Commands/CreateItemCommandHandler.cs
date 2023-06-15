@@ -38,12 +38,12 @@ namespace ContainerNinja.Core.Handlers.Commands
         {
             CreateOrUpdateItemDTO model = request.Model;
 
-            var entity = new Item
+            var entity = _repository.Items.CreateProxy();
             {
-                Name = model.Name,
-                Description = model.Description,
-                Categories = model.Categories,
-                ColorCode = model.ColorCode
+                entity.Name = model.Name;
+                entity.Description = model.Description;
+                entity.Categories = model.Categories;
+                entity.ColorCode = model.ColorCode;
             };
 
             _repository.Items.Add(entity);

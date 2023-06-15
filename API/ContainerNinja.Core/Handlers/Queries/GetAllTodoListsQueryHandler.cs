@@ -32,7 +32,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             if (cachedEntities == null)
             {
-                var entities = _repository.TodoLists.Include<TodoList, IList<TodoItem>>(tdl => tdl.Items).AsEnumerable();
+                var entities = _repository.TodoLists.Set.AsEnumerable();
                 var result = new GetAllTodoListsVM
                 {
                     Lists = _mapper.Map<IList<TodoListDTO>>(entities),

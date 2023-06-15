@@ -1,6 +1,6 @@
-<h1>Cooked Recipes</h1>
+<h1>Logged Recipes</h1>
 
-<p>This is a complex cooked recipes component.</p>
+<p>This is a complex Logged Recipes component.</p>
 
 <p *ngIf="!cookedRecipes"><em>Loading...</em></p>
 
@@ -9,10 +9,10 @@
   <div class="row">
     <div class="col-sm-4">
       <div class="clearfix">
-        <h2 class="float-start">Cooked Recipes</h2>
-        <button class="btn btn-default float-end" title="New Cooked Recipe..."
+        <h2 class="float-start">Logged Recipes</h2>
+        <button class="btn btn-default float-end" title="New Logged Recipe..."
                 (click)="showNewCookedRecipeModal(newCookedRecipeModalTemplate)">
-          <i class="bi bi-journal-plus">New Cooked Recipe</i>
+          <i class="bi bi-journal-plus">New Logged Recipe</i>
         </button>
       </div>
       <ul class="list-group">
@@ -31,7 +31,7 @@
     </div>
     <div class="col-sm-8" *ngIf="selectedCookedRecipe">
       <div class="clearfix">
-        <button id="cookedRecipeOptions" class="btn btn-default float-end" title="Cooked Recipe Options..."
+        <button id="cookedRecipeOptions" class="btn btn-default float-end" title="Logged Recipe Options..."
                 (click)="showCookedRecipeOptionsModal(cookedRecipeOptionsModalTemplate)">
           <i class="bi bi-three-dots-vertical"></i>
         </button>
@@ -69,7 +69,7 @@
           </div>
         </li>
         <li class="list-group-item" (click)="addCookedRecipeCalledIngredient()">
-          <button class="btn btn-default">Add Cooked Recipe Called Ingredient...</button>
+          <button class="btn btn-default">Add Logged Recipe Called Ingredient...</button>
         </li>
       </ul>
     </div>
@@ -82,7 +82,7 @@
 
 <ng-template #newCookedRecipeModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">New Cooked Recipe</h4>
+    <h4 class="modal-title pull-left">New Logged Recipe</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="newCookedRecipeCancelled()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
@@ -113,7 +113,7 @@
 
 <ng-template #cookedRecipeOptionsModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">Cooked Recipe Options</h4>
+    <h4 class="modal-title pull-left">Logged Recipe Options</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="cookedRecipeOptionsModalRef.hide()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
@@ -148,7 +148,7 @@
 
 <ng-template #cookedRecipeCalledIngredientDetailsModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">Cooked Recipe Called Ingredient Details</h4>
+    <h4 class="modal-title pull-left">Logged Recipe Called Ingredient Details</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="cookedRecipeCalledIngredientDetailsModalRef.hide()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>

@@ -31,7 +31,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             var completedOrderProductDTO = _cache.GetItem<CompletedOrderProductDTO>($"completed_order_product_{request.Id}");
             if (completedOrderProductDTO == null)
             {
-                var completedOrderProductEntity = _repository.CompletedOrderProducts.Include<CompletedOrderProduct, CompletedOrder>(cop => cop.CompletedOrder).FirstOrDefault(cop => cop.Id == request.Id);
+                var completedOrderProductEntity = _repository.CompletedOrderProducts.Set.FirstOrDefault(cop => cop.Id == request.Id);
 
                 if (completedOrderProductEntity == null)
                 {

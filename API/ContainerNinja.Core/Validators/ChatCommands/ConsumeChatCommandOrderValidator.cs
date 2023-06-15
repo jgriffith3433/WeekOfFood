@@ -7,8 +7,12 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandOrderValidator()
         {
-            RuleFor(v => v.Command.Items)
-                .NotEmpty().WithMessage("items field must not be empty.");
+            RuleFor(v => v.Command.Items).NotEmpty().WithMessage("Items is required");
+            RuleForEach(v => v.Command.Items).ChildRules(i =>
+            {
+                i.RuleFor(x => x.ItemName).NotEmpty().WithMessage("ItemName is required");
+                i.RuleFor(x => x.Quantity).NotEmpty().WithMessage("Quantity is required");
+            });
         }
     }
 }

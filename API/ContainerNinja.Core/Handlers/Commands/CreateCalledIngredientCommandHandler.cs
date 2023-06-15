@@ -41,10 +41,10 @@ namespace ContainerNinja.Core.Handlers.Commands
                 throw new NotFoundException($"No Recipe found for the Id {request.RecipeId}");
             }
 
-            var calledIngredientEntity = new CalledIngredient
+            var calledIngredientEntity = _repository.CalledIngredients.CreateProxy();
             {
-                Name = request.Name,
-                Recipe = recipeEntity
+                calledIngredientEntity.Name = request.Name;
+                calledIngredientEntity.Recipe = recipeEntity;
             };
 
             recipeEntity.CalledIngredients.Add(calledIngredientEntity);

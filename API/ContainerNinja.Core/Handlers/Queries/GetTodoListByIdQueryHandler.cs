@@ -41,7 +41,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                 return cachedTodoList;
             }
 
-            var todoList = await Task.FromResult(_repository.TodoLists.Include<TodoList, IList<TodoItem>>(tdl => tdl.Items).FirstOrDefault(tdl => tdl.Id == request.TodoListId));
+            var todoList = await Task.FromResult(_repository.TodoLists.Set.FirstOrDefault(tdl => tdl.Id == request.TodoListId));
             if (todoList == null)
             {
                 throw new NotFoundException($"No TodoList found for Id {request.TodoListId}");

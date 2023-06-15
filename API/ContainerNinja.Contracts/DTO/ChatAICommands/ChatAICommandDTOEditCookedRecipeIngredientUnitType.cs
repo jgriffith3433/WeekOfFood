@@ -1,24 +1,19 @@
-﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+﻿using ContainerNinja.Contracts.Common;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
+namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+
+[ChatCommandSpecification("edit_logged_recipe_ingredient_unit_type", "Changes the unit type for the logged recipe's ingredient")]
 public record ChatAICommandDTOEditCookedRecipeIngredientUnitType : ChatAICommandArgumentsDTO
 {
-    public string Recipe { get; set; }
-
-    public string Name { get; set; }
-    public string Ingredient
-    {
-        get { return Name; }
-        set { Name = value; }
-    }
+    [Required]
+    [Description("Name of the recipe")]
+    public string RecipeName { get; set; }
+    [Required]
+    [Description("Name of the ingredient")]
+    public string IngredientName { get; set; }
+    [Required]
+    [Description("New unit type")]
     public string UnitType { get; set; }
-    public string New
-    {
-        get { return UnitType; }
-        set { UnitType = value; }
-    }
-    public string New_UnitType
-    {
-        get { return UnitType; }
-        set { UnitType = value; }
-    }
 }

@@ -10,6 +10,7 @@ using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
 using ContainerNinja.Core.Exceptions;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -47,6 +48,13 @@ namespace ContainerNinja.Core.Handlers.Queries
                 ChatConversationId = model.ChatConversation.Id,
                 ChatMessages = model.ChatMessages,
             };
+            chatResponseVM.ChatMessages.ForEach(cm =>
+            {
+                if (string.IsNullOrEmpty(cm.Content))
+                {
+                    cm.Content = "Okay";
+                }
+            });
 
             try
             {
@@ -66,13 +74,6 @@ namespace ContainerNinja.Core.Handlers.Queries
                     }
                     else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
                     {
-                        chatResponseVM.ChatMessages.ForEach(cm =>
-                        {
-                            if (string.IsNullOrEmpty(cm.Content))
-                            {
-                                cm.Content = "Okay";
-                            }
-                        });
                         var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "none");
                         chatResponseVM.ChatMessages.Add(chatMessageVM);
                     }
@@ -147,6 +148,19 @@ namespace ContainerNinja.Core.Handlers.Queries
                         throw new NotImplementedException();
                     }
                 }
+            }
+            catch (DbUpdateException ex)
+            {
+                _repository.ChangeTracker.Clear();
+                model.ChatConversation.Error = FlattenException(ex);
+                chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                {
+                    Content = ex.Message,
+                    From = StaticValues.ChatMessageRoles.System,
+                    To = StaticValues.ChatMessageRoles.User,
+                });
+                _repository.ChatConversations.Update(model.ChatConversation);
+                await _repository.CommitAsync();
             }
             catch (Exception ex)
             {

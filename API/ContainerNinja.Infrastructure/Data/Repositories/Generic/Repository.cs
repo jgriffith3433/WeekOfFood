@@ -17,6 +17,8 @@ namespace ContainerNinja.Core.Data.Repositories
             _dbSet = _context.Set<T>();
         }
 
+        public DbSet<T> Set { get { return _dbSet; } }
+
         public void Add(T entity)
         {
             _dbSet.Add(entity);
@@ -65,6 +67,11 @@ namespace ContainerNinja.Core.Data.Repositories
         {
             _dbSet.Attach(entity);
             _context.Entry(entity).State = EntityState.Modified;
+        }
+
+        public T CreateProxy()
+        {
+            return _dbSet.CreateProxy();
         }
     }
 }

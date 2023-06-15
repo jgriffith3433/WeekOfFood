@@ -4,6 +4,6 @@
     {
         public string Content { get; set; }
         public string? Error { get; set; }
-        public List<ChatCommand> ChatCommands { get; set;}
+        public virtual IList<ChatCommand> ChatCommands { get; private set; } = new List<ChatCommand>();
     }
 }

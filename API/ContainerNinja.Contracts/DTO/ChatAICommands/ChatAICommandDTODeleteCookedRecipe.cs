@@ -1,6 +1,13 @@
-﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+﻿using ContainerNinja.Contracts.Common;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
+namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+
+[ChatCommandSpecification("delete_logged_recipe", "Deletes a logged recipe")]
 public record ChatAICommandDTODeleteCookedRecipe : ChatAICommandArgumentsDTO
 {
-    public string Name { get; set; }
+    [Required]
+    [Description("Name of logged recipe")]
+    public string RecipeName { get; set; }
 }

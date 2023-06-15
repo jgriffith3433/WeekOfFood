@@ -16,6 +16,6 @@ namespace ContainerNinja.Contracts.Data.Entities
 
         public bool Done { get; set; }
 
-        public TodoList List { get; set; } = null!;
+        public virtual TodoList List { get; set; } = null!;
     }
 }

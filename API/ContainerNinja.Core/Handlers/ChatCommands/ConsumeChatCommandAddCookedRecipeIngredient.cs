@@ -9,31 +9,7 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "add_recipe_log_ingredient" })]
-    [ChatCommandSpecification("add_recipe_log_ingredient", "Add an ingredient to a logged recipe.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""recipename"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the logged recipe.""
-        },
-        ""ingredientname"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the ingredient to add.""
-        },
-        ""units"": {
-            ""type"": ""number"",
-            ""description"": ""How many units of the ingredient.""
-        },
-        ""unittype"": {
-            ""type"": ""string"",
-            ""enum"": [""none"", ""bulk"", ""ounce"", ""teaspoon"", ""tablespoon"", ""pound"", ""cup"", ""clove"", ""can"", ""whole"", ""package"", ""bar"", ""bun"", ""bottle""],
-            ""description"": ""The unit type of the ingredient.""
-        }
-    },
-    ""required"": [""recipename"", ""ingredientname"", ""units"", ""unittype""]
-}")]
+    [ChatCommandModel(new [] { "add_logged_recipe_ingredient" })]
     public class ConsumeChatCommandAddCookedRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddCookedRecipeIngredient>
     {
         public ChatAICommandDTOAddCookedRecipeIngredient Command { get; set; }
@@ -51,7 +27,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandAddCookedRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Include<CookedRecipe, IList<CookedRecipeCalledIngredient>>(r => r.CookedRecipeCalledIngredients).OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
+            var cookedRecipe = _repository.CookedRecipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
             if (cookedRecipe == null)
             {
                 var systemResponse = "Could not find logged recipe by name: " + model.Command.RecipeName;
@@ -59,12 +35,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             else
             {
-                var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
+                var cookedRecipeCalledIngredient = _repository.CookedRecipeCalledIngredients.CreateProxy();
                 {
-                    Name = model.Command.IngredientName,
-                    //CookedRecipe = cookedRecipe,
-                    Units = model.Command.Units,
-                    UnitType = model.Command.UnitType.UnitTypeFromString()
+                    cookedRecipeCalledIngredient.Name = model.Command.IngredientName;
+                    //cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
+                    cookedRecipeCalledIngredient.Units = model.Command.Units;
+                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
                 };
                 cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
                 _repository.CookedRecipes.Update(cookedRecipe);

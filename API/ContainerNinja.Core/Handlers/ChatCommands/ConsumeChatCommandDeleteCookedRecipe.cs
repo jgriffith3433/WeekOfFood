@@ -10,17 +10,6 @@ using ContainerNinja.Core.Common;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "delete_logged_recipe" })]
-    [ChatCommandSpecification("delete_logged_recipe", "Delete a logged recipe.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""name"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the logged recipe to delete.""
-        }
-    },
-    ""required"": [""name""]
-}")]
     public class ConsumeChatCommandDeleteCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTODeleteCookedRecipe>
     {
         public ChatAICommandDTODeleteCookedRecipe Command { get; set; }
@@ -38,12 +27,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteCookedRecipe model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Include<CookedRecipe, Recipe>(cr => cr.Recipe).Include(r => r.CookedRecipeCalledIngredients)
-                .FirstOrDefault(cr => cr.Recipe.Name.ToLower() == model.Command.Name.ToLower());
+            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(cr => cr.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
 
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by name: " + model.Command.Name;
+                var systemResponse = "Could not find logged recipe by name: " + model.Command.RecipeName;
                 throw new ChatAIException(systemResponse);
             }
             else

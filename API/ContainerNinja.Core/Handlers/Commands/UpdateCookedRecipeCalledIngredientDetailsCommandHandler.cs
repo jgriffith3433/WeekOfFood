@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CookedRecipeCalledIngredientDetailsDTO> IRequestHandler<UpdateCookedRecipeCalledIngredientDetailsCommand, CookedRecipeCalledIngredientDetailsDTO>.Handle(UpdateCookedRecipeCalledIngredientDetailsCommand request, CancellationToken cancellationToken)
         {
-            var cookedRecipeCalledIngredientEntity = _repository.CookedRecipeCalledIngredients.Include<CookedRecipeCalledIngredient, CalledIngredient>(crci => crci.CalledIngredient).Include(crci => crci.ProductStock).FirstOrDefault(co => co.Id == request.Id);
+            var cookedRecipeCalledIngredientEntity = _repository.CookedRecipeCalledIngredients.Set.FirstOrDefault(co => co.Id == request.Id);
 
             if (cookedRecipeCalledIngredientEntity == null)
             {
@@ -68,8 +68,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var cookedRecipeCalledIngredientDetailsDTO = _mapper.Map<CookedRecipeCalledIngredientDetailsDTO>(cookedRecipeCalledIngredientDTO);
 
-            var query = from ps in _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product)
-                        where EF.Functions.Like(ps.Name, string.Format("%{0}%", cookedRecipeCalledIngredientDetailsDTO.Name))
+            var query = from ps in _repository.ProductStocks.Set where EF.Functions.Like(ps.Name, string.Format("%{0}%", cookedRecipeCalledIngredientDetailsDTO.Name))
                         select ps;
 
             cookedRecipeCalledIngredientDetailsDTO.ProductStockSearchItems = _mapper.Map<List<ProductStockDTO>>(query.ToList());

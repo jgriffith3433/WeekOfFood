@@ -33,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
         public async Task<CompletedOrderProductDTO> Handle(SearchCompletedOrderProductNameQuery request, CancellationToken cancellationToken)
         {
-            var completedOrderProductEntity = _repository.CompletedOrderProducts.Include<CompletedOrderProduct, CompletedOrder>(cop => cop.CompletedOrder).FirstOrDefault(cop => cop.Id == request.Id);
+            var completedOrderProductEntity = _repository.CompletedOrderProducts.Set.FirstOrDefault(cop => cop.Id == request.Id);
             if (completedOrderProductEntity == null)
             {
                 throw new NotFoundException($"No CompletedOrderProduct found for the Id {request.Id}");

@@ -10,18 +10,7 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "log_recipe" })]
-    [ChatCommandSpecification("log_recipe", "Create a log of a recipe that was used.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""recipename"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the recipe that was used.""
-        }
-    },
-    ""required"": [""recipename""]
-}")]
+    [ChatCommandModel(new [] { "create_logged_recipe" })]
     public class ConsumeChatCommandCreateCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateCookedRecipe>
     {
         public ChatAICommandDTOCreateCookedRecipe Command { get; set; }
@@ -39,10 +28,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateCookedRecipe model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).ThenInclude(ci => ci.ProductStock)
-                .Include(r => r.CookedRecipes)
-                .Where(r => r.Name.ToLower() == model.Command.RecipeName.ToLower())
-                .SingleOrDefaultAsync(cancellationToken).Result;
+            var recipe = _repository.Recipes.Set.Where(r => r.Name.ToLower() == model.Command.RecipeName.ToLower()).SingleOrDefaultAsync(cancellationToken).Result;
 
             if (recipe == null)
             {
@@ -51,24 +37,24 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             else
             {
-                var cookedRecipe = new CookedRecipe
+                var cookedRecipe = _repository.CookedRecipes.CreateProxy();
                 {
-                    Recipe = recipe
+                    cookedRecipe.Recipe = recipe;
                 };
+                recipe.CookedRecipes.Add(cookedRecipe);
                 foreach (var calledIngredient in recipe.CalledIngredients)
                 {
-                    var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
+                    var cookedRecipeCalledIngredient = _repository.CookedRecipeCalledIngredients.CreateProxy();
                     {
-                        Name = calledIngredient.Name,
-                        CookedRecipe = cookedRecipe,
-                        CalledIngredient = calledIngredient,
-                        ProductStock = calledIngredient.ProductStock,
-                        UnitType = calledIngredient.UnitType,
-                        Units = calledIngredient.Units != null ? calledIngredient.Units.Value : 0
+                        cookedRecipeCalledIngredient.Name = calledIngredient.Name;
+                        cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
+                        cookedRecipeCalledIngredient.CalledIngredient = calledIngredient;
+                        cookedRecipeCalledIngredient.ProductStock = calledIngredient.ProductStock;
+                        cookedRecipeCalledIngredient.UnitType = calledIngredient.UnitType;
+                        cookedRecipeCalledIngredient.Units = calledIngredient.Units != null ? calledIngredient.Units.Value : 0;
                     };
                     cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
                 }
-                recipe.CookedRecipes.Add(cookedRecipe);
                 _repository.Recipes.Update(recipe);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

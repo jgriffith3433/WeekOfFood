@@ -34,7 +34,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             ChatConversation chatConversationEntity;
             if (chatConversationId != -1)
             {
-                chatConversationEntity = _repository.ChatConversations.Include<ChatConversation, List<ChatCommand>>(cc => cc.ChatCommands).FirstOrDefault(cc => cc.Id == chatConversationId);
+                chatConversationEntity = _repository.ChatConversations.Set.FirstOrDefault(cc => cc.Id == chatConversationId);
                 if (chatConversationEntity == null)
                 {
                     throw new Exception("Not Found");
@@ -42,9 +42,9 @@ namespace ContainerNinja.Core.Handlers.Queries
             }
             else
             {
-                chatConversationEntity = new ChatConversation
+                chatConversationEntity = _repository.ChatConversations.CreateProxy();
                 {
-                    Content = "New",
+                    chatConversationEntity.Content = "New";
                 };
                 _repository.ChatConversations.Add(chatConversationEntity);
             }

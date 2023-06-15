@@ -12,8 +12,10 @@ namespace ContainerNinja.Contracts.Data.Entities
 
         public UnitType UnitType { get; set; }
 
-        public ProductStock? ProductStock { get; set; } = null!;
+        public virtual ProductStock? ProductStock { get; set; } = null!;
 
-        public Recipe Recipe { get; set; }
+        public virtual Recipe Recipe { get; set; }
+
+        public virtual IList<CookedRecipeCalledIngredient> CookedRecipeCalledIngredients { get; private set; } = new List<CookedRecipeCalledIngredient>();
     }
 }

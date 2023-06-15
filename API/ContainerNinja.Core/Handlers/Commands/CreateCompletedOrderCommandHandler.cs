@@ -33,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateCompletedOrderCommand request, CancellationToken cancellationToken)
         {
-            var completedOrderEntity = new CompletedOrder();
+            var completedOrderEntity = _repository.CompletedOrders.CreateProxy();
             completedOrderEntity.Name = request.Name;
 
             _repository.CompletedOrders.Add(completedOrderEntity);

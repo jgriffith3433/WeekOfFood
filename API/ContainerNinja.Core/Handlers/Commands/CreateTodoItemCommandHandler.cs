@@ -34,10 +34,10 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateTodoItemCommand request, CancellationToken cancellationToken)
         {
-            var entity = new TodoItem
+            var entity = _repository.TodoItems.CreateProxy();
             {
-                Title = request.Title,
-                ListId = request.ListId,
+                entity.Title = request.Title;
+                entity.ListId = request.ListId;
             };
 
             _repository.TodoItems.Add(entity);

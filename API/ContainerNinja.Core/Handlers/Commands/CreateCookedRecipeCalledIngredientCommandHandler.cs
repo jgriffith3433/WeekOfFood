@@ -42,10 +42,10 @@ namespace ContainerNinja.Core.Handlers.Commands
                 throw new NotFoundException($"No CookedRecipe found for the Id {request.CookedRecipeId}");
             }
 
-            var cookedRecipeCalledIngredientEntity = new CookedRecipeCalledIngredient
+            var cookedRecipeCalledIngredientEntity = _repository.CookedRecipeCalledIngredients.CreateProxy();
             {
-                Name = request.Name,
-                CookedRecipe = cookedRecipeEntity
+                cookedRecipeCalledIngredientEntity.Name = request.Name;
+                cookedRecipeCalledIngredientEntity.CookedRecipe = cookedRecipeEntity;
             };
 
             if (request.ProductStockId.HasValue)

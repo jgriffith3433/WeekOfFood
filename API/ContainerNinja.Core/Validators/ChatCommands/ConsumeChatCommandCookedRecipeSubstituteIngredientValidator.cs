@@ -7,8 +7,9 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandCookedRecipeSubstituteIngredientValidator()
         {
-            RuleFor(v => v.Command.Original)
-                .NotEmpty().WithMessage("original field is required");
+            RuleFor(v => v.Command.OriginalIngredient).NotEmpty().WithMessage("OriginalIngredient is required");
+            RuleFor(v => v.Command.RecipeName).NotEmpty().WithMessage("RecipeName is required");
+            RuleFor(v => v.Command.NewIngredient).NotEmpty().WithMessage("NewIngredient is required");
         }
     }
 }

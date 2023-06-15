@@ -33,10 +33,10 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
         {
-            var entity = new TodoList
+            var entity = _repository.TodoLists.CreateProxy();
             {
-                Title = request.Title,
-                Color = request.Color
+                entity.Title = request.Title;
+                entity.Color = request.Color;
             };
 
             _repository.TodoLists.Add(entity);

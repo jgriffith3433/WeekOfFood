@@ -36,11 +36,11 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<RecipeDTO> Handle(CreateRecipeCommand request, CancellationToken cancellationToken)
         {
-            var recipeEntity = new Recipe
+            var recipeEntity = _repository.Recipes.CreateProxy();
             {
-                Name = request.Name,
-                Serves = request.Serves.Value,
-                UserImport = request.UserImport,
+                recipeEntity.Name = request.Name;
+                recipeEntity.Serves = request.Serves.Value;
+                recipeEntity.UserImport = request.UserImport;
             };
 
             _repository.Recipes.Add(recipeEntity);

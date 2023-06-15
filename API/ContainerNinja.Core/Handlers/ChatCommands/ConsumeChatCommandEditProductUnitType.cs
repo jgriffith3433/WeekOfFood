@@ -27,10 +27,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditProductUnitType model, CancellationToken cancellationToken)
         {
-            var product = _repository.Products.FirstOrDefault(p => p.Name.ToLower().Contains(model.Command.Product.ToLower()));
+            var product = _repository.Products.Set.FirstOrDefault(p => p.Name.ToLower().Contains(model.Command.ProductName.ToLower()));
             if (product == null)
             {
-                var systemResponse = "Could not find product by name: " + model.Command.Product;
+                var systemResponse = "Could not find product by name: " + model.Command.ProductName;
                 throw new ChatAIException(systemResponse);
             }
             else

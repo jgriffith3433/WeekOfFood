@@ -24,7 +24,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(DeleteProductStockCommand request, CancellationToken cancellationToken)
         {
-            var productStockEntity = _repository.ProductStocks.Include<ProductStock, Product>(p => p.Product).FirstOrDefault(p => p.Id == request.Id);
+            var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Id == request.Id);
 
             if (productStockEntity == null)
             {

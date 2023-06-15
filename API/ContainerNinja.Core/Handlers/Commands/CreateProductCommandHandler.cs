@@ -35,16 +35,16 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateProductCommand request, CancellationToken cancellationToken)
         {
-            var productEntity = new Product
+            var productEntity = _repository.Products.CreateProxy();
             {
-                Name = request.Name
+                productEntity.Name = request.Name;
             };
 
             //always ensure a product stock record exists for each product
-            var productStockEntity = new ProductStock
+            var productStockEntity = _repository.ProductStocks.CreateProxy();
             {
-                Name = request.Name,
-                Units = 1
+                productStockEntity.Name = request.Name;
+                productStockEntity.Units = 1;
             };
             _repository.ProductStocks.Add(productStockEntity);
 

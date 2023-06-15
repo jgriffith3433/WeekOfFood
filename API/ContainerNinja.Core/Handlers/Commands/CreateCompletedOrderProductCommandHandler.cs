@@ -36,16 +36,16 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateCompletedOrderProductCommand request, CancellationToken cancellationToken)
         {
-            var completedOrderEntity = _repository.CompletedOrders.Include<CompletedOrder, IList<CompletedOrderProduct>>(co => co.CompletedOrderProducts).FirstOrDefault(co => co.Id == request.CompletedOrderId);
+            var completedOrderEntity = _repository.CompletedOrders.Set.FirstOrDefault(co => co.Id == request.CompletedOrderId);
 
             if (completedOrderEntity == null)
             {
                 throw new NotFoundException($"No CompletedOrder found for the Id {request.CompletedOrderId}");
             }
 
-            var completedOrderProductEntity = new CompletedOrderProduct
+            var completedOrderProductEntity = _repository.CompletedOrderProducts.CreateProxy();
             {
-                Name = request.Name
+                completedOrderProductEntity.Name = request.Name;
             };
 
             _repository.CompletedOrderProducts.Add(completedOrderProductEntity);

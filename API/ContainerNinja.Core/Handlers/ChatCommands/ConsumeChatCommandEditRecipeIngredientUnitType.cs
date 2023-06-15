@@ -10,7 +10,7 @@ using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "edit_recipe_ingredient_unittype" })]
+    [ChatCommandModel(new [] { "edit_recipe_ingredient_unit_type" })]
     public class ConsumeChatCommandEditRecipeIngredientUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeIngredientUnitType>
     {
         public ChatAICommandDTOEditRecipeIngredientUnitType Command { get; set; }
@@ -28,19 +28,19 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredientUnitType model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).FirstOrDefault(r => r.Name.ToLower().Contains(model.Command.Recipe.ToLower()));
+            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower().Contains(model.Command.RecipeName.ToLower()));
 
             if (recipe == null)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.Recipe;
+                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
                 throw new ChatAIException(systemResponse);
             }
             else
             {
-                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.Name.ToLower()));
+                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.IngredientName.ToLower()));
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Could not find ingredient by name: " + model.Command.Name;
+                    var systemResponse = "Could not find ingredient by name: " + model.Command.IngredientName;
                     throw new ChatAIException(systemResponse);
                 }
                 else

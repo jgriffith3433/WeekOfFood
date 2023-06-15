@@ -6,7 +6,7 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "Template" })]
+    [ChatCommandModel(new [] { "template" })]
     public class ConsumeChatCommandTemplate : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOTemplate>
     {
         public ChatAICommandDTOTemplate Command { get; set; }

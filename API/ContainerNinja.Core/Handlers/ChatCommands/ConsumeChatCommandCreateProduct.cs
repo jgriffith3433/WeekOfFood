@@ -4,7 +4,6 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -26,21 +25,21 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateProduct model, CancellationToken cancellationToken)
         {
-            var productEntity = new Product
+            var productEntity = _repository.Products.CreateProxy();
             {
-                Name = model.Command.Product
+                productEntity.Name = model.Command.ProductName;
             };
 
             //always ensure a product stock record exists for each product
-            var productStockEntity = new ProductStock
+            var productStockEntity = _repository.ProductStocks.CreateProxy();
             {
-                Name = model.Command.Product,
-                Units = 1
+                productStockEntity.Name = model.Command.ProductName;
+                productStockEntity.Units = 1;
             };
             productStockEntity.Product = productEntity;
             _repository.ProductStocks.Add(productStockEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+            return $"Successfully created product {model.Command.ProductName}";
         }
     }
 }

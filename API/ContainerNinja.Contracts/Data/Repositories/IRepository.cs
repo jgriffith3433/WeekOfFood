@@ -1,17 +1,18 @@
 ﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace ContainerNinja.Contracts.Data.Repositories
 {
-    public interface IRepository<T>
+    public interface IRepository<T> where T : class
     {
         IEnumerable<T> GetAll();
+        DbSet<T> Set { get; }
         T Get(int id);
-        T FirstOrDefault(Expression<Func<T, bool>> predicate);
         void Add(T entity);
         void Update(T entity);
         void Delete(int id);
-        IIncludableQueryable<T, TProperty> Include<TEntity, TProperty>(Expression<Func<T, TProperty>> navigationPropertyPath) where TEntity : class;
         int Count();
+        T CreateProxy();
     }
 }

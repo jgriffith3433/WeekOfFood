@@ -8,22 +8,7 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "remove_logged_recipe_ingredient" })]
-    [ChatCommandSpecification("remove_logged_recipe_ingredient", "Delete an ingredient from a logged recipe.",
-@"{
-    ""type"": ""object"",
-    ""properties"": {
-        ""recipename"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the logged recipe.""
-        },
-        ""ingredientname"": {
-            ""type"": ""string"",
-            ""description"": ""The name of the ingredient to delete.""
-        }
-    },
-    ""required"": [""recipename"", ""ingredientname""]
-}")]
+    [ChatCommandModel(new [] { "delete_logged_recipe_ingredient" })]
     public class ConsumeChatCommandDeleteCookedRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTODeleteCookedRecipeIngredient>
     {
         public ChatAICommandDTODeleteCookedRecipeIngredient Command { get; set; }
@@ -41,7 +26,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteCookedRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Include<CookedRecipe, IList<CookedRecipeCalledIngredient>>(r => r.CookedRecipeCalledIngredients).FirstOrDefault(r => r.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
+            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(r => r.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
             if (cookedRecipe == null)
             {
                 var systemResponse = "Could not find logged recipe by name: " + model.Command.RecipeName;

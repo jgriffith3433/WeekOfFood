@@ -34,11 +34,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             if (cachedEntities == null)
             {
-                var entities = await Task.FromResult(_repository.CookedRecipes.Include<CookedRecipe, IList<CookedRecipeCalledIngredient>>(x => x.CookedRecipeCalledIngredients)
-                    .ThenInclude(x => x.ProductStock)
-                    .Include(x => x.Recipe)
-                    .Include(x => x.CookedRecipeCalledIngredients)
-                    .ThenInclude(x => x.CalledIngredient).AsEnumerable());
+                var entities = await Task.FromResult(_repository.CookedRecipes.Set.AsEnumerable());
 
                 var result = new GetAllCookedRecipesVM
                 {

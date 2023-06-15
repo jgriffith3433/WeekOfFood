@@ -34,7 +34,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<TodoListDTO> IRequestHandler<UpdateTodoListCommand, TodoListDTO>.Handle(UpdateTodoListCommand request, CancellationToken cancellationToken)
         {
-            var todoListEntity = _repository.TodoLists.Include<TodoList, IList<TodoItem>>(tdl => tdl.Items).FirstOrDefault(tdl => tdl.Id == request.Id);
+            var todoListEntity = _repository.TodoLists.Set.FirstOrDefault(tdl => tdl.Id == request.Id);
 
             if (todoListEntity == null)
             {

@@ -21,7 +21,7 @@ namespace ContainerNinja.Infrastructure
             //    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
             //        builder => builder.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
             return services.AddDbContext<DatabaseContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
+                options.UseLazyLoadingProxies().UseSqlServer(configuration.GetConnectionString("DefaultConnection"),
                     builder => builder.MigrationsAssembly("ContainerNinja.Migrations")));
         }
 

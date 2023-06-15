@@ -21,8 +21,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         public ConsumeChatCommandGoToPageValidator()
         {
             RuleFor(v => v.Command.Page)
-                .NotEmpty().WithMessage("page field is required.").
-                Must(page => page != null && m_Pages.Contains(page.ToLower())).WithMessage(v => "Unknown page " + v + ". The available pages are: " + string.Join(", ", m_Pages) + ".");
+                .NotEmpty().WithMessage("Page is required.").
+                Must(page => page != null && m_Pages.Contains(page.ToLower())).WithMessage(v => "Unknown page " + v.Command.Page + ". The available pages are: " + string.Join(", ", m_Pages) + ".");
         }
     }
 }

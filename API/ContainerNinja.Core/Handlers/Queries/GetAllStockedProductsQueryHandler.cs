@@ -33,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             if (cachedEntities == null)
             {
-                var entities = _repository.ProductStocks.Include<ProductStock, Product>(ps => ps.Product).AsEnumerable();
+                var entities = _repository.ProductStocks.Set.AsEnumerable();
                 var result = new GetAllProductStocksVM
                 {
                     ProductStocks = _mapper.Map<List<ProductStockDTO>>(entities),

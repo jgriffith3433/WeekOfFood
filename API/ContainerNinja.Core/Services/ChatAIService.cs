@@ -1,6 +1,5 @@
 ﻿using ContainerNinja.Contracts.Services;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using OpenAI;
 using OpenAI.Interfaces;
@@ -10,7 +9,9 @@ using OpenAI.ObjectModels;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Common;
 using System.Reflection;
-using System.Text.Json;
+using NJsonSchema;
+using System.Linq;
+using ContainerNinja.Contracts.Common;
 
 namespace ContainerNinja.Core.Services
 {
@@ -33,7 +34,11 @@ namespace ContainerNinja.Core.Services
 
         public static IList<ChatFunction> GetChatCommandSpecifications()
         {
-            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => x.GetCustomAttribute<ChatCommandSpecification>() != null).Select(t => t.GetCustomAttribute<ChatCommandSpecification>()).Select(ccs => new ChatFunction(ccs.Name, ccs.Description, ccs.Parameters)).ToList();
+            return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => x.GetCustomAttribute<ChatCommandSpecification>() != null).Select(t => {
+                var ccs = t.GetCustomAttribute<ChatCommandSpecification>();
+                ccs.CreateParametersSchemaFromType(t);
+                return new ChatFunction(ccs.Name, ccs.Description, ccs.ParametersSchema);
+            }).ToList();
         }
 
         public async Task<ChatMessageVM> GetChatResponse(List<ChatMessageVM> chatMessages, string functionCall)
@@ -240,30 +245,12 @@ namespace ContainerNinja.Core.Services
             {
                 ChatMessage.FromSystem(@"You are a kitchen assistant. You help the user log meals, create/modify/delete logged meals, recipes, and ingredients. You also help the user in using the website.", StaticValues.ChatMessageRoles.System),
                 ChatMessage.FromUser(@"I ate a sandwich for lunch.", StaticValues.ChatMessageRoles.User),
-//                ChatMessage.FromAssistant(@"Okay", StaticValues.ChatMessageRoles.Assistant, JsonSerializer.Deserialize<JsonElement>(
-//@"{
-//	""name"": ""search_recipes"",
-//	""arguments"": ""{\""search\"": \""sandwich\""}""
-//}")
-//                ),
                 ChatMessage.FromFunction(@"Results: ham sandwich, turkey sandwich, salami sandwich", StaticValues.ChatMessageRoles.Function),
                 ChatMessage.FromAssistant(@"Did you have a ham, turkey, or salami sandwich?", StaticValues.ChatMessageRoles.Assistant),
                 ChatMessage.FromUser(@"It was a ham sandwich.", StaticValues.ChatMessageRoles.User),
-//                ChatMessage.FromAssistant(@"Okay", StaticValues.ChatMessageRoles.Assistant, JsonSerializer.Deserialize<JsonElement>(
-//@"{
-//	""name"": ""log_recipe"",
-//	""arguments"": ""{\""recipe\"": \""ham sandwich\""}""
-//}")
-//                ),
                 ChatMessage.FromFunction(@"Created logged recipe: ham sandwich", StaticValues.ChatMessageRoles.Function),
                 ChatMessage.FromAssistant(@"Okay I have successfully logged your ham sandwich.", StaticValues.ChatMessageRoles.Assistant),
                 ChatMessage.FromUser(@"I didn't use any mayo.", StaticValues.ChatMessageRoles.User),
-//                ChatMessage.FromAssistant(@"Okay", StaticValues.ChatMessageRoles.Assistant, JsonSerializer.Deserialize<JsonElement>(
-//@"{
-//	""name"": ""remove_logged_recipe_ingredient"",
-//	""arguments"": ""{\""recipename\"": \""ham sandwich\"", \""ingredientname\"": \""mayo\""}""
-//}")
-//                ),
                 ChatMessage.FromFunction(@"Removed mayo from logged recipe ham sandwich", StaticValues.ChatMessageRoles.Function),
                 ChatMessage.FromAssistant(@"Okay I have successfully removed mayo from your ham sandwich log.", StaticValues.ChatMessageRoles.Assistant),
             };

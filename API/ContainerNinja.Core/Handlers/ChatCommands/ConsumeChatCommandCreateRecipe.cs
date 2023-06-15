@@ -5,7 +5,6 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -27,24 +26,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateRecipe model, CancellationToken cancellationToken)
         {
-            var recipeEntity = new Recipe();
-
-            recipeEntity.Name = model.Command.Name;
+            var recipeEntity = _repository.Recipes.CreateProxy();
+            recipeEntity.Name = model.Command.RecipeName;
+            _repository.Recipes.Add(recipeEntity);
 
             foreach (var createRecipeIngredient in model.Command.Ingredients)
             {
-                var calledIngredient = new CalledIngredient
+                var calledIngredient = _repository.CalledIngredients.CreateProxy();
                 {
-                    Name = createRecipeIngredient.Name,
-                    Recipe = recipeEntity,
-                    Verified = false,
-                    Units = createRecipeIngredient.Units,
-                    UnitType = createRecipeIngredient.UnitType.UnitTypeFromString()
+                    calledIngredient.Name = createRecipeIngredient.IngredientName;
+                    calledIngredient.Recipe = recipeEntity;
+                    calledIngredient.Verified = false;
+                    calledIngredient.Units = createRecipeIngredient.Units;
+                    calledIngredient.UnitType = createRecipeIngredient.UnitType.UnitTypeFromString();
                 };
                 recipeEntity.CalledIngredients.Add(calledIngredient);
             }
 
-            _repository.Recipes.Add(recipeEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return "Success";
         }

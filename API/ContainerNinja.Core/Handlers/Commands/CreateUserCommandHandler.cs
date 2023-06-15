@@ -1,6 +1,7 @@
 ﻿using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Contracts.DTO;
+using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Contracts.Services;
 using ContainerNinja.Core.Exceptions;
 using FluentValidation;
@@ -32,11 +33,11 @@ namespace ContainerNinja.Core.Handlers.Commands
         public async Task<AuthTokenDTO> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var model = request.Model;
-            var user = new User
+            var user = _repository.Users.CreateProxy();
             {
-                EmailAddress = model.EmailAddress,
-                Password = model.Password,
-                Role = model.Role
+                user.EmailAddress = model.EmailAddress;
+                user.Password = model.Password;
+                user.Role = model.Role;
             };
 
             _repository.Users.Add(user);

@@ -37,10 +37,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         async Task<CalledIngredientDTO> IRequestHandler<UpdateCalledIngredientCommand, CalledIngredientDTO>.Handle(UpdateCalledIngredientCommand request, CancellationToken cancellationToken)
         {
-            var calledIngredientEntity = _repository.CalledIngredients
-                .Include<CalledIngredient, ProductStock>(ci => ci.ProductStock)
-                .Include(ci => ci.Recipe)
-                .FirstOrDefault(co => co.Id == request.Id);
+            var calledIngredientEntity = _repository.CalledIngredients.Set.FirstOrDefault(co => co.Id == request.Id);
 
             if (calledIngredientEntity == null)
             {

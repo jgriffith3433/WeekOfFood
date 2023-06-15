@@ -3,8 +3,8 @@ namespace ContainerNinja.Contracts.Data.Entities
 {
     public class CookedRecipe : AuditableEntity
     {
-        public Recipe Recipe { get; set; }
+        public virtual Recipe Recipe { get; set; }
 
-        public IList<CookedRecipeCalledIngredient> CookedRecipeCalledIngredients { get; private set; } = new List<CookedRecipeCalledIngredient>();
+        public virtual IList<CookedRecipeCalledIngredient> CookedRecipeCalledIngredients { get; private set; } = new List<CookedRecipeCalledIngredient>();
     }
 }

@@ -32,7 +32,7 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             if (cachedEntities == null)
             {
-                var entities = await Task.FromResult(_repository.CalledIngredients.Include<CalledIngredient, ProductStock>(ci => ci.ProductStock).Include(ci => ci.Recipe).AsEnumerable());
+                var entities = await Task.FromResult(_repository.CalledIngredients.Set.Include(ci => ci.Recipe).AsEnumerable());
                 var result = new GetAllCalledIngredientsVM
                 {
                     CalledIngredients = _mapper.Map<List<CalledIngredientDTO>>(entities),

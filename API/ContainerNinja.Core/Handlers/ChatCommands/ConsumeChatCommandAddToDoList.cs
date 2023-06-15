@@ -3,11 +3,10 @@ using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "add_to_do_list" })]
+    [ChatCommandModel(new [] { "create_todo_list" })]
     public class ConsumeChatCommandAddTodoList : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddTodoList>
     {
         public ChatAICommandDTOAddTodoList Command { get; set; }
@@ -27,7 +26,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         {
             //Command logic
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+            return $"Successfully added new to do list {model.Command.ListName}";
         }
     }
 }

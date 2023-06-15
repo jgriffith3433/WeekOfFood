@@ -1,18 +1,16 @@
-﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+﻿using ContainerNinja.Contracts.Common;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
 
+namespace ContainerNinja.Contracts.DTO.ChatAICommands;
+
+[ChatCommandSpecification("edit_product_unit_type", "Changes the product's unit type")]
 public record ChatAICommandDTOEditProductUnitType : ChatAICommandArgumentsDTO
 {
-    public string Product { get; set; }
-
+    [Required]
+    [Description("Name of the product")]
+    public string ProductName { get; set; }
+    [Required]
+    [Description("New unit type")]
     public string UnitType { get; set; }
-    public string New
-    {
-        get { return UnitType; }
-        set { UnitType = value; }
-    }
-    public string New_UnitType
-    {
-        get { return UnitType; }
-        set { UnitType = value; }
-    }
 }

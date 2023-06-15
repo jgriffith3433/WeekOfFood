@@ -7,6 +7,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandAddTodoListValidator()
         {
+            RuleFor(v => v.Command.ListName).NotEmpty().WithMessage("ListName is required");
         }
     }
 }

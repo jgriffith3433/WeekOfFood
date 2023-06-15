@@ -563,6 +563,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       }
       if (!this.visible) {
         this.toggleChat();
+        if (!this.autoRecordOnChatToggle) {
+          if (!this.recording) {
+            this.record(true);
+          }
+        }
       }
       else {
         if (!this.recording) {
@@ -747,11 +752,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   sendUnsentMessages() {
     let unsentMessages = false;
-    this.chatMessages.forEach(c => {
-      if (!c.received) {
+    for (var i = 0; i < this.chatMessages.length; i++) {
+      if (!this.chatMessages[i].received) {
         unsentMessages = true;
       }
-    });
+      if (i == this.chatMessages.length - 1 && this.chatMessages[i].content?.indexOf('That model is currently overloaded with other requests.') != -1) {
+        this.chatMessages[i].received = false;
+        unsentMessages = true;
+      }
+    }
     if (!unsentMessages) {
       return;
     }
@@ -762,7 +771,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     };
 
     this.chatService.getChatResponse(this.normalConversation, query).subscribe(
-      result => this.receiveMessage(result),
+      result => this.receiveMessage(result, true),
       error => {
         setTimeout(() => {
           if (this.getCurrentPageName() != 'login') {
@@ -807,7 +816,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.greeting;
   }
 
-  receiveMessage(response: GetChatResponseVm) {
+  receiveMessage(response: GetChatResponseVm, speak: boolean) {
     let newChatMessages: ChatMessageVm[] = [];
     if (response.chatMessages) {
       //get new messages
@@ -818,7 +827,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         newChatMessages.push(response.chatMessages[i]);
       }
     }
-    if (this.speechSynthesisOn) {
+    if (this.speechSynthesisOn && speak && !this.recording) {
       let textToSpeak = "";
       if (newChatMessages.length > 0) {
         let mostRecentMessage = newChatMessages[newChatMessages.length - 1];
@@ -827,7 +836,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
 
-      if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1) {
+      if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1 && textToSpeak.indexOf('That model is currently overloaded with other requests.') == -1) {
         this.chatService.getChatTextToSpeech(textToSpeak).subscribe(result => {
           this.audioSource = result;
         });
@@ -919,10 +928,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   textToSpeechDestination: MediaStreamAudioDestinationNode;
 
   record(respond: boolean = false) {
-    if (!this.foundRoomVolume) {
-      console.log("Cannot record: find the room volume first");
-      return;
-    }
     if (this.recording) {
       console.log("Cannot record: recording already in progress");
       return;
@@ -937,8 +942,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
 
-    if (respond) {
-      this.receiveMessage({
+    if (respond && this.chatMessages.length == 0) {
+      var chatResponse = {
         chatConversationId: this._chatConversationId,
         chatMessages: [...this.chatMessages, {
           content: 'How can I help you manage your ' + this.getCurrentPageName(),
@@ -952,7 +957,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         dirty: false,
         error: false,
         navigateToPage: undefined
-      } as GetChatResponseVm);
+      } as GetChatResponseVm;
+      this.receiveMessage(chatResponse, false);
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
       console.log("This browser does not support the API yet");
@@ -995,6 +1001,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
       this.mediaRecorder.onstart = e => {
         console.log("recording");
+        if (this.textToSpeechPlaying) {
+          this.audioPlayer.pause();
+        }
       }
 
       this.mediaRecorder.onstop = e => {
@@ -1010,7 +1019,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         this.stoppingMediaRecorder = false;
       };
 
-      this.mediaRecorder.start(1000);
+      this.mediaRecorder.start(2000);
     }
   }
 
@@ -1237,15 +1246,23 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       this.micVolumeOverTimeLowest = micVolumeLowest;
     }
 
-    if (this.micVolumeOverTimeHighAverage < this.SPEECH_DETECTION_VOLUME && !this.recording && !this.foundRoomVolumeBug) {
-      this.gainValue += .1;
+    if (this.micVolumeOverTimeHighAverage < this.SPEECH_DETECTION_VOLUME && !this.foundRoomVolumeBug) {
+      if (this.foundRoomVolume && this.recording) {
+        //lets not adjust the gain while we are recording
+        return;
+      }
+      this.gainValue += .5;
       if (this.gainValue > 100) {
         this.gainValue = 50;
         this.foundRoomVolumeBug = true;
       }
     }
     else {
-      this.foundRoomVolume = true;
+      if (!this.foundRoomVolume) {
+        //record just over room volume
+        this.gainValue += 10;
+        this.foundRoomVolume = true;
+      }
     }
 
     if (Number.isFinite(this.gainValue)) {
@@ -1425,6 +1442,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                           if (speechText.toLowerCase() == 'stop' || speechText.toLowerCase() == 'stop.') {
                             console.log('stop command');
                             speechText = "";
+                            if (this.visible) {
+                              this.toggleChat();
+                            }
                           }
                           if (speechText.toLowerCase().indexOf('That model is currently overloaded with other requests') != -1) {
                             speechText = "";

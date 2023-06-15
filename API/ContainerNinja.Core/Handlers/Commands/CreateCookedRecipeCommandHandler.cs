@@ -34,27 +34,26 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<CookedRecipeDTO> Handle(CreateCookedRecipeCommand request, CancellationToken cancellationToken)
         {
-            var recipeEntity = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(p => p.CalledIngredients).ThenInclude(ci => ci.ProductStock).Include(r => r.CookedRecipes).FirstOrDefault(r => r.Id == request.RecipeId);
+            var recipeEntity = _repository.Recipes.Set.Include(r => r.CookedRecipes).FirstOrDefault(r => r.Id == request.RecipeId);
 
             if (recipeEntity == null)
             {
                 throw new NotFoundException($"No Recipe found for the Id {request.RecipeId}");
             }
 
-            var cookedRecipeEntity = new CookedRecipe();
-
+            var cookedRecipeEntity = _repository.CookedRecipes.CreateProxy();
             cookedRecipeEntity.Recipe = recipeEntity;
             recipeEntity.CookedRecipes.Add(cookedRecipeEntity);
             foreach (var calledIngredient in recipeEntity.CalledIngredients)
             {
-                var cookedRecipeCalledIngredient = new CookedRecipeCalledIngredient
+                var cookedRecipeCalledIngredient = _repository.CookedRecipeCalledIngredients.CreateProxy();
                 {
-                    CookedRecipe = cookedRecipeEntity,
-                    CalledIngredient = calledIngredient,
-                    Name = calledIngredient.Name,
-                    UnitType = calledIngredient.UnitType,
-                    Units = calledIngredient.Units,
-                    ProductStock = calledIngredient.ProductStock
+                    cookedRecipeCalledIngredient.CookedRecipe = cookedRecipeEntity;
+                    cookedRecipeCalledIngredient.CalledIngredient = calledIngredient;
+                    cookedRecipeCalledIngredient.Name = calledIngredient.Name;
+                    cookedRecipeCalledIngredient.UnitType = calledIngredient.UnitType;
+                    cookedRecipeCalledIngredient.Units = calledIngredient.Units;
+                    cookedRecipeCalledIngredient.ProductStock = calledIngredient.ProductStock;
                 };
                 cookedRecipeEntity.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
             }

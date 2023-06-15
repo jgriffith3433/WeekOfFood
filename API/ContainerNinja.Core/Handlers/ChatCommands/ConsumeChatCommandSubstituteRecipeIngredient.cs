@@ -27,24 +27,24 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandSubstituteRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).ThenInclude(ci => ci.ProductStock).FirstOrDefault(r => r.Name.ToLower() == model.Command.Recipe.ToLower());
+            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.RecipeName.ToLower());
             if (recipe == null)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.Recipe;
+                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
                 throw new ChatAIException(systemResponse);
             }
             else
             {
-                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.Original.ToLower()));
+                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.OriginalIngredient.ToLower()));
 
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Could not find ingredient by name: " + model.Command.Original;
+                    var systemResponse = "Could not find ingredient by name: " + model.Command.OriginalIngredient;
                     throw new ChatAIException(systemResponse);
                 }
                 else
                 {
-                    calledIngredient.Name = model.Command.New;
+                    calledIngredient.Name = model.Command.NewIngredient;
                     calledIngredient.ProductStock = null;
                     _repository.CalledIngredients.Update(calledIngredient);
                 }
