@@ -7,8 +7,6 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandDefaultValidator()
         {
-            RuleFor(v => v.Command.Cmd)
-                .NotEmpty().WithMessage("cmd is required.");
         }
     }
 }

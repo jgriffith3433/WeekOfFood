@@ -8,13 +8,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "none" })]
-    public class ConsumeChatCommandNone : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTONone>
+    public class ConsumeChatCommandNone : IRequest<string>, IChatCommandConsumer<ChatAICommandDTONone>
     {
         public ChatAICommandDTONone Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandNoneHandler : IRequestHandler<ConsumeChatCommandNone, ChatResponseVM>
+    public class ConsumeChatCommandNoneHandler : IRequestHandler<ConsumeChatCommandNone, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -23,11 +23,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandNone model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandNone model, CancellationToken cancellationToken)
         {
             //the ai sends messages to the user using the none command
             model.Response.ChatMessages[model.Response.ChatMessages.Count - 1].To = StaticValues.ChatMessageRoles.User;
-            return model.Response;
+            return "Success";
         }
     }
 }

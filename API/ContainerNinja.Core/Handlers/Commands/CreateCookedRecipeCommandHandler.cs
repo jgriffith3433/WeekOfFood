@@ -7,7 +7,7 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContainerNinja.Core.Handlers.Commands

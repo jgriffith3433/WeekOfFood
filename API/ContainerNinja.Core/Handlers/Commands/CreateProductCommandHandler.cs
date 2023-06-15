@@ -7,7 +7,7 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -52,7 +52,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             var searchResponse = await _walmartService.Search(request.Name);
 
-            productEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
+            productEntity.WalmartSearchResponse = JsonSerializer.Serialize(searchResponse);
 
             _repository.Products.Add(productEntity);
 

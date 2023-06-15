@@ -8,7 +8,7 @@ using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -52,7 +52,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                 //Still searching for product
                 completedOrderProductEntity.Name = request.Name;
                 var searchResponse = await _walmartService.Search(completedOrderProductEntity.Name);
-                completedOrderProductEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
+                completedOrderProductEntity.WalmartSearchResponse = JsonSerializer.Serialize(searchResponse);
             }
             //TODO: Look into this absurd if statement
             if ((completedOrderProductEntity.WalmartId == null && request.WalmartId != null) || (completedOrderProductEntity.WalmartId != null && completedOrderProductEntity.WalmartId != request.WalmartId || completedOrderProductEntity.Product == null))
@@ -64,7 +64,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                     try
                     {
                         var itemResponse = await _walmartService.GetItem(completedOrderProductEntity.WalmartId);
-                        var serializedItemResponse = JsonConvert.SerializeObject(itemResponse);
+                        var serializedItemResponse = JsonSerializer.Serialize(itemResponse);
                         completedOrderProductEntity.WalmartItemResponse = serializedItemResponse;
                         completedOrderProductEntity.Name = itemResponse.name;
 

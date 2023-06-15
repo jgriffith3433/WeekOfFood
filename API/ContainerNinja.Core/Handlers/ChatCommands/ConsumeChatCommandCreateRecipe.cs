@@ -10,13 +10,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "create_recipe" })]
-    public class ConsumeChatCommandCreateRecipe : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOCreateRecipe>
+    public class ConsumeChatCommandCreateRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateRecipe>
     {
         public ChatAICommandDTOCreateRecipe Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandCreateRecipeHandler : IRequestHandler<ConsumeChatCommandCreateRecipe, ChatResponseVM>
+    public class ConsumeChatCommandCreateRecipeHandler : IRequestHandler<ConsumeChatCommandCreateRecipe, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -25,7 +25,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandCreateRecipe model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandCreateRecipe model, CancellationToken cancellationToken)
         {
             var recipeEntity = new Recipe();
 
@@ -46,7 +46,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             _repository.Recipes.Add(recipeEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

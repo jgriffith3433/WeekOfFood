@@ -4,8 +4,8 @@ namespace ContainerNinja.Contracts.Services
 {
     public interface IChatAIService
     {
-        Task<string> GetChatResponse(List<ChatMessageVM> chatMessages, string currentUrl);
-        Task<string> GetNormalChatResponse(List<ChatMessageVM> chatMessages);
+        Task<ChatMessageVM> GetChatResponse(List<ChatMessageVM> chatMessages, string functionCall);
+        Task<ChatMessageVM> GetNormalChatResponse(List<ChatMessageVM> chatMessages);
         Task<string> GetTextFromSpeech(byte[] speechBytes, string? previousMessage);
     }
 }

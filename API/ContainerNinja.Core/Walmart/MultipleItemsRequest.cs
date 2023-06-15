@@ -1,5 +1,5 @@
 ﻿using System.Collections.Specialized;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Walmart
 {
@@ -23,7 +23,12 @@ namespace ContainerNinja.Core.Walmart
 
                 client.BaseAddress = "https://developer.api.walmart.com";
                 var jsonResponse = await client.DownloadStringTaskAsync(string.Format("/api-proxy/service/affil/product/v2/items?ids{0}", ids));
-                return JsonConvert.DeserializeObject<T>(jsonResponse);
+                return JsonSerializer.Deserialize<T>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    AllowTrailingCommas = true,
+                });
             }
         }
     }

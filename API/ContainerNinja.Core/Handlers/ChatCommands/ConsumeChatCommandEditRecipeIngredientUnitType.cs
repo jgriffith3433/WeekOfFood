@@ -11,13 +11,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "edit_recipe_ingredient_unittype" })]
-    public class ConsumeChatCommandEditRecipeIngredientUnitType : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOEditRecipeIngredientUnitType>
+    public class ConsumeChatCommandEditRecipeIngredientUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeIngredientUnitType>
     {
         public ChatAICommandDTOEditRecipeIngredientUnitType Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditRecipeIngredientUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditRecipeIngredientUnitType, ChatResponseVM>
+    public class ConsumeChatCommandEditRecipeIngredientUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditRecipeIngredientUnitType, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -26,13 +26,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandEditRecipeIngredientUnitType model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredientUnitType model, CancellationToken cancellationToken)
         {
             var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).FirstOrDefault(r => r.Name.ToLower().Contains(model.Command.Recipe.ToLower()));
 
             if (recipe == null)
             {
-                var systemResponse = "Error: Could not find recipe by name: " + model.Command.Recipe;
+                var systemResponse = "Could not find recipe by name: " + model.Command.Recipe;
                 throw new ChatAIException(systemResponse);
             }
             else
@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.Name.ToLower()));
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Error: Could not find ingredient by name: " + model.Command.Name;
+                    var systemResponse = "Could not find ingredient by name: " + model.Command.Name;
                     throw new ChatAIException(systemResponse);
                 }
                 else
@@ -50,7 +50,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

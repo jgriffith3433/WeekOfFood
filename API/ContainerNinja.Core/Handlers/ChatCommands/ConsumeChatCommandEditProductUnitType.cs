@@ -10,13 +10,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "edit_product_unit_type" })]
-    public class ConsumeChatCommandEditProductUnitType : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOEditProductUnitType>
+    public class ConsumeChatCommandEditProductUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditProductUnitType>
     {
         public ChatAICommandDTOEditProductUnitType Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditProductUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditProductUnitType, ChatResponseVM>
+    public class ConsumeChatCommandEditProductUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditProductUnitType, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -25,12 +25,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandEditProductUnitType model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditProductUnitType model, CancellationToken cancellationToken)
         {
             var product = _repository.Products.FirstOrDefault(p => p.Name.ToLower().Contains(model.Command.Product.ToLower()));
             if (product == null)
             {
-                var systemResponse = "Error: Could not find product by name: " + model.Command.Product;
+                var systemResponse = "Could not find product by name: " + model.Command.Product;
                 throw new ChatAIException(systemResponse);
             }
             else
@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 _repository.Products.Update(product);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

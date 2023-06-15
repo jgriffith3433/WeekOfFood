@@ -14,14 +14,17 @@
       </div>
     </div>
     <div class="chat-box-main">
-      <button class="chat-button" (click)="toggleNormalConversation()">Normal</button>
+      <!--<button class="chat-button" (click)="toggleNormalConversation()">Normal</button>-->
       <div class="chat-message-bottom" #bottom></div>
       <ng-container *ngFor="let message of chatMessages.slice().reverse()">
-        <div *ngIf="message.from != 'system' && message.content" class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
+        <div class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
           <div>
             <chat-avatar [image]="getAvatarForRole(message.from)" class="chat-message-from-avatar"></chat-avatar>
             <div class="chat-message-text">
-              {{message.content}}
+              <span *ngIf="message.content">
+                {{message.content}}
+              </span>
+              <span *ngIf="!message.content">...</span>
             </div>
           </div>
           <!--<div class="chat-message-date">
@@ -35,7 +38,7 @@
       <canvas id="recordingVisualizer" class="visualizer" height="30" #recordingVisualizer></canvas>
       <canvas id="speechToTextVisualizer" class="visualizer" height="30" #speechToTextVisualizer></canvas>
       <canvas id="recordingFrequenciesVisualizer" class="visualizer" height="30" #recordingFrequenciesVisualizer></canvas>
-      <button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>
+      <!--<button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>-->
     </div>
     <div style="left: 20px; margin-top: 40px;">
       <span>{{'Synth Volume: ' + synthvolume.toFixed(2)}}</span>

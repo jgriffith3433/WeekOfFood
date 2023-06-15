@@ -2,7 +2,6 @@
 {
     public record ChatAICommandDTO
     {
-        public string Cmd { get; set; }
-        public string Response { get; set; }
+        public string Name { get; set; }
     }
 }

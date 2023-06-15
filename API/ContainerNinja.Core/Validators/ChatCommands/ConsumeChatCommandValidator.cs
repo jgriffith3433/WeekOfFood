@@ -7,8 +7,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandValidator()
         {
-            RuleFor(v => v.RawChatAICommand)
-                .NotEmpty().WithMessage("RawChatAICommand is required.");
+            RuleFor(v => v.CurrentChatMessage)
+                .NotEmpty().WithMessage("CurrentChatMessage is required.");
 
             RuleFor(v => v.CurrentUrl)
                 .NotEmpty().WithMessage("CurrentUrl is required.");
@@ -16,14 +16,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleFor(v => v.ChatMessages)
                 .NotEmpty().WithMessage("ChatMessages is required.");
 
-            RuleFor(v => v.ChatAICommand)
-                .NotEmpty().WithMessage("ChatAICommand is required.");
-
             RuleFor(v => v.ChatConversation)
                 .NotEmpty().WithMessage("ChatConversation is required.");
-
-            RuleFor(v => v.ChatAICommand.Cmd)
-                .NotEmpty().WithMessage("Cmd is required.");
         }
     }
 }

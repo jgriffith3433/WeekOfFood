@@ -8,13 +8,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "add_to_do_list" })]
-    public class ConsumeChatCommandAddTodoList : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOAddTodoList>
+    public class ConsumeChatCommandAddTodoList : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddTodoList>
     {
         public ChatAICommandDTOAddTodoList Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandAddTodoListHandler : IRequestHandler<ConsumeChatCommandAddTodoList, ChatResponseVM>
+    public class ConsumeChatCommandAddTodoListHandler : IRequestHandler<ConsumeChatCommandAddTodoList, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -23,11 +23,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandAddTodoList model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandAddTodoList model, CancellationToken cancellationToken)
         {
             //Command logic
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

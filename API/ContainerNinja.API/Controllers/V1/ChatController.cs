@@ -47,7 +47,6 @@ namespace ContainerNinja.Controllers.V1
                 ChatMessages = getChatResponse.ChatMessages,
                 CurrentUrl = getChatResponse.CurrentUrl,
                 ChatConversation = chatConversation,
-                CurrentSystemToAssistantChatCalls = 1,
             });
             if (response.Error)
             {

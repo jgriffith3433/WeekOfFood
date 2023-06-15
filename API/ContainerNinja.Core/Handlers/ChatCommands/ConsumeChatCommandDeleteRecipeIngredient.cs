@@ -5,19 +5,32 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using Microsoft.Extensions.Options;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "remove_recipe_ingredient" })]
-    public class ConsumeChatCommandDeleteRecipeIngredient : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTODeleteRecipeIngredient>
+    [ChatCommandSpecification("remove_recipe_ingredient", "Delete an ingredient from a recipe.",
+@"{
+    ""type"": ""object"",
+    ""properties"": {
+        ""recipe"": {
+            ""type"": ""string"",
+            ""description"": ""The name of the recipe.""
+        },
+        ""ingredient"": {
+            ""type"": ""string"",
+            ""description"": ""The name of the ingredient to delete.""
+        }
+    },
+    ""required"": [""recipe"", ""ingredient""]
+}")]
+    public class ConsumeChatCommandDeleteRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTODeleteRecipeIngredient>
     {
         public ChatAICommandDTODeleteRecipeIngredient Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandDeleteRecipeIngredientHandler : IRequestHandler<ConsumeChatCommandDeleteRecipeIngredient, ChatResponseVM>
+    public class ConsumeChatCommandDeleteRecipeIngredientHandler : IRequestHandler<ConsumeChatCommandDeleteRecipeIngredient, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -26,12 +39,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandDeleteRecipeIngredient model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandDeleteRecipeIngredient model, CancellationToken cancellationToken)
         {
             var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).FirstOrDefault(r => r.Name.ToLower() == model.Command.Recipe.ToLower());
             if (recipe == null)
             {
-                var systemResponse = "Error: Could not find recipe by name: " + model.Command.Recipe;
+                var systemResponse = "Could not find recipe by name: " + model.Command.Recipe;
                 throw new ChatAIException(systemResponse);
             }
             else
@@ -40,7 +53,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Error: No ingredient '" + model.Command.Ingredient + "' found on recipe '" + model.Command.Recipe + "'. The ingredients are: " + string.Join(", ", recipe.CalledIngredients.Select(ci => ci.Name));
+                    var systemResponse = "No ingredient '" + model.Command.Ingredient + "' found on recipe '" + model.Command.Recipe + "'. The ingredients are: " + string.Join(", ", recipe.CalledIngredients.Select(ci => ci.Name));
                     throw new ChatAIException(systemResponse);
                 }
                 else
@@ -51,7 +64,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

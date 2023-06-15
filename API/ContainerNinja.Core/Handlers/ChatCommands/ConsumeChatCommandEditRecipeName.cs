@@ -12,13 +12,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new[] { "edit_recipe_name" })]
-    public class ConsumeChatCommandEditRecipeName : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOEditRecipeName>
+    public class ConsumeChatCommandEditRecipeName : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeName>
     {
         public ChatAICommandDTOEditRecipeName Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditRecipeNameHandler : IRequestHandler<ConsumeChatCommandEditRecipeName, ChatResponseVM>
+    public class ConsumeChatCommandEditRecipeNameHandler : IRequestHandler<ConsumeChatCommandEditRecipeName, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -27,7 +27,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
         {
             var predicate = PredicateBuilder.New<Recipe>();
             var searchTerms = string.Join(' ', model.Command.Original.ToLower().Split('-')).Split(' ');
@@ -44,7 +44,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             Recipe recipe;
             if (query.Count == 0)
             {
-                var systemResponse = "Error: Could not find recipe by name: " + model.Command.Original;
+                var systemResponse = "Could not find recipe by name: " + model.Command.Original;
                 throw new ChatAIException(systemResponse);
             }
             else if (query.Count == 1)
@@ -57,7 +57,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //unsure, ask user
-                    var systemResponse = "Error: Could not find recipe by name '" + model.Command.Original + "'. Did you mean: " + query[0].Name + "?";
+                    var systemResponse = "Could not find recipe by name '" + model.Command.Original + "'. Did you mean: " + query[0].Name + "?";
                     throw new ChatAIException(systemResponse);
                 }
             }
@@ -72,7 +72,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //unsure, ask user
-                    var systemResponse = "Error: Multiple records found: " + string.Join(", ", query.Select(r => r.Name));
+                    var systemResponse = "Multiple records found: " + string.Join(", ", query.Select(r => r.Name));
                     throw new ChatAIException(systemResponse);
                 }
             }
@@ -81,7 +81,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var existingRecipeWithName = _repository.Recipes.FirstOrDefault(r => r.Name.ToLower() == model.Command.New.ToLower());
                 if (existingRecipeWithName != null)
                 {
-                    var systemResponse = "Error: Recipe already exists: " + model.Command.New;
+                    var systemResponse = "Recipe already exists: " + model.Command.New;
                     throw new ChatAIException(systemResponse);
                 }
 
@@ -90,7 +90,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

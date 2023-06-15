@@ -1,5 +1,5 @@
 ﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-public record ChatAICommandDTOUnknown : ChatAICommandDTO
+public record ChatAICommandDTOUnknown : ChatAICommandArgumentsDTO
 {
 }

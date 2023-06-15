@@ -1,7 +1,7 @@
 ﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-public record ChatAICommandDTODeleteCookedRecipeIngredient : ChatAICommandDTO
+public record ChatAICommandDTODeleteCookedRecipeIngredient : ChatAICommandArgumentsDTO
 {
-    public string Recipe { get; set; }
-    public string Ingredient { get; set; }
+    public string RecipeName { get; set; }
+    public string IngredientName { get; set; }
 }

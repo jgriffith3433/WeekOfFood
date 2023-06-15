@@ -1,6 +1,6 @@
 ﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-public record ChatAICommandDTOEditProductUnitType : ChatAICommandDTO
+public record ChatAICommandDTOEditProductUnitType : ChatAICommandArgumentsDTO
 {
     public string Product { get; set; }
 

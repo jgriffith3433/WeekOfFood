@@ -1,26 +1,22 @@
 using MediatR;
 using ContainerNinja.Contracts.Data;
-using AutoMapper;
-using Microsoft.Extensions.Logging;
-using ContainerNinja.Contracts.Services;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "substitute_recipe_ingredient" })]
-    public class ConsumeChatCommandSubstituteRecipeIngredient : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOSubstituteRecipeIngredient>
+    public class ConsumeChatCommandSubstituteRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOSubstituteRecipeIngredient>
     {
         public ChatAICommandDTOSubstituteRecipeIngredient Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandSubstituteRecipeIngredientHandler : IRequestHandler<ConsumeChatCommandSubstituteRecipeIngredient, ChatResponseVM>
+    public class ConsumeChatCommandSubstituteRecipeIngredientHandler : IRequestHandler<ConsumeChatCommandSubstituteRecipeIngredient, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -29,12 +25,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandSubstituteRecipeIngredient model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandSubstituteRecipeIngredient model, CancellationToken cancellationToken)
         {
             var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).ThenInclude(ci => ci.ProductStock).FirstOrDefault(r => r.Name.ToLower() == model.Command.Recipe.ToLower());
             if (recipe == null)
             {
-                var systemResponse = "Error: Could not find recipe by name: " + model.Command.Recipe;
+                var systemResponse = "Could not find recipe by name: " + model.Command.Recipe;
                 throw new ChatAIException(systemResponse);
             }
             else
@@ -43,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                 if (calledIngredient == null)
                 {
-                    var systemResponse = "Error: Could not find ingredient by name: " + model.Command.Original;
+                    var systemResponse = "Could not find ingredient by name: " + model.Command.Original;
                     throw new ChatAIException(systemResponse);
                 }
                 else
@@ -54,7 +50,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

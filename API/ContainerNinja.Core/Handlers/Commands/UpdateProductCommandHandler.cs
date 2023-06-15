@@ -8,7 +8,7 @@ using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
@@ -62,7 +62,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                 {
                     var itemResponse = await _walmartService.GetItem(request.WalmartId);
 
-                    var serializedItemResponse = JsonConvert.SerializeObject(itemResponse);
+                    var serializedItemResponse = JsonSerializer.Serialize(itemResponse);
 
                     //always update values from walmart to keep synced
                     productEntity.WalmartItemResponse = serializedItemResponse;

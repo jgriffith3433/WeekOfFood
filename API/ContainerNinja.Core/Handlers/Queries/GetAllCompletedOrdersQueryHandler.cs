@@ -3,7 +3,7 @@ using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.DTO;
 using MediatR;
 using ContainerNinja.Contracts.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Contracts.Data.Entities;

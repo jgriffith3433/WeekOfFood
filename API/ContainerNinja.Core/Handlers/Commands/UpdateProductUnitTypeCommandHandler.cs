@@ -6,7 +6,7 @@ using ContainerNinja.Core.Exceptions;
 using AutoMapper;
 using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+using System.Text.Json;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Contracts.Data.Entities;
 

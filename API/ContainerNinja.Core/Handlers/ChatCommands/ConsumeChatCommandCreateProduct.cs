@@ -9,13 +9,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "create_product" })]
-    public class ConsumeChatCommandCreateProduct : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOCreateProduct>
+    public class ConsumeChatCommandCreateProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateProduct>
     {
         public ChatAICommandDTOCreateProduct Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandCreateProductHandler : IRequestHandler<ConsumeChatCommandCreateProduct, ChatResponseVM>
+    public class ConsumeChatCommandCreateProductHandler : IRequestHandler<ConsumeChatCommandCreateProduct, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -24,7 +24,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandCreateProduct model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandCreateProduct model, CancellationToken cancellationToken)
         {
             var productEntity = new Product
             {
@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             productStockEntity.Product = productEntity;
             _repository.ProductStocks.Add(productStockEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

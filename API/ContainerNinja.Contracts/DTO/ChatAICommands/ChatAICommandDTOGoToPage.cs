@@ -1,6 +1,6 @@
 ﻿namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-public record ChatAICommandDTOGoToPage : ChatAICommandDTO
+public record ChatAICommandDTOGoToPage : ChatAICommandArgumentsDTO
 {
     public string Page { get; set; }
 }

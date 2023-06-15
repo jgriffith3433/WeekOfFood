@@ -2,7 +2,6 @@ using AutoMapper;
 using ContainerNinja.Contracts.Data;
 using MediatR;
 using ContainerNinja.Contracts.Services;
-using Newtonsoft.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using System.Text;
@@ -10,6 +9,7 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using OpenAI.ObjectModels;
 using ContainerNinja.Core.Handlers.ChatCommands;
 using ContainerNinja.Core.Exceptions;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -19,7 +19,6 @@ namespace ContainerNinja.Core.Handlers.Queries
         public ChatConversation ChatConversation { get; set; }
         public string CurrentUrl { get; set; }
         public bool NormalChat { get; set; }
-        public int CurrentSystemToAssistantChatCalls { get; set; }
         public string NavigateToPage { get; set; }
         public bool Dirty { get; set; }
     }
@@ -41,184 +40,130 @@ namespace ContainerNinja.Core.Handlers.Queries
             _mediator = mediator;
         }
 
-        public async Task<ChatResponseVM> Handle(GetChatResponseQuery request, CancellationToken cancellationToken)
+        public async Task<ChatResponseVM> Handle(GetChatResponseQuery model, CancellationToken cancellationToken)
         {
-            foreach (var chatMessage in request.ChatMessages)
+            var chatResponseVM = new ChatResponseVM
             {
-                if (chatMessage.To == StaticValues.ChatMessageRoles.System)
-                {
-                    chatMessage.Received = true;
-                }
-            }
-            ChatResponseVM chatResponseVM;
+                ChatConversationId = model.ChatConversation.Id,
+                ChatMessages = model.ChatMessages,
+            };
 
             try
             {
-                request.CurrentSystemToAssistantChatCalls++;
-                var rawAssistantResponseMessage = await _chatAIService.GetChatResponse(request.ChatMessages, request.CurrentUrl);
-                foreach (var chatMessage in request.ChatMessages)
+                var messageToHandle = chatResponseVM.ChatMessages.LastOrDefault(cm => cm.Received == false);
+                if (messageToHandle == null)
                 {
-                    if (chatMessage.To == StaticValues.ChatMessageRoles.Assistant)
+                    throw new Exception("No new messages");
+                }
+                messageToHandle.Received = true;
+
+                if (messageToHandle.To == StaticValues.ChatMessageRoles.Assistant)
+                {
+                    if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
                     {
-                        chatMessage.Received = true;
+                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "auto");
+                        chatResponseVM.ChatMessages.Add(chatMessageVM);
                     }
-                }
-                var startIndex = rawAssistantResponseMessage.IndexOf('{');
-                var endIndex = rawAssistantResponseMessage.LastIndexOf('}');
-                if (startIndex != -1 && endIndex == -1)
-                {
-                    //partial json response
-
-                    //Since there was a curly bracket in the response
-                    //Assume the message was for the system
-                    request.ChatMessages.Add(new ChatMessageVM
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
                     {
-                        Content = rawAssistantResponseMessage,
-                        RawContent = rawAssistantResponseMessage,
-                        From = StaticValues.ChatMessageRoles.Assistant,
-                        To = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = new ChatResponseVM
-                    {
-                        ChatConversationId = request.ChatConversation.Id,
-                        ChatMessages = request.ChatMessages,
-                        Error = true,
-                        UnknownCommand = true,
-                    };
-                    var systemResponse = "I'm sorry, the AI has sent back a partial response.";
-                    chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                    {
-                        Content = systemResponse,
-                        RawContent = systemResponse,
-                        From = StaticValues.ChatMessageRoles.System,
-                        To = StaticValues.ChatMessageRoles.User,
-                    });
-                }
-                else if (startIndex != -1 && endIndex != -1)
-                {
-                    //json response
-                    var chatAICommand = JsonConvert.DeserializeObject<ChatAICommandDTO>(rawAssistantResponseMessage.Substring(startIndex, endIndex - startIndex + 1));
-
-                    //sometimes the ai sends the response before the json brackets
-                    if (string.IsNullOrEmpty(chatAICommand.Response))
-                    {
-                        //to account for newlines, skip the first 2 characters when deciding if the response is outside
-                        if (startIndex > 2)
+                        chatResponseVM.ChatMessages.ForEach(cm =>
                         {
-                            chatAICommand.Response = rawAssistantResponseMessage.Substring(0, startIndex + 1);
-                        }
+                            if (string.IsNullOrEmpty(cm.Content))
+                            {
+                                cm.Content = "Okay";
+                            }
+                        });
+                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "none");
+                        chatResponseVM.ChatMessages.Add(chatMessageVM);
                     }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.System)
+                    {
+                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "none");
+                        chatResponseVM.ChatMessages.Add(chatMessageVM);
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Assistant)
+                    {
+                        //TODO: Implement ai to ai communication
+                        throw new NotImplementedException();
+                    }
+                }
+                else if (messageToHandle.To == StaticValues.ChatMessageRoles.Function)
+                {
+                    if (messageToHandle.From == StaticValues.ChatMessageRoles.Assistant)
+                    {
+                        var functionCall = messageToHandle.FunctionCall.Value.Deserialize<ChatAICommandDTO>(new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                            AllowTrailingCommas = true,
+                        });
 
-                    //by default all json responses go to the system
-                    //the system will then determine if the chat command is 'None'
-                    //then the response will go to the user
-                    request.ChatMessages.Add(new ChatMessageVM
+                        chatResponseVM = await _mediator.Send(new ConsumeChatCommand
+                        {
+                            ChatConversation = model.ChatConversation,
+                            ChatMessages = chatResponseVM.ChatMessages,
+                            CurrentChatMessage = messageToHandle,
+                            CurrentUrl = model.CurrentUrl,
+                            NavigateToPage = model.NavigateToPage,
+                            Dirty = model.Dirty,
+                        });
+                        //weird bug where the model doesn't like seeing messages from assistant to function
+                        //chatResponseVM.ChatMessages.Remove(messageToHandle);
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
                     {
-                        Content = chatAICommand.Response,
-                        RawContent = rawAssistantResponseMessage,
-                        From = StaticValues.ChatMessageRoles.Assistant,
-                        To = StaticValues.ChatMessageRoles.System,
-                    });
-                    chatResponseVM = await _mediator.Send(new ConsumeChatCommand
+                        //TODO: Implement user to function communication
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.System)
                     {
-                        ChatConversation = request.ChatConversation,
-                        ChatMessages = request.ChatMessages,
-                        ChatAICommand = chatAICommand,
-                        RawChatAICommand = rawAssistantResponseMessage,
-                        CurrentUrl = request.CurrentUrl,
-                        CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                        NavigateToPage = request.NavigateToPage,
-                        Dirty = request.Dirty,
-                    });
-                }
-                else
-                {
-                    //no json in response. send to user
-                    request.ChatMessages.Add(new ChatMessageVM
+                        //TODO: Implement system to function communication
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
                     {
-                        Content = rawAssistantResponseMessage,
-                        RawContent = rawAssistantResponseMessage,
-                        From = StaticValues.ChatMessageRoles.Assistant,
-                        To = StaticValues.ChatMessageRoles.User,
-                    });
-                    chatResponseVM = new ChatResponseVM
-                    {
-                        ChatConversationId = request.ChatConversation.Id,
-                        ChatMessages = request.ChatMessages,
-                    };
-                }
-            }
-            catch (ApiValidationException ex)
-            {
-                chatResponseVM = new ChatResponseVM
-                {
-                    ChatMessages = request.ChatMessages,
-                };
-                var systemResponse = ex.Message + "\n";
-                foreach (var e in ex.Errors)
-                {
-                    foreach (var v in e.Value)
-                    {
-                        systemResponse += v + "\n";
+                        //TODO: Implement function to function communication
+                        throw new NotImplementedException();
                     }
                 }
-                chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                else if (messageToHandle.To == StaticValues.ChatMessageRoles.User)
                 {
-                    Content = systemResponse,
-                    RawContent = systemResponse,
-                    From = StaticValues.ChatMessageRoles.System,
-                    To = StaticValues.ChatMessageRoles.Assistant,
-                });
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    NavigateToPage = request.NavigateToPage,
-                    Dirty = chatResponseVM.Dirty,
-                });
-                chatResponseVM.ChatConversationId = request.ChatConversation.Id;
+                    //currently these flows should not happen because the chat system is RESTful
+                    //so all messages start from the user and return to the user over http
+                    if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.System)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Assistant)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
             }
-            catch (ChatAIException ex)
+            catch (Exception ex)
             {
-                chatResponseVM = new ChatResponseVM
-                {
-                    ChatMessages = request.ChatMessages,
-                };
+                model.ChatConversation.Error = FlattenException(ex);
                 chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 {
                     Content = ex.Message,
-                    RawContent = ex.Message,
                     From = StaticValues.ChatMessageRoles.System,
-                    To = StaticValues.ChatMessageRoles.Assistant,
+                    To = StaticValues.ChatMessageRoles.User,
                 });
-                chatResponseVM = await _mediator.Send(new GetChatResponseQuery
-                {
-                    ChatMessages = chatResponseVM.ChatMessages,
-                    ChatConversation = request.ChatConversation,
-                    CurrentUrl = request.CurrentUrl,
-                    CurrentSystemToAssistantChatCalls = request.CurrentSystemToAssistantChatCalls,
-                    NavigateToPage = request.NavigateToPage,
-                    Dirty = chatResponseVM.Dirty,
-                });
-                chatResponseVM.ChatConversationId = request.ChatConversation.Id;
-            }
-            catch (Exception e)
-            {
-                chatResponseVM = new ChatResponseVM
-                {
-                    ChatConversationId = request.ChatConversation.Id,
-                    //CreateNewChat = true,
-                    ChatMessages = request.ChatMessages,
-                    Error = true
-                };
-                request.ChatConversation.Error = FlattenException(e);
+                //chatResponseVM.Error = true;
             }
             _cache.Clear();
 
-            request.ChatConversation.Content = JsonConvert.SerializeObject(request);
-            _repository.ChatConversations.Update(request.ChatConversation);
+            model.ChatConversation.Content = JsonSerializer.Serialize(model);
+            _repository.ChatConversations.Update(model.ChatConversation);
+
             await _repository.CommitAsync();
 
             return chatResponseVM;

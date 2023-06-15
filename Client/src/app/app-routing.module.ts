@@ -57,7 +57,7 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'cooked-recipes', canActivate: [AuthGuard], children: [
+    path: 'logged-recipes', canActivate: [AuthGuard], children: [
       { path: '', component: CookedRecipesComponent },
     ]
   },

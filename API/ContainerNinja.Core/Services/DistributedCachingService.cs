@@ -1,6 +1,6 @@
 ﻿using ContainerNinja.Contracts.Services;
 using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Services
 {
@@ -31,7 +31,7 @@ namespace ContainerNinja.Core.Services
 
     //    public T SetItem<T>(string cacheKey, T item)
     //    {
-    //        _cache.SetString(cacheKey, JsonConvert.SerializeObject(item), options);
+    //        _cache.SetString(cacheKey, JsonSerializer.Serialize(item), options);
     //        return item;
     //    }
     //}

@@ -6,7 +6,7 @@ using ContainerNinja.Contracts.Services;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             }
 
             var searchResponse = await _walmartService.Search(request.Name);
-            completedOrderProductEntity.WalmartSearchResponse = JsonConvert.SerializeObject(searchResponse);
+            completedOrderProductEntity.WalmartSearchResponse = JsonSerializer.Serialize(searchResponse);
 
             _repository.CompletedOrderProducts.Update(completedOrderProductEntity);
             await _repository.CommitAsync();

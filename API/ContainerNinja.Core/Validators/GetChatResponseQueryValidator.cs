@@ -18,10 +18,6 @@ namespace ContainerNinja.Core.Validators
             RuleFor(v => v.CurrentUrl)
                 .NotEmpty().WithMessage("CurrentUrl is required");
 
-            RuleFor(v => v.CurrentSystemToAssistantChatCalls)
-                .GreaterThan(0).WithMessage("CurrentSystemToAssistantChatCalls must be greater than 0.")
-                .LessThan(7).WithMessage("CurrentSystemToAssistantChatCalls must be less than 7.");
-
             /*
             0 = unknown cmd: edit-recipe-ingredient
             1 = Okay, I have updated your recipe.
@@ -30,7 +26,7 @@ namespace ContainerNinja.Core.Validators
             RuleFor(v => v.ChatMessages)
                 .Must(cm =>
                 {
-                    if (cm.Count >= 3 && cm[cm.Count - 3].RawContent == cm[cm.Count - 1].RawContent)
+                    if (cm.Count >= 3 && cm[cm.Count - 3].Content == cm[cm.Count - 1].Content)
                     {
                         if (cm[cm.Count - 3].From == StaticValues.ChatMessageRoles.System)
                         {

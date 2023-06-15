@@ -97,8 +97,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   recordingAudioGainNodes: GainNode[] = [];
   gainValue = 0;
   foundRoomVolume: boolean = false;
+  foundRoomVolumeBug: boolean = false;
   sendingSpeech: boolean = false;
   sendingSpeechPromise: Promise<boolean>;
+  chatTextFromSpeechToText: boolean = false;
   lastTimeSpeechSent = performance.now();
   speechToTextMessage: string | undefined = undefined;
   micVolumeOverTimeStart = performance.now();
@@ -131,8 +133,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   badWordAndWakeWordRegex: RegExp = new RegExp("^bumble *bee*|[a@][s\$][s\$]$|[a@][s\$][s\$]h[o0][l1][e3][s\$]?|b[a@][s\$][t\+][a@]rd|b[e3][a@][s\$][t\+][i1][a@]?[l1]([i1][t\+]y)?|b[e3][a@][s\$][t\+][i1][l1][i1][t\+]y|b[e3][s\$][t\+][i1][a@][l1]([i1][t\+]y)?|b[i1][t\+]ch[s\$]?|b[i1][t\+]ch[e3]r[s\$]?|b[i1][t\+]ch[e3][s\$]|b[i1][t\+]ch[i1]ng?|b[l1][o0]wj[o0]b[s\$]?|c[l1][i1][t\+]|^(c|k|ck|q)[o0](c|k|ck|q)[s\$]?$|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[e3]d|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[e3]r|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[i1]ng|(c|k|ck|q)[o0](c|k|ck|q)[s\$]u(c|k|ck|q)[s\$]|^cum[s\$]?$|cumm??[e3]r|cumm?[i1]ngcock|(c|k|ck|q)um[s\$]h[o0][t\+]|(c|k|ck|q)un[i1][l1][i1]ngu[s\$]|(c|k|ck|q)un[i1][l1][l1][i1]ngu[s\$]|(c|k|ck|q)unn[i1][l1][i1]ngu[s\$]|(c|k|ck|q)un[t\+][s\$]?|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)[e3]r|(c|k|ck|q)un[t\+][l1][i1](c|k|ck|q)[i1]ng|cyb[e3]r(ph|f)u(c|k|ck|q)|d[a@]mn|d[i1]ck|d[i1][l1]d[o0]|d[i1][l1]d[o0][s\$]|d[i1]n(c|k|ck|q)|d[i1]n(c|k|ck|q)[s\$]|[e3]j[a@]cu[l1]|(ph|f)[a@]g[s\$]?|(ph|f)[a@]gg[i1]ng|(ph|f)[a@]gg?[o0][t\+][s\$]?|(ph|f)[a@]gg[s\$]|(ph|f)[e3][l1][l1]?[a@][t\+][i1][o0]|(ph|f)u(c|k|ck|q)|(ph|f)u(c|k|ck|q)[s\$]?|g[a@]ngb[a@]ng[s\$]?|g[a@]ngb[a@]ng[e3]d|g[a@]y|h[o0]m?m[o0]|h[o0]rny|j[a@](c|k|ck|q)\-?[o0](ph|f)(ph|f)?|j[e3]rk\-?[o0](ph|f)(ph|f)?|j[i1][s\$z][s\$z]?m?|[ck][o0]ndum[s\$]?|mast(e|ur)b(8|ait|ate)|n+[i1]+[gq]+[e3]*r+[s\$]*|[o0]rg[a@][s\$][i1]m[s\$]?|[o0]rg[a@][s\$]m[s\$]?|p[e3]nn?[i1][s\$]|p[i1][s\$][s\$]|p[i1][s\$][s\$][o0](ph|f)(ph|f)|p[o0]rn|p[o0]rn[o0][s\$]?|p[o0]rn[o0]gr[a@]phy|pr[i1]ck[s\$]?|pu[s\$][s\$][i1][e3][s\$]|pu[s\$][s\$]y[s\$]?|[s\$][e3]x|[s\$]h[i1][t\+][s\$]?|[s\$][l1]u[t\+][s\$]?|[s\$]mu[t\+][s\$]?|[s\$]punk[s\$]?|[t\+]w[a@][t\+][s\$]?");
   //endSilenceDetected: boolean = false;
   public speechSynthesisOn: boolean = true;
-  public normalConversation: boolean = true;
+  public normalConversation: boolean = false;
   public authenticated: boolean = false;
+  public autoRecordOnChatToggle: boolean = false;
   audioSource = '';
   private currentWakeWord: string;
   private keywordSubscription: Subscription;
@@ -237,14 +240,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     avatar: `https://randomuser.me/api/portraits/men/${rand(100)}.jpg`,
   }
 
-  public messages: any[] = [];
-
-
   public getAvatarForRole(role: string | undefined): string {
     if (role == 'user') {
       return this.user.avatar;
     }
     else if (role == 'system') {
+      return this.system.avatar;
+    }
+    else if (role == 'function') {
       return this.system.avatar;
     }
     else if (role == 'assistant') {
@@ -458,6 +461,26 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     this.textToSpeechVisualizerCanvasCtx = this.textToSpeechVisualizerRef.nativeElement.getContext("2d");
     this.recordingFrequenciesVisualizerCanvasCtx = this.recordingFrequenciesVisualizerRef.nativeElement.getContext("2d");
 
+    let messageInput = this.chatInputRef.message.nativeElement as HTMLInputElement;
+
+    messageInput.onkeyup = e => {
+      if (this.recording) {
+        this.stopRecording();
+      }
+    }
+
+    messageInput.onclick = e => {
+      if (this.recording) {
+        this.stopRecording();
+      }
+    }
+
+    messageInput.onpaste = e => {
+      if (this.recording) {
+        this.stopRecording();
+      }
+    }
+
     this.audioPlayer.crossOrigin = "anonymous";
     this.audioPlayer.oncanplaythrough = e => {
       this.textToSpeechPlaying = true;
@@ -470,17 +493,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     };
     this.audioPlayer.onended = e => {
       this.textToSpeechPlaying = false;
-      if (this.visible) {
-        if (!this.recording) {
-          this.ensureAudioContextCreated().then(() => {
-            if (this.sendingSpeech) {
-              this.sendingSpeechPromise = this.sendingSpeechPromise.finally(() => this.record(false));
-            }
-            else {
-              this.record(false);
-            }
-          });
-        }
+      if (this.chatTextFromSpeechToText && this.visible && !this.recording) {
+        this.ensureAudioContextCreated().then(() => {
+          if (this.sendingSpeech) {
+            this.sendingSpeechPromise = this.sendingSpeechPromise.finally(() => this.record(false));
+          }
+          else {
+            this.record(false);
+          }
+        });
       }
     }
     this.audioPlayer.onpause = e => {
@@ -533,7 +554,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     this.authSubscription = this.authService.authListener.subscribe(authenticated => {
       this.authenticated = authenticated;
       this.scrollToBottom();
-      this.sendMessages();
+      this.sendUnsentMessages();
     });
     this.keywordSubscription = this.picoService.keywordDetectionListener.subscribe(porcupineSubscription => {
       this.currentWakeWord = porcupineSubscription.label;
@@ -657,7 +678,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   //}
 
   public userToggleChat() {
-    this.ensureAudioContextCreated().then(() => this.toggleChat());
+    this.toggleChat();
   }
 
   private toggleChat() {
@@ -678,7 +699,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           }
         }
       }
-      if (!this.recording) {
+      if (this.autoRecordOnChatToggle && !this.recording) {
         this.ensureAudioContextCreated().then(() => {
           if (this.sendingSpeech) {
             this.sendingSpeechPromise = this.sendingSpeechPromise.finally(() => this.record(false));
@@ -701,30 +722,33 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public userSendMessage({ message }: any) {
-    this.sendMessage(message);
+    this.sendMessage(message, false);
   }
 
-  public sendMessage(message: string) {
+  public sendMessage(message: string, textFromSpeechToText: boolean) {
     if (message.trim() === '') {
       return;
     }
+
+    this.chatTextFromSpeechToText = textFromSpeechToText;
 
     this.addMessage({
       content: message,
       rawContent: message,
       from: this.user.name,
+      name: this.user.name,
       to: this.assistant.name,
-      received: false
+      received: false,
     } as ChatMessageVm);
 
     this.scrollToBottom();
-    this.sendMessages();
+    this.sendUnsentMessages();
   }
 
-  sendMessages() {
+  sendUnsentMessages() {
     let unsentMessages = false;
     this.chatMessages.forEach(c => {
-      if (c.from == this.user.name && !c.received) {
+      if (!c.received) {
         unsentMessages = true;
       }
     });
@@ -749,6 +773,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                     content: error.errors[e][i],
                     rawContent: error.errors[e][i],
                     from: this.system.name,
+                    name: this.system.name,
                     to: this.user.name,
                     received: true
                   } as ChatMessageVm);
@@ -761,6 +786,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                 content: error.message,
                 rawContent: error.message,
                 from: this.system.name,
+                name: this.system.name,
                 to: this.user.name,
                 received: true
               } as ChatMessageVm);
@@ -784,13 +810,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   receiveMessage(response: GetChatResponseVm) {
     let newChatMessages: ChatMessageVm[] = [];
     if (response.chatMessages) {
-      //update message received
-      for (let i = 0; i < this.chatMessages.length; i++) {
-        if (i <= response.chatMessages.length - 1) {
-          this.chatMessages[i].received = response.chatMessages[i].received;
-        }
-      }
-
       //get new messages
       for (let i = this.chatMessages.length; i < response.chatMessages.length; i++) {
         if (response.chatMessages[i].to == this.user.name) {
@@ -842,8 +861,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     else {
       this._chatConversationId = response.chatConversationId || -1;
-      for (let newChatMessage of newChatMessages) {
-        this.addMessage(newChatMessage);
+      if (response.chatMessages) {
+        this.chatMessages = response.chatMessages;
       }
       this.scrollToBottom();
       if (response.navigateToPage) {
@@ -855,7 +874,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         this.router.navigateByUrl(this.router.url);
       }
     }
-    this.sendMessages();
+    this.sendUnsentMessages();
   }
 
   @HostListener('document:keypress', ['$event'])
@@ -925,6 +944,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
           content: 'How can I help you manage your ' + this.getCurrentPageName(),
           rawContent: 'How can I help you manage your ' + this.getCurrentPageName(),
           from: this.assistant.name,
+          name: this.assistant.name,
           to: this.user.name,
           received: true
         }],
@@ -1217,8 +1237,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
       this.micVolumeOverTimeLowest = micVolumeLowest;
     }
 
-    if (this.micVolumeOverTimeHighAverage < this.SPEECH_DETECTION_VOLUME && !this.recording) {
+    if (this.micVolumeOverTimeHighAverage < this.SPEECH_DETECTION_VOLUME && !this.recording && !this.foundRoomVolumeBug) {
       this.gainValue += .1;
+      if (this.gainValue > 100) {
+        this.gainValue = 50;
+        this.foundRoomVolumeBug = true;
+      }
     }
     else {
       this.foundRoomVolume = true;
@@ -1422,9 +1446,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                           }
                         }
                         if (add) {
-                          if (this.speechToTextMessage === speechText) {
+                          if ((this.speechToTextMessage == "" && speechText == "") || (this.speechToTextMessage && this.speechToTextMessage.toLowerCase().replace(/[^\x41-\x7F]/g, "") == speechText.toLowerCase().replace(/[^\x41-\x7F]/g, ""))) {
                             this.chatInputRef.clearMessage();
-                            this.sendMessage(speechText);
+                            this.sendMessage(speechText, true);
                             this.stopRecording();
                             this.speechToTextMessage = undefined;
                           }
@@ -1436,7 +1460,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                         else {
                           if (speechText) {
                             this.chatInputRef.clearMessage();
-                            this.sendMessage(speechText);
+                            this.sendMessage(speechText, true);
                             this.stopRecording();
                             this.speechToTextMessage = undefined;
                           }
@@ -1455,6 +1479,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                                 content: 'An error while transcribing audio.',
                                 rawContent: 'An error while transcribing audio.',
                                 from: this.system.name,
+                                name: this.system.name,
                                 to: this.user.name,
                                 received: false
                               } as ChatMessageVm);
@@ -1464,6 +1489,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                                 content: 'You must be logged in.',
                                 rawContent: 'You must be logged in.',
                                 from: this.system.name,
+                                name: this.system.name,
                                 to: this.user.name,
                                 received: false
                               } as ChatMessageVm);
@@ -1473,6 +1499,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                                 content: 'An error while transcribing audio.',
                                 rawContent: 'An error while transcribing audio.',
                                 from: this.system.name,
+                                name: this.system.name,
                                 to: this.user.name,
                                 received: false
                               } as ChatMessageVm);

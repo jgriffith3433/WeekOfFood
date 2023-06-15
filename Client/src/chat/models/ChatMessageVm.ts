@@ -1,8 +1,10 @@
 
 export interface ChatMessageVm {
   from?: string;
+  name?: string;
   content?: string;
-  received: boolean;
   rawContent?: string;
+  functionCall?: string;
+  received: boolean;
   to?: string;
 }

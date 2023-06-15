@@ -7,18 +7,28 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "create_cooked_recipe" })]
-    public class ConsumeChatCommandCreateCookedRecipe : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOCreateCookedRecipe>
+    [ChatCommandModel(new [] { "log_recipe" })]
+    [ChatCommandSpecification("log_recipe", "Create a log of a recipe that was used.",
+@"{
+    ""type"": ""object"",
+    ""properties"": {
+        ""recipename"": {
+            ""type"": ""string"",
+            ""description"": ""The name of the recipe that was used.""
+        }
+    },
+    ""required"": [""recipename""]
+}")]
+    public class ConsumeChatCommandCreateCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateCookedRecipe>
     {
         public ChatAICommandDTOCreateCookedRecipe Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandCreateCookedRecipeHandler : IRequestHandler<ConsumeChatCommandCreateCookedRecipe, ChatResponseVM>
+    public class ConsumeChatCommandCreateCookedRecipeHandler : IRequestHandler<ConsumeChatCommandCreateCookedRecipe, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -27,16 +37,16 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandCreateCookedRecipe model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandCreateCookedRecipe model, CancellationToken cancellationToken)
         {
             var recipe = _repository.Recipes.Include<Recipe, IList<CalledIngredient>>(r => r.CalledIngredients).ThenInclude(ci => ci.ProductStock)
                 .Include(r => r.CookedRecipes)
-                .Where(r => r.Name.ToLower() == model.Command.Name.ToLower())
+                .Where(r => r.Name.ToLower() == model.Command.RecipeName.ToLower())
                 .SingleOrDefaultAsync(cancellationToken).Result;
 
             if (recipe == null)
             {
-                var systemResponse = "Error: Could not find recipe by name: " + model.Command.Name;
+                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
                 throw new ChatAIException(systemResponse);
             }
             else
@@ -62,7 +72,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 _repository.Recipes.Update(recipe);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return $"Created logged recipe: {model.Command.RecipeName}";
         }
     }
 }

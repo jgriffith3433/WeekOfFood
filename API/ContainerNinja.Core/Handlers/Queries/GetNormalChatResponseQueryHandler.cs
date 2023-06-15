@@ -2,13 +2,11 @@ using AutoMapper;
 using ContainerNinja.Contracts.Data;
 using MediatR;
 using ContainerNinja.Contracts.Services;
-using Newtonsoft.Json;
+using System.Text.Json;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using System.Text;
-using ContainerNinja.Contracts.DTO.ChatAICommands;
 using OpenAI.ObjectModels;
-using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;
 
 namespace ContainerNinja.Core.Handlers.Queries
@@ -37,55 +35,49 @@ namespace ContainerNinja.Core.Handlers.Queries
             _mediator = mediator;
         }
 
-        public async Task<ChatResponseVM> Handle(GetNormalChatResponseQuery request, CancellationToken cancellationToken)
+        public async Task<ChatResponseVM> Handle(GetNormalChatResponseQuery model, CancellationToken cancellationToken)
         {
-            foreach (var chatMessage in request.ChatMessages)
+            var chatResponseVM = new ChatResponseVM
             {
-                if (chatMessage.To == StaticValues.ChatMessageRoles.System)
-                {
-                    chatMessage.Received = true;
-                }
-            }
-            ChatResponseVM chatResponseVM;
+                ChatConversationId = model.ChatConversation.Id,
+                ChatMessages = model.ChatMessages,
+            };
 
             try
             {
-                var rawAssistantResponseMessage = await _chatAIService.GetNormalChatResponse(request.ChatMessages);
-                foreach (var chatMessage in request.ChatMessages)
+                var messageToHandle = chatResponseVM.ChatMessages.LastOrDefault(cm => cm.Received == false);
+                if (messageToHandle == null)
                 {
-                    if (chatMessage.To == StaticValues.ChatMessageRoles.Assistant)
+                    throw new Exception("No new messages");
+                }
+
+                if (messageToHandle.To == StaticValues.ChatMessageRoles.Assistant)
+                {
+                    if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
                     {
-                        chatMessage.Received = true;
+                        messageToHandle.Received = true;
+                        var chatMessageVM = await _chatAIService.GetNormalChatResponse(chatResponseVM.ChatMessages);
+                        chatResponseVM.ChatMessages.Add(chatMessageVM);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
                     }
                 }
-                request.ChatMessages.Add(new ChatMessageVM
+                else
                 {
-                    Content = rawAssistantResponseMessage,
-                    RawContent = rawAssistantResponseMessage,
-                    From = StaticValues.ChatMessageRoles.Assistant,
-                    To = StaticValues.ChatMessageRoles.User,
-                });
-                chatResponseVM = new ChatResponseVM
-                {
-                    ChatConversationId = request.ChatConversation.Id,
-                    ChatMessages = request.ChatMessages,
-                };
+                    throw new NotImplementedException();
+                }
             }
             catch (Exception e)
             {
-                chatResponseVM = new ChatResponseVM
-                {
-                    ChatConversationId = request.ChatConversation.Id,
-                    //CreateNewChat = true,
-                    ChatMessages = request.ChatMessages,
-                    Error = true,
-                };
-                request.ChatConversation.Error = FlattenException(e);
+                model.ChatConversation.Error = FlattenException(e);
+                chatResponseVM.Error = true;
             }
             _cache.Clear();
 
-            request.ChatConversation.Content = JsonConvert.SerializeObject(request);
-            _repository.ChatConversations.Update(request.ChatConversation);
+            model.ChatConversation.Content = JsonSerializer.Serialize(model);
+            _repository.ChatConversations.Update(model.ChatConversation);
             await _repository.CommitAsync();
 
             return chatResponseVM;

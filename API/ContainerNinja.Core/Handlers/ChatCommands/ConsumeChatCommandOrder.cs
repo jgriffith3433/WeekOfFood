@@ -4,18 +4,17 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "order" })]
-    public class ConsumeChatCommandOrder : IRequest<ChatResponseVM>, IChatCommandConsumer<ChatAICommandDTOOrder>
+    public class ConsumeChatCommandOrder : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOOrder>
     {
         public ChatAICommandDTOOrder Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandOrderHandler : IRequestHandler<ConsumeChatCommandOrder, ChatResponseVM>
+    public class ConsumeChatCommandOrderHandler : IRequestHandler<ConsumeChatCommandOrder, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -24,12 +23,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<ChatResponseVM> Handle(ConsumeChatCommandOrder model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandOrder model, CancellationToken cancellationToken)
         {
-            var systemResponse = "Error: Not implemented: " + model.Command.Cmd;
+            var systemResponse = "Not implemented.";
             throw new ChatAIException(systemResponse);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return model.Response;
+            return "Success";
         }
     }
 }

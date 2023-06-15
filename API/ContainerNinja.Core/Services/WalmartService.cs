@@ -2,8 +2,8 @@
 using ContainerNinja.Contracts.Walmart;
 using ContainerNinja.Core.Walmart;
 using Microsoft.AspNetCore.Hosting;
-using Newtonsoft.Json;
 using System.Collections.Specialized;
+using System.Text.Json;
 
 namespace ContainerNinja.Core.Services
 {
@@ -41,7 +41,12 @@ namespace ContainerNinja.Core.Services
 
                 client.BaseAddress = "https://developer.api.walmart.com";
                 var jsonResponse = await client.DownloadStringTaskAsync(string.Format("/api-proxy/service/affil/product/v2/search?query={0}", query));
-                return JsonConvert.DeserializeObject<Search>(jsonResponse);
+                return JsonSerializer.Deserialize<Search>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    AllowTrailingCommas = true,
+                });
             }
         }
 
@@ -66,7 +71,12 @@ namespace ContainerNinja.Core.Services
 
                 client.BaseAddress = "https://developer.api.walmart.com";
                 var jsonResponse = await client.DownloadStringTaskAsync(string.Format("/api-proxy/service/affil/product/v2/items/{0}", id));
-                return JsonConvert.DeserializeObject<Item>(jsonResponse);
+                return JsonSerializer.Deserialize<Item>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    AllowTrailingCommas = true,
+                });
             }
         }
 
@@ -99,7 +109,12 @@ namespace ContainerNinja.Core.Services
 
                 client.BaseAddress = "https://developer.api.walmart.com";
                 var jsonResponse = await client.DownloadStringTaskAsync(string.Format("/api-proxy/service/affil/product/v2/items?ids{0}", string.Join(',', ids)));
-                return JsonConvert.DeserializeObject<MultipleItems>(jsonResponse);
+                return JsonSerializer.Deserialize<MultipleItems>(jsonResponse, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                    AllowTrailingCommas = true,
+                });
             }
         }
     }
