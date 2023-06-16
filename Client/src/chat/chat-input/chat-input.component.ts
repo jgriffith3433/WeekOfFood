@@ -3,8 +3,10 @@ import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, 
 @Component({
   selector: 'chat-input',
   template: `
-    <textarea type="text" class="chat-input-text" placeholder="Type message..."
-              #message (keydown.enter)="onSubmit()" (keyup.enter)="message.value = ''" (keyup.escape)="dismiss.emit()"></textarea>
+    <textarea type="text" class="chat-input-text" placeholder="Type message..." #message (keydown.enter)="onSubmit()" (keyup.enter)="message.value = ''" (keyup.escape)="dismiss.emit()"></textarea>
+    <canvas id="recordingVisualizer" class="visualizer" height="50" #recordingVisualizer></canvas>
+    <canvas id="recordingFrequenciesVisualizer" class="visualizer" height="50" #recordingFrequenciesVisualizer></canvas>
+    <canvas id="speechToTextVisualizer" class="visualizer" height="50" #speechToTextVisualizer></canvas>
     <button type="submit" class="chat-input-submit" (click)="onSubmit()">
       {{buttonText}}
     </button>
@@ -17,6 +19,9 @@ export class ChatInputComponent implements OnInit {
   @Input() public focus = new EventEmitter()
   @Output() public send = new EventEmitter()
   @Output() public dismiss = new EventEmitter()
+  @ViewChild('recordingVisualizer') public recordingVisualizerRef: ElementRef;
+  @ViewChild('recordingFrequenciesVisualizer') public recordingFrequenciesVisualizerRef: ElementRef;
+  @ViewChild('speechToTextVisualizer') public textToSpeechVisualizerRef: ElementRef;
   @ViewChild('message', { static: true }) message: ElementRef
 
   ngOnInit() {
@@ -29,6 +34,10 @@ export class ChatInputComponent implements OnInit {
 
   public getMessage() {
     return this.message.nativeElement.value
+  }
+
+  public toggleRecord() {
+
   }
 
   public setMessage(str: string) {

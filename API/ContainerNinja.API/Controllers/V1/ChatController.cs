@@ -8,14 +8,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using OpenAI.ObjectModels;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 
 namespace ContainerNinja.Controllers.V1
 {
-    [Authorize(Roles = $"{UserRoles.Owner},{UserRoles.Admin}")]
+    //[Authorize(Roles = $"{UserRoles.Owner},{UserRoles.Admin}")]
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]

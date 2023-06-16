@@ -17,7 +17,7 @@
       <!--<button class="chat-button" (click)="toggleNormalConversation()">Normal</button>-->
       <div class="chat-message-bottom" #bottom></div>
       <ng-container *ngFor="let message of chatMessages.slice().reverse()">
-        <div class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
+        <div *ngIf="message.from == 'user' || message.from == 'assistant'" class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
           <div>
             <chat-avatar [image]="getAvatarForRole(message.from)" class="chat-message-from-avatar"></chat-avatar>
             <div class="chat-message-text">
@@ -35,12 +35,13 @@
     </div>
     <div class="chat-box-footer">
       <chat-input id="chatInput" (send)="userSendMessage($event)" (dismiss)="userToggleChat()" #chatInput></chat-input>
-      <canvas id="recordingVisualizer" class="visualizer" height="30" #recordingVisualizer></canvas>
-      <canvas id="speechToTextVisualizer" class="visualizer" height="30" #speechToTextVisualizer></canvas>
-      <canvas id="recordingFrequenciesVisualizer" class="visualizer" height="30" #recordingFrequenciesVisualizer></canvas>
+      <button *ngIf="audioContext" class="chat-button chat-button-mic" (click)="userToggleRecord()">
+        <span [@fadeIn] *ngIf="visible && !recording">🎤</span>
+        <span [@fadeIn] *ngIf="visible && recording" style="color:black;">X</span>
+      </button>
       <!--<button class="chat-button" (click)="toggleSpeechSynthesis()" style="right:-20px;">Synth</button>-->
     </div>
-    <div style="left: 20px; margin-top: 40px;">
+    <div *ngIf="debug" style="left: 20px; margin-top: 40px;">
       <span>{{'Synth Volume: ' + synthvolume.toFixed(2)}}</span>
       <br />
       <input id="gainValue" name="gainValue" value="{{gainValue}}" (change)="gainChanged($event)" />
@@ -61,8 +62,7 @@
     <button class="chat-button" (click)="detectRoomAndSpeechVolume()" style="right:600px;"><span>Detect Both</span></button>-->
   </div>
   <button class="chat-button" (click)="userToggleChat()">
-    <span [@fadeIn] *ngIf="visible && !recording">X</span>
-    <span [@fadeIn] *ngIf="visible && recording">R</span>
+    <span [@fadeIn] *ngIf="visible">X</span>
     <span [@fadeIn] *ngIf="!visible">?</span>
   </button>
   <audio [src]="audioSource" id="audio" controls #audio></audio>

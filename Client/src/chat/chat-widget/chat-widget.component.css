@@ -51,6 +51,18 @@
   border: 2px solid white;
 }
 
+.chat-button-mic {
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  position: absolute;
+  background-color: white !important;
+  border: 0;
+  font-size: 20px;
+  width: 50px;
+  height: 50px;
+}
+
 .chat-box {
   z-index: 2;
   position: absolute;
@@ -62,6 +74,7 @@
   flex-direction: column;
   box-shadow: 0 5px 40px rgba(0, 0, 0, 0.16);
   background: #1976d2;
+  overflow: hidden;
 }
 
 .chat-box-hidden {
@@ -85,7 +98,7 @@
 
 .chat-box-footer {
   color: #fff;
-  height: 50px;
+  height: 150px;
 }
 
 .system-greeting {

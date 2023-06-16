@@ -3,14 +3,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core'
 @Component({
   selector: 'chat-config',
   template: `
-    <div class="chat-config">
-      {{text}}
-      <button *ngFor="let item of themes"
-              class="btn" [class.btn-active]="item === theme"
-              (click)="setTheme(item)">
-        {{item}}
-      </button>
-    </div>
+    <div class="chat-config"></div>
   `,
   styles: [`
     .chat-config {
@@ -30,6 +23,15 @@ import { Component, EventEmitter, Input, Output } from '@angular/core'
     }
   `],
 })
+/*
+    <div class="chat-config">
+      {{text}}
+      <button *ngFor="let item of themes"
+              class="btn" [class.btn-active]="item === theme"
+              (click)="setTheme(item)">
+        {{item}}
+      </button>
+    </div>*/
 export class ChatConfigComponent {
   @Input() public theme: string
   @Input() public text = 'Select theme'

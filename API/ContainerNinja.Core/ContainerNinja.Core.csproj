@@ -24,8 +24,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\openai\OpenAI.SDK\OpenAI.csproj" />
 	  <ProjectReference Include="..\ContainerNinja.Contracts\ContainerNinja.Contracts.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="OpenAI">
+	    <HintPath>..\lib\OpenAI.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 	<ItemGroup>

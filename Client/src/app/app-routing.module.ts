@@ -16,7 +16,7 @@ import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked
 
 const routes: Routes = [
   {
-    path: 'items', canActivate: [AuthGuard], children: [
+    path: 'items'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: ItemsListComponent },
       { path: 'add', component: AddoreditComponent },
       { path: ':id', component: AddoreditComponent },
@@ -24,7 +24,7 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'todo', canActivate: [AuthGuard], children: [
+    path: 'todo'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: TodoListsComponent },
       { path: 'add', component: TodoListComponent },
       { path: ':id', component: TodoListComponent },
@@ -32,32 +32,32 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'products', canActivate: [AuthGuard], children: [
+    path: 'products'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: ProductsComponent },
     ]
   },
   {
-    path: 'completed-orders', canActivate: [AuthGuard], children: [
+    path: 'completed-orders'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: CompletedOrdersComponent },
     ]
   },
   {
-    path: 'product-stocks', canActivate: [AuthGuard], children: [
+    path: 'product-stocks'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: ProductStocksComponent },
     ]
   },
   {
-    path: 'called-ingredients', canActivate: [AuthGuard], children: [
+    path: 'called-ingredients'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: CalledIngredientsComponent },
     ]
   },
   {
-    path: 'recipes', canActivate: [AuthGuard], children: [
+    path: 'recipes'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: RecipesComponent },
     ]
   },
   {
-    path: 'logged-recipes', canActivate: [AuthGuard], children: [
+    path: 'logged-recipes'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: CookedRecipesComponent },
     ]
   },

@@ -36,9 +36,6 @@ const rand = (max: number) => Math.floor(Math.random() * max)
 export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild('bottom') bottom: ElementRef;
   @ViewChild('audio') audioPlayerRef: ElementRef;
-  @ViewChild('recordingVisualizer') recordingVisualizerRef: ElementRef;
-  @ViewChild('recordingFrequenciesVisualizer') recordingFrequenciesVisualizerRef: ElementRef;
-  @ViewChild('speechToTextVisualizer') textToSpeechVisualizerRef: ElementRef;
   @ViewChild('chatInput') chatInputRef: ChatInputComponent;
   @Input() public theme: 'blue' | 'grey' | 'red' = 'blue';
   public _visible = false;
@@ -120,7 +117,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   SPEECH_TO_TEXT_INTERVAL_TIME = 5;
   MIC_VOLUME_DETECTION_TIME = 2;
   ROOM_DETECTION_VOLUME = 10;
-  SPEECH_DETECTION_VOLUME = 150;
+  SPEECH_DETECTION_VOLUME = 200;
   SPEECH_DETECTION_ENV = 150;
   SPEECH_CLIPPING_VOLUME = 300;
   MIN_SILENCE_DURATION = 0.5;
@@ -423,6 +420,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                       }
                       this.recordingSoundAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingSoundAnalyserAnimationFrameHandler);
 
+                      if (this.textToSpeechVisualAnalyserAnimationFrameHandle) {
+                        window.cancelAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandle);
+                        this.textToSpeechVisualAnalyserAnimationFrameHandle = undefined;
+                      }
+                      this.textToSpeechVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.textToSpeechVisualAnalyserAnimationFrameHandler);
+
+
+
                       let waitAndCheckGain = () => {
                         if (this.foundRoomVolume) {
                           this.audioReady = true;
@@ -457,9 +462,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.audioPlayer = this.audioPlayerRef.nativeElement as HTMLAudioElement;
-    this.recordingVisualizerCanvasCtx = this.recordingVisualizerRef.nativeElement.getContext("2d");
-    this.textToSpeechVisualizerCanvasCtx = this.textToSpeechVisualizerRef.nativeElement.getContext("2d");
-    this.recordingFrequenciesVisualizerCanvasCtx = this.recordingFrequenciesVisualizerRef.nativeElement.getContext("2d");
+    this.recordingVisualizerCanvasCtx = this.chatInputRef.recordingVisualizerRef.nativeElement.getContext("2d");
+    this.textToSpeechVisualizerCanvasCtx = this.chatInputRef.textToSpeechVisualizerRef.nativeElement.getContext("2d");
+    this.recordingFrequenciesVisualizerCanvasCtx = this.chatInputRef.recordingFrequenciesVisualizerRef.nativeElement.getContext("2d");
 
     let messageInput = this.chatInputRef.message.nativeElement as HTMLInputElement;
 
@@ -816,6 +821,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.greeting;
   }
 
+  public get debug() {
+    return (window as any).debug;
+  }
+
   receiveMessage(response: GetChatResponseVm, speak: boolean) {
     let newChatMessages: ChatMessageVm[] = [];
     if (response.chatMessages) {
@@ -927,6 +936,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   source2: MediaElementAudioSourceNode;
   textToSpeechDestination: MediaStreamAudioDestinationNode;
 
+  userToggleRecord() {
+    if (this.recording) {
+      this.audioBlobsToSend = [];
+      this.stopRecording();
+    }
+    else {
+      this.ensureAudioContextCreated().then(() => this.record());
+    }
+  }
+
   record(respond: boolean = false) {
     if (this.recording) {
       console.log("Cannot record: recording already in progress");
@@ -1024,7 +1043,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   textToSpeechVisualAnalyserAnimationFrameHandler = () => {
-    this.visualizeSound(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength, this.textToSpeechVisualizerRef, this.textToSpeechVisualizerCanvasCtx);
+    this.visualizeSound(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength, this.chatInputRef.textToSpeechVisualizerRef, this.textToSpeechVisualizerCanvasCtx);
     if (this.recordingAudioHeadGainNode) {
       this.unduckRecordingAudio(this.textToSpeechVisualAnalyser, this.textToSpeechVisualAnalyserDataArray, this.textToSpeechVisualAnalyserBufferLength);
     }
@@ -1072,13 +1091,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   recordingVisualAnalyserAnimationFrameHandler = () => {
-    this.visualizeSound(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength, this.recordingVisualizerRef, this.recordingVisualizerCanvasCtx);
+    this.visualizeSound(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength, this.chatInputRef.recordingVisualizerRef, this.recordingVisualizerCanvasCtx);
     this.duckTextToSpeechAudio(this.recordingVisualAnalyser, this.recordingVisualAnalyserDataArray, this.recordingVisualAnalyserBufferLength);
     this.recordingVisualAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualAnalyserAnimationFrameHandler);
   }
 
   recordingVisualFrequenciesAnalyserAnimationFrameHandler = () => {
-    this.visualizeSoundFrequencies(this.recordingVisualFrequenciesAnalyser, this.recordingVisualFrequenciesAnalyserDataArray, this.recordingVisualFrequenciesAnalyserBufferLength, this.recordingFrequenciesVisualizerRef, this.recordingFrequenciesVisualizerCanvasCtx);
+    this.visualizeSoundFrequencies(this.recordingVisualFrequenciesAnalyser, this.recordingVisualFrequenciesAnalyserDataArray, this.recordingVisualFrequenciesAnalyserBufferLength, this.chatInputRef.recordingFrequenciesVisualizerRef, this.recordingFrequenciesVisualizerCanvasCtx);
     this.recordingVisualFrequenciesAnalyserAnimationFrameHandle = window.requestAnimationFrame(this.recordingVisualFrequenciesAnalyserAnimationFrameHandler);
   }
 
@@ -1124,7 +1143,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
     visualAnalyser.getByteTimeDomainData(visualAnalyserDataArray);
 
-    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillStyle = 'rgb(25, 118, 210)';
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
     canvasCtx.lineWidth = 2;
     canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
@@ -1157,12 +1176,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
     visualAnalyser.getByteFrequencyData(visualAnalyserDataArray);
 
-    canvasCtx.fillStyle = 'rgb(200, 200, 200)';
+    canvasCtx.fillStyle = 'rgb(25, 118, 210)';
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
     canvasCtx.lineWidth = 2;
     canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
     canvasCtx.beginPath();
-
+    canvasCtx.globalAlpha = 0.1;
 
     const barWidth = (WIDTH / visualAnalyserBufferLength) * 2.5;
     let barHeight;
@@ -1260,7 +1279,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     else {
       if (!this.foundRoomVolume) {
         //record just over room volume
-        this.gainValue += 10;
         this.foundRoomVolume = true;
       }
     }

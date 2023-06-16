@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ContainerNinja.API.Controllers.V1
 {
-    [Authorize(Roles = $"{UserRoles.Owner},{UserRoles.Admin}")]
+    //[Authorize(Roles = $"{UserRoles.Owner},{UserRoles.Admin}")]
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]

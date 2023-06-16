@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ContainerNinja.Controllers.V1
 {
-    [Authorize(Roles = $"{UserRoles.Owner},{UserRoles.Admin}")]
+    //[Authorize(Roles = $"{UserRoles.Owner},{UserRoles.Admin}")]
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
