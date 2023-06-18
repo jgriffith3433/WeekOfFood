@@ -16,6 +16,7 @@
         Bar = 11,
         Bun = 12,
         Bottle = 13,
+        Slice = 14,
     }
 
     public static class UnitTypeExtensionMethods
@@ -65,6 +66,9 @@
                 case "bottle":
                 case "bottles":
                     return UnitType.Bottle;
+                case "slice":
+                case "slices":
+                    return UnitType.Slice;
                 default:
                     return UnitType.None;
             }

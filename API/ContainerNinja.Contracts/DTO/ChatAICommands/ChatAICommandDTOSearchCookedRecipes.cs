@@ -4,8 +4,8 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("search_recipes", "Searches for recipes by name")]
-public record ChatAICommandDTOSearchRecipes : ChatAICommandArgumentsDTO
+[ChatCommandSpecification(new string[] { "search_logged_recipes", "get_logged_recipe" }, "Searches for recipe logs by name")]
+public record ChatAICommandDTOSearchCookedRecipes : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Name to search for")]

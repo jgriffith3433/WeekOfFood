@@ -5,6 +5,7 @@ export interface ChatMessageVm {
   content?: string;
   rawContent?: string;
   functionCall?: string;
+  forceFunctionCall?: string;
   received: boolean;
   to?: string;
 }

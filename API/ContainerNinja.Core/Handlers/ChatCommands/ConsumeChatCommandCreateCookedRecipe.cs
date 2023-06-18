@@ -7,10 +7,12 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "create_logged_recipe" })]
+    [ChatCommandModel(new[] { "create_logged_recipe" })]
     public class ConsumeChatCommandCreateCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateCookedRecipe>
     {
         public ChatAICommandDTOCreateCookedRecipe Command { get; set; }
@@ -35,30 +37,47 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
                 throw new ChatAIException(systemResponse);
             }
-            else
+            var cookedRecipe = _repository.CookedRecipes.CreateProxy();
             {
-                var cookedRecipe = _repository.CookedRecipes.CreateProxy();
+                cookedRecipe.Recipe = recipe;
+            };
+            recipe.CookedRecipes.Add(cookedRecipe);
+            foreach (var calledIngredient in recipe.CalledIngredients)
+            {
+                var cookedRecipeCalledIngredient = _repository.CookedRecipeCalledIngredients.CreateProxy();
                 {
-                    cookedRecipe.Recipe = recipe;
+                    cookedRecipeCalledIngredient.Name = calledIngredient.Name;
+                    cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
+                    cookedRecipeCalledIngredient.CalledIngredient = calledIngredient;
+                    cookedRecipeCalledIngredient.ProductStock = calledIngredient.ProductStock;
+                    cookedRecipeCalledIngredient.UnitType = calledIngredient.UnitType;
+                    cookedRecipeCalledIngredient.Units = calledIngredient.Units != null ? calledIngredient.Units.Value : 0;
                 };
-                recipe.CookedRecipes.Add(cookedRecipe);
-                foreach (var calledIngredient in recipe.CalledIngredients)
-                {
-                    var cookedRecipeCalledIngredient = _repository.CookedRecipeCalledIngredients.CreateProxy();
-                    {
-                        cookedRecipeCalledIngredient.Name = calledIngredient.Name;
-                        cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
-                        cookedRecipeCalledIngredient.CalledIngredient = calledIngredient;
-                        cookedRecipeCalledIngredient.ProductStock = calledIngredient.ProductStock;
-                        cookedRecipeCalledIngredient.UnitType = calledIngredient.UnitType;
-                        cookedRecipeCalledIngredient.Units = calledIngredient.Units != null ? calledIngredient.Units.Value : 0;
-                    };
-                    cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
-                }
-                _repository.Recipes.Update(recipe);
+                cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
             }
+            _repository.Recipes.Update(recipe);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return $"Created logged recipe: {model.Command.RecipeName}";
+            await _repository.CommitAsync();
+
+            var cookedRecipeObject = new JObject();
+            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            if (cookedRecipe.Recipe != null)
+            {
+                cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
+                cookedRecipeObject["Serves"] = cookedRecipe.Recipe.Serves;
+            }
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
+            return "Created log:\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

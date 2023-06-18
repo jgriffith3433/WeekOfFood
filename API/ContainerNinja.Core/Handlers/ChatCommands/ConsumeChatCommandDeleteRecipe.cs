@@ -2,11 +2,10 @@ using MediatR;
 using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
-using ContainerNinja.Contracts.Data.Entities;
-using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using LinqKit;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -28,69 +27,31 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteRecipe model, CancellationToken cancellationToken)
         {
-            var predicate = PredicateBuilder.New<Recipe>();
-            var searchTerms = string.Join(' ', model.Command.RecipeName.ToLower().Split('-')).Split(' ');
-            foreach (var searchTerm in searchTerms)
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+            if (recipeEntity == null)
             {
-                predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
+                var systemResponse = "Could not find recipe by id: " + model.Command.Id;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_recipe_id"" }");
             }
-
-            var query = _repository.Recipes.Set.AsExpandable().Where(predicate).ToList();
-
-            Recipe recipe;
-            if (query.Count == 0)
-            {
-                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
-                throw new ChatAIException(systemResponse);
-            }
-            else if (query.Count == 1)
-            {
-                if (query[0].Name.ToLower() == model.Command.RecipeName.ToLower())
-                {
-                    //exact match
-                    recipe = query[0];
-                }
-                else
-                {
-                    //unsure, ask user
-                    var systemResponse = "Could not find recipe by name '" + model.Command.RecipeName + "'. Did you mean: " + query[0].Name + "?";
-                    throw new ChatAIException(systemResponse);
-                }
-            }
-            else
-            {
-                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.RecipeName.ToLower());
-                if (exactMatch != null)
-                {
-                    //exact match
-                    recipe = query[0];
-                }
-                else
-                {
-                    //unsure, ask user
-                    var systemResponse = "Multiple records found: " + string.Join(", ", query.Select(r => r.Name));
-                    throw new ChatAIException(systemResponse);
-                }
-            }
-            if (recipe != null)
-            {
-                var cookedRecipes = _repository.CookedRecipes.Set.Where(cr => cr.Recipe == recipe);
-                if (cookedRecipes.Any())
-                {
-                    var systemResponse = "Can not delete recipe because there are logged recipe records that use the recipe: " + model.Command.RecipeName;
-                    throw new ChatAIException(systemResponse);
-                }
-                else
-                {
-                    foreach (var calledIngredient in recipe.CalledIngredients)
-                    {
-                        _repository.CalledIngredients.Delete(calledIngredient.Id);
-                    }
-                    _repository.Recipes.Delete(recipe.Id);
-                }
-            }
+            _repository.Recipes.Delete(recipeEntity.Id);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+
+            var recipeObject = new JObject();
+            recipeObject["Id"] = recipeEntity.Id;
+            recipeObject["RecipeName"] = recipeEntity.Name;
+            recipeObject["Serves"] = recipeEntity.Serves;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in recipeEntity.CalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return "Deleted recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

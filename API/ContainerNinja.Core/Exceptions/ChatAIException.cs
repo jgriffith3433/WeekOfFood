@@ -3,9 +3,10 @@ namespace ContainerNinja.Core.Exceptions
 {
     public class ChatAIException : Exception
     {
-        public ChatAIException(string error) : base(error)
+        public string ForceFunctionCall { get; private set; }
+        public ChatAIException(string error, string forceFunctionCall = "none") : base(error)
         {
-            
+            ForceFunctionCall = forceFunctionCall;
         }
     }
 }

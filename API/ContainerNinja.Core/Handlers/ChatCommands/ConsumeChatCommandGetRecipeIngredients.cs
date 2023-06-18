@@ -76,19 +76,21 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             if (recipe != null)
             {
                 var recipeObject = new JObject();
+                recipeObject["Id"] = recipe.Id;
                 recipeObject["RecipeName"] = recipe.Name;
                 recipeObject["Serves"] = recipe.Serves;
                 var recipeIngredientsArray = new JArray();
                 foreach (var ingredient in recipe.CalledIngredients)
                 {
                     var ingredientObject = new JObject();
+                    ingredientObject["Id"] = ingredient.Id;
                     ingredientObject["IngredientName"] = ingredient.Name;
                     ingredientObject["Units"] = ingredient.Units;
                     ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                     recipeIngredientsArray.Add(ingredientObject);
                 }
                 recipeObject["Ingredients"] = recipeIngredientsArray;
-                return JsonConvert.SerializeObject(recipeObject);
+                return "Recipe:\n" + JsonConvert.SerializeObject(recipeObject);
             }
             else
             {

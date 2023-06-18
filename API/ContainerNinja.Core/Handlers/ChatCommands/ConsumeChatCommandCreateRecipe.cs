@@ -5,6 +5,8 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -44,7 +46,24 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+            await _repository.CommitAsync();
+
+            var recipeObject = new JObject();
+            recipeObject["Id"] = recipeEntity.Id;
+            recipeObject["RecipeName"] = recipeEntity.Name;
+            recipeObject["Serves"] = recipeEntity.Serves;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in recipeEntity.CalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return "Created recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

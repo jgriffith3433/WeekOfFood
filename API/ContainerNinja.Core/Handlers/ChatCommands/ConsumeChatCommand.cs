@@ -85,11 +85,15 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                                 To = StaticValues.ChatMessageRoles.Assistant,
                                 Name = chatAICommandName,
                             });
+                            if (string.IsNullOrEmpty(chatResponseVM.ForceFunctionCall))
+                            {
+                                chatResponseVM.ForceFunctionCall = "auto";
+                            }
                         }
                     }
                     else
                     {
-                        throw new ChatAIException("Unknown command: " +  chatAICommandName);
+                        throw new ChatAIException("Unknown command: " + chatAICommandName);
                     }
                 }
                 chatCommandEntity.ChangedData = chatResponseVM.Dirty;
@@ -101,15 +105,33 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             catch (ApiValidationException ex)
             {
-                var errors = string.Join(", ", ex.Errors.SelectMany(v => v.Value.Select(e => e)));
+                var errors = "";
+
+                foreach (var error in ex.Errors)
+                {
+                    var validationMessage = "";
+                    foreach (var v in error.Value)
+                    {
+                        if (!v.Contains("ForceFunctionCall="))
+                        {
+                            validationMessage += "\n" + v;
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(validationMessage))
+                    {
+                        errors += "\n" + error.Key + ":" + validationMessage;
+                    }
+                }
+
                 chatCommandEntity.Error = FlattenException(ex) + "\n" + errors;
                 chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 {
-                    Content = errors,
-                    From = StaticValues.ChatMessageRoles.Function,
+                    Content = string.IsNullOrEmpty(errors) ? "More information required" : "Validation:\n" + errors,
+                    From = StaticValues.ChatMessageRoles.System,
                     To = StaticValues.ChatMessageRoles.Assistant,
                     Name = chatAICommandName,
                 });
+                chatResponseVM.ForceFunctionCall = ex.ForceFunctionCall;
                 request.ChatConversation.Content = JsonSerializer.Serialize(request.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
@@ -124,11 +146,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     To = StaticValues.ChatMessageRoles.Assistant,
                     Name = chatAICommandName,
                 });
+                chatResponseVM.ForceFunctionCall = ex.ForceFunctionCall;
                 request.ChatConversation.Content = JsonSerializer.Serialize(request.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
-            catch(DbUpdateException ex)
+            catch (DbUpdateException ex)
             {
                 _repository.ChangeTracker.Clear();
                 chatCommandEntity.Error = FlattenException(ex);
@@ -139,6 +162,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     To = StaticValues.ChatMessageRoles.Assistant,
                     Name = chatAICommandName,
                 });
+                chatResponseVM.ForceFunctionCall = "none";
                 request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
@@ -153,6 +177,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     To = StaticValues.ChatMessageRoles.Assistant,
                     Name = chatAICommandName,
                 });
+                chatResponseVM.ForceFunctionCall = "none";
                 request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();

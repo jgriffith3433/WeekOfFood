@@ -6,10 +6,12 @@ using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "add_logged_recipe_ingredient" })]
+    [ChatCommandModel(new[] { "add_logged_recipe_ingredient" })]
     public class ConsumeChatCommandAddCookedRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddCookedRecipeIngredient>
     {
         public ChatAICommandDTOAddCookedRecipeIngredient Command { get; set; }
@@ -46,7 +48,26 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 _repository.CookedRecipes.Update(cookedRecipe);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Successfully logged recipe: " + model.Command.RecipeName;
+
+            var cookedRecipeObject = new JObject();
+            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            if (cookedRecipe.Recipe != null)
+            {
+                cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
+                cookedRecipeObject["Serves"] = cookedRecipe.Recipe.Serves;
+            }
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
+            return $"Added ingredient: {model.Command.IngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

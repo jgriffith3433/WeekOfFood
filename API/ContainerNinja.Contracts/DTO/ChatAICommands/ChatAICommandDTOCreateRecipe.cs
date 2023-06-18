@@ -8,17 +8,20 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOCreateRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
+    [Description("Whether or not the user gave permission to create a new recipe")]
+    public bool? UserGavePermission { get; set; }
+    [Required]
     [Description("Name of the recipe")]
     public string RecipeName { get; set; }
     [Required]
     [Description("How many servings")]
-    public int Serves { get; set; }
+    public int? Serves { get; set; }
     [Required]
     [Description("List of ingredients")]
-    public List<ChatAICommandDTOCreateRecipeIngredient> Ingredients { get; set; }
+    public List<ChatAICommandDTOCreateRecipeIngredient>? Ingredients { get; set; }
 }
 
-public record ChatAICommandDTOCreateRecipeIngredient : ChatAICommandArgumentsDTO
+public record ChatAICommandDTOCreateRecipeIngredient
 {
     [Required]
     [Description("Name of the ingredient")]

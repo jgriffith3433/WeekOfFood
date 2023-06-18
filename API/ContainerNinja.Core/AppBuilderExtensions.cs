@@ -9,13 +9,17 @@ namespace ContainerNinja.Core
     {
         public static IApplicationBuilder UseSwaggerWithVersioning(this IApplicationBuilder app, IApiVersionDescriptionProvider provider)
         {
-            app.UseSwagger();
+            app.UseSwagger(c =>
+            {
+                c.RouteTemplate = "api/{documentname}/swagger.json";
+            });
             app.UseSwaggerUI(options =>
             {
+                options.RoutePrefix = "api";
                 foreach (var description in provider.ApiVersionDescriptions)
                 {
                     options.SwaggerEndpoint(
-                        $"/swagger/{description.GroupName}/swagger.json",
+                        $"/api/{description.GroupName}/swagger.json",
                         description.GroupName.ToUpperInvariant());
                 }
             });

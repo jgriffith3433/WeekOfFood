@@ -5,6 +5,8 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -49,7 +51,25 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return $"Removed {model.Command.IngredientName} from logged recipe {model.Command.RecipeName}";
+            var cookedRecipeObject = new JObject();
+            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            if (cookedRecipe.Recipe != null)
+            {
+                cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
+                cookedRecipeObject["Serves"] = cookedRecipe.Recipe.Serves;
+            }
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
+            return $"Removed ingredient: {model.Command.IngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

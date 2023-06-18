@@ -22,15 +22,14 @@ export class ChatService {
 
   getChatResponse(normal: boolean, query: GetChatResponseQuery): Observable<GetChatResponseVm> {
     if (normal) {
-
-    return this.http.post(`${this.baseUri}/Chat/Normal`, query).pipe((map(x => <GetChatResponseVm>x)));
+      return this.http.post(`${this.baseUri}/Chat/Normal`, query).pipe((map(x => <GetChatResponseVm>x)));
     }
     else {
       return this.http.post(`${this.baseUri}/Chat`, query).pipe((map(x => <GetChatResponseVm>x)));
     }
   }
 
-  getChatSpeechToText(speech: any, lastMessage: string | undefined): Observable<GetChatSpeechToTextVM>{
+  getChatSpeechToText(speech: any, lastMessage: string | undefined): Observable<GetChatSpeechToTextVM> {
     const formData = new FormData();
     formData.append("speech", speech);
     if (lastMessage) {

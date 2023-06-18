@@ -12,6 +12,7 @@ using System.Reflection;
 using NJsonSchema;
 using System.Linq;
 using ContainerNinja.Contracts.Common;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Services
 {
@@ -20,6 +21,9 @@ namespace ContainerNinja.Core.Services
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IOpenAIService _openAIService;
         private IList<ChatFunction> _functionSpecifications;
+        private string _salamiSandwichJsonObject;
+        private string _salamiSandwichWithMayoJsonObject;
+        private string _searchRecipesJsonArray;
 
         public ChatAIService(IWebHostEnvironment webHostEnvironment)
         {
@@ -30,18 +34,102 @@ namespace ContainerNinja.Core.Services
                 ApiKey = Environment.GetEnvironmentVariable("OpenAIServiceApiKey"),
             });
             _functionSpecifications = GetChatCommandSpecifications();
+
+            _salamiSandwichJsonObject = Newtonsoft.Json.JsonConvert.SerializeObject(SalamiSandwichResponse());
+            _salamiSandwichWithMayoJsonObject = Newtonsoft.Json.JsonConvert.SerializeObject(SalamiSandwichWithMayoResponse());
+            _searchRecipesJsonArray = Newtonsoft.Json.JsonConvert.SerializeObject(SearchRecipesResponse());
         }
+
+        private JObject SalamiSandwichResponse()
+        {
+            var recipeObject = new JObject();
+            recipeObject["Id"] = 2;
+            recipeObject["RecipeName"] = "Salami sandwich";
+            recipeObject["Serves"] = 1;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in new dynamic[]
+            {
+                new { Id = 1, Name = "Hoagie bun", Units = 2, UnitType = "slice" },
+                new { Id = 2, Name = "Yellow mustard", Units = 1, UnitType = "teaspoon" },
+                new { Id = 3, Name = "Salami", Units = 6, UnitType = "slice" },
+                new { Id = 4, Name = "Colby-Jack cheese", Units = 2, UnitType = "slice" },
+            }
+            )
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return recipeObject;
+        }
+
+        private JObject SalamiSandwichWithMayoResponse()
+        {
+            var recipeObject = new JObject();
+            recipeObject["Id"] = 2;
+            recipeObject["RecipeName"] = "Salami sandwich";
+            recipeObject["Serves"] = 1;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in new dynamic[]
+            {
+                new { Id = 1, Name = "Hoagie bun", Units = 2, UnitType = "slice" },
+                new { Id = 2, Name = "Mayo", Units = 1, UnitType = "teaspoon" },
+                new { Id = 3, Name = "Salami", Units = 6, UnitType = "slice" },
+                new { Id = 4, Name = "Colby-Jack cheese", Units = 2, UnitType = "slice" },
+            }
+            )
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return recipeObject;
+        }
+
+        private JArray SearchRecipesResponse()
+        {
+            var recipesArray = new JArray();
+            foreach (var recipe in new dynamic[]
+            {
+                new { Id = 1, Name = "Ham sandwich", },
+                new { Id = 2, Name = "Turkey sandwich", },
+                new { Id = 3, Name = "Salami sandwich", },
+            })
+            {
+                var recipeObject = new JObject();
+                recipeObject["Id"] = recipe.Id;
+                recipeObject["RecipeName"] = recipe.Name;
+                recipesArray.Add(recipeObject);
+            }
+
+            return recipesArray;
+        }
+
 
         public static IList<ChatFunction> GetChatCommandSpecifications()
         {
             try
             {
-                return AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => x.GetCustomAttribute<ChatCommandSpecification>() != null).Select(t =>
+                var chatFunctions = new List<ChatFunction>();
+                foreach (var ccsType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => x.GetCustomAttribute<ChatCommandSpecification>() != null))
                 {
-                    var ccs = t.GetCustomAttribute<ChatCommandSpecification>();
-                    ccs.CreateParametersSchemaFromType(t);
-                    return new ChatFunction(ccs.Name, ccs.Description, ccs.ParametersSchema);
-                }).ToList();
+                    var ccs = ccsType.GetCustomAttribute<ChatCommandSpecification>();
+
+                    foreach (var name in ccs.Names)
+                    {
+                        ccs.CreateParametersSchemaFromType(ccsType);
+                        chatFunctions.Add(new ChatFunction(name, ccs.Description, ccs.ParametersSchema));
+                    }
+                }
+                return chatFunctions;
             }
             catch (Exception ex)
             {
@@ -53,10 +141,17 @@ namespace ContainerNinja.Core.Services
             }
         }
 
-        public async Task<ChatMessageVM> GetChatResponse(List<ChatMessageVM> chatMessages, string functionCall)
+        public async Task<ChatMessageVM> GetChatResponse(List<ChatMessageVM> chatMessages, string forceFunctionCall)
         {
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest();
-            chatCompletionCreateRequest.FunctionCall = functionCall;
+            if (!string.IsNullOrEmpty(forceFunctionCall) && forceFunctionCall.Contains("{"))
+            {
+                chatCompletionCreateRequest.FunctionCall = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Dynamic.ExpandoObject>(forceFunctionCall);
+            }
+            else
+            {
+                chatCompletionCreateRequest.FunctionCall = forceFunctionCall;
+            }
             chatMessages.ForEach(cm => chatCompletionCreateRequest.Messages.Add(new ChatMessage(cm.From, cm.Content, cm.Name)));
             var completionResult = await _openAIService.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
             if (completionResult.Error != null)
@@ -73,7 +168,7 @@ namespace ContainerNinja.Core.Services
                     From = chatResponse.Role,
                     To = GetToFromChatResponse(chatResponse),
                     Name = chatResponse.Name,
-                    FunctionCall = chatResponse.FunctionCall
+                    FunctionCall = chatResponse.FunctionCall,
                 };
             }
         }
@@ -127,7 +222,7 @@ namespace ContainerNinja.Core.Services
                     From = chatResponse.Role,
                     To = GetToFromChatResponse(chatResponse),
                     Name = chatResponse.Name,
-                    FunctionCall = chatResponse.FunctionCall
+                    FunctionCall = chatResponse.FunctionCall,
                 };
             }
         }
@@ -140,11 +235,11 @@ namespace ContainerNinja.Core.Services
                 Model = Models.ChatGpt3_5Turbo0613,
                 Functions = _functionSpecifications,
                 FunctionCall = "auto",
-                Temperature = 0.3f,
+                Temperature = 0.2f,
                 //MaxTokens = 400,
                 //FrequencyPenalty = _1,
                 //PresencePenalty = _1,
-                //TopP = 0.1f
+                TopP = 0.1f
             };
             return chatCompletionCreateRequest;
         }
@@ -254,17 +349,34 @@ namespace ContainerNinja.Core.Services
         private List<ChatMessage> GetChatPrompt()
         {
             var chatPromptList = new List<ChatMessage>
-{
-ChatMessage.FromSystem(@"You are a kitchen assistant. You help the user log meals, create/modify/delete logged meals, recipes, and ingredients. You also help the user in using the website.", StaticValues.ChatMessageRoles.System),
+{//You help the user log meals, create/modify/delete logged meals, recipes, and ingredients. You help the user in using the website.
+ChatMessage.FromSystem(
+@"You are a kitchen assistant. You can call functions that dont have the UserGavePermission field any time.
+You can NOT call functions that have the UserGavePermission field if you have not asked permission to.
+The user gives permission by responding ""yes"", ""go ahead"", ""sure"" or anything else affirmative then you are allowed to set the UserGavePermission field to true for that one function call ONLY and then you must set it back to false until they give permission again.
+The flow goes like this:
+1) The user tells you something.
+2) You gather information by asking the user or by calling a function.
+3) If the function has an Id parameter you must search for it by calling other functions.
+4) If the function requires permission with the UserGavePermission field you must ask the user first.
+5) If the user gives permission go ahead and call the function, otherwise ask the user.
+6) Once you successfully call the function consolidate the information from the the function and tell the user what action that was performed.
+", StaticValues.ChatMessageRoles.System),
+/*
 ChatMessage.FromUser(@"I ate a sandwich for lunch.", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromFunction(@"Results: ham sandwich, turkey sandwich, salami sandwich", StaticValues.ChatMessageRoles.Function),
-ChatMessage.FromAssistant(@"Did you have a ham, turkey, or salami sandwich?", StaticValues.ChatMessageRoles.Assistant),
-ChatMessage.FromUser(@"It was a ham sandwich.", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromFunction(@"Created logged recipe: ham sandwich", StaticValues.ChatMessageRoles.Function),
-ChatMessage.FromAssistant(@"Okay I have successfully logged your ham sandwich.", StaticValues.ChatMessageRoles.Assistant),
-ChatMessage.FromUser(@"I didn't use any mayo.", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromFunction(@"Removed mayo from logged recipe ham sandwich", StaticValues.ChatMessageRoles.Function),
-ChatMessage.FromAssistant(@"Okay I have successfully removed mayo from your ham sandwich log.", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromFunction(_searchRecipesJsonArray, "search_recipes"),
+ChatMessage.FromAssistant(@"Okay did you have a ham, turkey, or salami sandwich?", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromUser(@"It was a salami sandwich.", StaticValues.ChatMessageRoles.User),
+ChatMessage.FromFunction(_salamiSandwichJsonObject, "get_recipe_ingredients"),
+ChatMessage.FromAssistant(@"Okay did anything vary from the recipe?", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromUser(@"I didn't use mustard, I used mayo instead.", StaticValues.ChatMessageRoles.User),
+ChatMessage.FromAssistant(@"Okay, the recipe called for 1 teaspoon of mustard, did you use about 1 teaspoon of mayo", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromUser(@"Yeah about", StaticValues.ChatMessageRoles.User),
+ChatMessage.FromAssistant(@"Okay, would you like me to log that you ate a salami sandwich with mayo for lunch?", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromUser(@"Yes", StaticValues.ChatMessageRoles.User),
+ChatMessage.FromFunction(_salamiSandwichWithMayoJsonObject, "log_recipe"),
+ChatMessage.FromAssistant(@"Okay, I have logged that you had a salami sandwich for lunch and that you substituted mustard for mayo. Is there anything else I can help you with?", StaticValues.ChatMessageRoles.Assistant),
+*/
 };
             return chatPromptList;
         }

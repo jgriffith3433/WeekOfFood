@@ -9,7 +9,20 @@ namespace ContainerNinja.Contracts.Common
     {
         public ChatCommandSpecification(string name, string? description, string? parametersSchema = null)
         {
-            Name = name;
+            Names = new string[]
+            {
+                name
+            };
+            Description = description;
+            if (parametersSchema != null)
+            {
+                CreateParametersSchemaElementFromString(parametersSchema);
+            }
+        }
+
+        public ChatCommandSpecification(string[] names, string? description, string? parametersSchema = null)
+        {
+            Names = names;
             Description = description;
             if (parametersSchema != null)
             {
@@ -45,7 +58,7 @@ namespace ContainerNinja.Contracts.Common
         }
 
 
-        public string Name { get; set; }
+        public string[] Names { get; set; }
         public string? Description { get; set; }
         public JsonElement? ParametersSchema { get; set; }
     }

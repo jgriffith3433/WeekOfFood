@@ -8,6 +8,14 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOCreateCookedRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
+    [Description("Whether or not the user gave permission to create a new logged recipe")]
+    public bool? UserGavePermission { get; set; }
+
+    [Required]
     [Description("Name of the recipe to log")]
     public string RecipeName { get; set; }
+
+    [Required]
+    [Description("When did the user make the recipe in DateTime format")]
+    public DateTime When { get; set; }
 }

@@ -9,6 +9,9 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOTemplate : ChatAICommandArgumentsDTO
 {
     [Required]
+    [Description("Whether or not the user gave permission to template")]
+    public bool? UserGavePermission { get; set; }
+    [Required]
     [Description("Name of the templateproperty")]
     public string TemplateProperty { get; set; }
 }

@@ -20,6 +20,7 @@ import { PicoService } from '../providers/pico.service';
 import { GetChatResponseVm } from '../models/GetChatResponseVm';
 import { AuthService } from '../../app/providers/auth.service';
 import { ChatInputComponent } from '../chat-input/chat-input.component';
+import { HowDoIService } from '../providers/how-do-I.service';
 
 //read online that maybe you want to use this instead?
 //import { Blob } from 'buffer';
@@ -44,6 +45,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   greeting: string;
   _previousScrollPosition = 0;
   _chatConversationId: number = -1;
+  _forceFunctionCall: string | undefined = undefined;
   chatMessages: ChatMessageVm[] = [];
   private http: HttpClient;
   private baseUrl: string;
@@ -138,6 +140,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   private keywordSubscription: Subscription;
   private errorSubscription: Subscription;
   private authSubscription: Subscription;
+  private howDoISubscription: Subscription;
 
   constructor(
     private chatService: ChatService,
@@ -145,6 +148,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     private tokenService: TokenService,
     private picoService: PicoService,
     private authService: AuthService,
+    private howDoIService: HowDoIService,
     @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string
   ) {
     this.http = http;
@@ -193,6 +197,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
     });
+    this.howDoISubscription = this.howDoIService.promise.subscribe(how => this.howDoICallback(how));
+  }
+
+  howDoICallback(how: string) {
+    if (!this.visible) {
+      this.userToggleChat();
+    }
+    this._forceFunctionCall = "none";
+    this.sendMessage(how, false);
   }
 
   public get visible() {
@@ -597,6 +610,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    this.howDoISubscription.unsubscribe();
     this.authSubscription.unsubscribe();
     this.keywordSubscription.unsubscribe();
     this.errorSubscription.unsubscribe();
@@ -732,6 +746,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   public userSendMessage({ message }: any) {
+    this._forceFunctionCall = "auto";
     this.sendMessage(message, false);
   }
 
@@ -741,7 +756,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     this.chatTextFromSpeechToText = textFromSpeechToText;
-
+    var to = this.assistant.name;
+    var previousMessage: ChatMessageVm | undefined;
+    if (this.chatMessages.length > 0) {
+      previousMessage = this.chatMessages[this.chatMessages.length - 1];
+    }
+    if (previousMessage && previousMessage.from == this.system.name && previousMessage.to == this.user.name) {
+      to = this.system.name;
+    }
     this.addMessage({
       content: message,
       rawContent: message,
@@ -757,13 +779,33 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   sendUnsentMessages() {
     let unsentMessages = false;
+    var overloaded = false;
+    var maxTokens = false;
     for (var i = 0; i < this.chatMessages.length; i++) {
       if (!this.chatMessages[i].received) {
         unsentMessages = true;
       }
-      if (i == this.chatMessages.length - 1 && this.chatMessages[i].content?.indexOf('That model is currently overloaded with other requests.') != -1) {
-        this.chatMessages[i].received = false;
-        unsentMessages = true;
+      if (i == this.chatMessages.length - 1) {
+        if (this.chatMessages[i].content && this.chatMessages[i].content?.indexOf('That model is currently overloaded with other requests.') != -1) {
+          overloaded = true;
+          if (this.chatMessages.length >= i) {
+            this.chatMessages[i].received = false;
+          }
+          unsentMessages = true;
+        }
+        if (this.chatMessages[i].content && this.chatMessages[i].content?.indexOf("This model's maximum context length is ") != -1) {
+          maxTokens = true;
+          if (this.chatMessages.length >= i) {
+            this.chatMessages[i].received = false;
+          }
+          unsentMessages = true;
+        }
+      }
+    }
+    if (maxTokens) {
+      var lengthOfChatMessages = this.chatMessages.length;
+      for (var i = 0; i < lengthOfChatMessages / 2; i++) {
+        this.chatMessages.shift();
       }
     }
     if (!unsentMessages) {
@@ -772,11 +814,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     let query: GetChatResponseQuery = {
       chatMessages: this.chatMessages,
       chatConversationId: this._chatConversationId,
+      forceFunctionCall: this._forceFunctionCall,
       currentUrl: this.getCurrentPageName(),
     };
 
     this.chatService.getChatResponse(this.normalConversation, query).subscribe(
-      result => this.receiveMessage(result, true),
+      result => this.receiveChatResponse(result, true),
       error => {
         setTimeout(() => {
           if (this.getCurrentPageName() != 'login') {
@@ -812,12 +855,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     );
   }
 
-  getSystemMessage() {
-    for (let i = this.chatMessages.length - 1; i >= 0; i--) {
-      if (this.chatMessages[i].from == this.system.name) {
-        return this.chatMessages[i].content;
-      }
-    }
+  getSystemGreeting() {
     return this.greeting;
   }
 
@@ -825,7 +863,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     return (window as any).debug;
   }
 
-  receiveMessage(response: GetChatResponseVm, speak: boolean) {
+  receiveChatResponse(response: GetChatResponseVm, speak: boolean) {
     let newChatMessages: ChatMessageVm[] = [];
     if (response.chatMessages) {
       //get new messages
@@ -856,6 +894,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         this.greeting = 'Something went wrong, creating new chat instance';
         setTimeout(() => {
           this._chatConversationId = -1;
+          this._forceFunctionCall = undefined;
           while (this.chatMessages.length > 0) {
             this.chatMessages.pop();
           }
@@ -870,6 +909,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         this.scrollToBottom();
         setTimeout(() => {
           this._chatConversationId = -1;
+          this._forceFunctionCall = undefined;
           while (this.chatMessages.length > 0) {
             this.chatMessages.pop();
           }
@@ -879,6 +919,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     else {
       this._chatConversationId = response.chatConversationId || -1;
+      this._forceFunctionCall = response.forceFunctionCall || undefined;
       if (response.chatMessages) {
         this.chatMessages = response.chatMessages;
       }
@@ -964,6 +1005,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     if (respond && this.chatMessages.length == 0) {
       var chatResponse = {
         chatConversationId: this._chatConversationId,
+        forceFunctionCall: this._forceFunctionCall,
         chatMessages: [...this.chatMessages, {
           content: 'How can I help you manage your ' + this.getCurrentPageName(),
           rawContent: 'How can I help you manage your ' + this.getCurrentPageName(),
@@ -977,7 +1019,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         error: false,
         navigateToPage: undefined
       } as GetChatResponseVm;
-      this.receiveMessage(chatResponse, false);
+      this.receiveChatResponse(chatResponse, false);
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
       console.log("This browser does not support the API yet");
@@ -1486,6 +1528,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                         if (add) {
                           if ((this.speechToTextMessage == "" && speechText == "") || (this.speechToTextMessage && this.speechToTextMessage.toLowerCase().replace(/[^\x41-\x7F]/g, "") == speechText.toLowerCase().replace(/[^\x41-\x7F]/g, ""))) {
                             this.chatInputRef.clearMessage();
+                            this._forceFunctionCall = "auto";
                             this.sendMessage(speechText, true);
                             this.stopRecording();
                             this.speechToTextMessage = undefined;
@@ -1498,6 +1541,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
                         else {
                           if (speechText) {
                             this.chatInputRef.clearMessage();
+                            this._forceFunctionCall = "auto";
                             this.sendMessage(speechText, true);
                             this.stopRecording();
                             this.speechToTextMessage = undefined;

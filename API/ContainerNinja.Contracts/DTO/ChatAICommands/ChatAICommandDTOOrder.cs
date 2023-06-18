@@ -8,6 +8,9 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOOrder : ChatAICommandArgumentsDTO
 {
     [Required]
+    [Description("Whether or not the user gave permission to create a new order")]
+    public bool? UserGavePermission { get; set; }
+    [Required]
     [Description("Items to order")]
     public List<ChatAICommandDTOOrderItem> Items { get; set; }
 }

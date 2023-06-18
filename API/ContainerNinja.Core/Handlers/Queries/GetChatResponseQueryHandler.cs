@@ -21,6 +21,7 @@ namespace ContainerNinja.Core.Handlers.Queries
         public string CurrentUrl { get; set; }
         public bool NormalChat { get; set; }
         public string NavigateToPage { get; set; }
+        public string ForceFunctionCall { get; set; }
         public bool Dirty { get; set; }
     }
 
@@ -52,13 +53,14 @@ namespace ContainerNinja.Core.Handlers.Queries
             {
                 if (string.IsNullOrEmpty(cm.Content))
                 {
-                    cm.Content = "Okay";
+                    cm.Content = "...";
                 }
             });
 
             try
             {
-                var messageToHandle = chatResponseVM.ChatMessages.LastOrDefault(cm => cm.Received == false);
+                var messageToHandle = chatResponseVM.ChatMessages.LastOrDefault();
+                var previousMessageToHandle = chatResponseVM.ChatMessages.LastOrDefault(cm => cm != messageToHandle);
                 if (messageToHandle == null)
                 {
                     throw new Exception("No new messages");
@@ -69,18 +71,21 @@ namespace ContainerNinja.Core.Handlers.Queries
                 {
                     if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
                     {
-                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "auto");
+                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, model.ForceFunctionCall);
                         chatResponseVM.ChatMessages.Add(chatMessageVM);
+                        chatResponseVM.ForceFunctionCall = "auto";
                     }
                     else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
                     {
-                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "none");
+                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, model.ForceFunctionCall);
                         chatResponseVM.ChatMessages.Add(chatMessageVM);
+                        chatResponseVM.ForceFunctionCall = "auto";
                     }
                     else if (messageToHandle.From == StaticValues.ChatMessageRoles.System)
                     {
-                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, "none");
+                        var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, model.ForceFunctionCall);
                         chatResponseVM.ChatMessages.Add(chatMessageVM);
+                        chatResponseVM.ForceFunctionCall = "auto";
                     }
                     else if (messageToHandle.From == StaticValues.ChatMessageRoles.Assistant)
                     {
@@ -130,7 +135,27 @@ namespace ContainerNinja.Core.Handlers.Queries
                 else if (messageToHandle.To == StaticValues.ChatMessageRoles.User)
                 {
                     //currently these flows should not happen because the chat system is RESTful
-                    //so all messages start from the user and return to the user over http
+                    //so all messages start from the user and return to the user over http and get marked as received
+                    if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.System)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Assistant)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                else if (messageToHandle.To == StaticValues.ChatMessageRoles.System)
+                {
+                    //TODO: create a chat model that can tell if the user accepts or declines
                     if (messageToHandle.From == StaticValues.ChatMessageRoles.User)
                     {
                         throw new NotImplementedException();
@@ -159,6 +184,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     From = StaticValues.ChatMessageRoles.System,
                     To = StaticValues.ChatMessageRoles.User,
                 });
+                chatResponseVM.ForceFunctionCall = "none";
                 _repository.ChatConversations.Update(model.ChatConversation);
                 await _repository.CommitAsync();
             }
@@ -171,6 +197,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     From = StaticValues.ChatMessageRoles.System,
                     To = StaticValues.ChatMessageRoles.User,
                 });
+                chatResponseVM.ForceFunctionCall = "none";
                 //chatResponseVM.Error = true;
             }
             _cache.Clear();

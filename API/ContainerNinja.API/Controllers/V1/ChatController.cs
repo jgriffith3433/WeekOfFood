@@ -46,6 +46,7 @@ namespace ContainerNinja.Controllers.V1
                 ChatMessages = getChatResponse.ChatMessages,
                 CurrentUrl = getChatResponse.CurrentUrl,
                 ChatConversation = chatConversation,
+                ForceFunctionCall = getChatResponse.ForceFunctionCall,
             });
             if (response.Error)
             {

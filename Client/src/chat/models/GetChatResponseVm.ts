@@ -7,4 +7,5 @@ export interface GetChatResponseVm {
   dirty?: boolean;
   navigateToPage?: string;
   chatMessages?: ChatMessageVm[];
+  forceFunctionCall: string | undefined;
 }

@@ -9,6 +9,7 @@ namespace ContainerNinja.Contracts.ViewModels
         public bool Dirty { get; set; }
         public bool UnknownCommand { get; set; }
         public string NavigateToPage { get; set; }
+        public string ForceFunctionCall { get; set; }
         public List<ChatMessageVM> ChatMessages { get; set; }
     }
 }

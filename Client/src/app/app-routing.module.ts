@@ -13,6 +13,7 @@ import { ProductStocksComponent } from './components/pages/product-stocks/produc
 import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';
 import { RecipesComponent } from './components/pages/recipes/recipes.component';
 import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
+import { PortfolioComponent } from './components/pages/portfolio/portfolio.component';
 
 const routes: Routes = [
   {
@@ -59,6 +60,11 @@ const routes: Routes = [
   {
     path: 'logged-recipes'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: CookedRecipesComponent },
+    ]
+  },
+  {
+    path: 'portfolio'/*, canActivate: [AuthGuard]*/, children: [
+      { path: '', component: PortfolioComponent },
     ]
   },
   { path: 'login', component: LoginComponent },

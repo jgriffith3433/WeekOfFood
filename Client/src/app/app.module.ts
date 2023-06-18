@@ -15,6 +15,7 @@ import { TodoListsComponent } from './components/pages/todo-lists/todo-lists.com
 import { TodoListComponent } from './components/pages/todo-list/todo-list.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpErrorInterceptor } from './http-error.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ProductsComponent } from './components/pages/products/products.component';
 import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
@@ -22,7 +23,7 @@ import { ProductStocksComponent } from './components/pages/product-stocks/produc
 import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';
 import { RecipesComponent } from './components/pages/recipes/recipes.component';
 import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
-import { HttpErrorInterceptor } from './http-error.interceptor';
+import { PortfolioComponent } from './components/pages/portfolio/portfolio.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { HttpErrorInterceptor } from './http-error.interceptor';
     CalledIngredientsComponent,
     RecipesComponent,
     CookedRecipesComponent,
+    PortfolioComponent,
   ],
   imports: [
     BrowserModule,

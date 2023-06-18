@@ -6,6 +6,8 @@ using ContainerNinja.Contracts.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -27,23 +29,40 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteCookedRecipe model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(cr => cr.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
+            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(cr => cr.Id == model.Command.Id);
 
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by name: " + model.Command.RecipeName;
+                var systemResponse = "Could not find logged recipe by ID: " + model.Command.Id;
                 throw new ChatAIException(systemResponse);
             }
-            else
+            foreach (var cookedRecipeCalledIngredient in cookedRecipe.CookedRecipeCalledIngredients)
             {
-                foreach (var cookedRecipeCalledIngredient in cookedRecipe.CookedRecipeCalledIngredients)
-                {
-                    _repository.CookedRecipeCalledIngredients.Delete(cookedRecipeCalledIngredient.Id);
-                }
-                _repository.CookedRecipes.Delete(cookedRecipe.Id);
+                _repository.CookedRecipeCalledIngredients.Delete(cookedRecipeCalledIngredient.Id);
             }
+            _repository.CookedRecipes.Delete(cookedRecipe.Id);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+
+            var cookedRecipeObject = new JObject();
+            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            if (cookedRecipe.Recipe != null)
+            {
+                cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
+                cookedRecipeObject["Serves"] = cookedRecipe.Recipe.Serves;
+            }
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
+
+            return "Deleted log:\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

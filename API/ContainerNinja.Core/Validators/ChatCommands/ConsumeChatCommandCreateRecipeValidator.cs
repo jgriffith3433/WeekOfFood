@@ -7,6 +7,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandCreateRecipeValidator()
         {
+            RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("Ask user if you can run the command");
             RuleFor(v => v.Command.RecipeName).NotEmpty().WithMessage("RecipeName is required");
             RuleFor(v => v.Command.Serves).NotEmpty().WithMessage("Serves is required");
             RuleFor(v => v.Command.Ingredients).NotEmpty().WithMessage("Ingredients is required");

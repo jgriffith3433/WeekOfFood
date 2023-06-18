@@ -6,6 +6,8 @@ using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -27,25 +29,40 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.RecipeName.ToLower());
-            if (recipe == null)
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+            if (recipeEntity == null)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.Id;
                 throw new ChatAIException(systemResponse);
             }
 
-            var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.IngredientName.ToLower()));
+            var calledIngredient = recipeEntity.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.IngredientName.ToLower()));
 
             if (calledIngredient == null)
             {
-                var systemResponse = "No ingredient '" + model.Command.IngredientName + "' found on recipe '" + model.Command.RecipeName + "'. The ingredients are: " + string.Join(", ", recipe.CalledIngredients.Select(ci => ci.Name));
+                var systemResponse = "No ingredient '" + model.Command.IngredientName + "' found on recipe '" + model.Command.Id + "'. The ingredients are: " + string.Join(", ", recipeEntity.CalledIngredients.Select(ci => ci.Name));
                 throw new ChatAIException(systemResponse);
             }
 
-            recipe.CalledIngredients.Remove(calledIngredient);
-            _repository.Recipes.Update(recipe);
+            recipeEntity.CalledIngredients.Remove(calledIngredient);
+            _repository.Recipes.Update(recipeEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+            var recipeObject = new JObject();
+            recipeObject["Id"] = recipeEntity.Id;
+            recipeObject["RecipeName"] = recipeEntity.Name;
+            recipeObject["Serves"] = recipeEntity.Serves;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in recipeEntity.CalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return "Created recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

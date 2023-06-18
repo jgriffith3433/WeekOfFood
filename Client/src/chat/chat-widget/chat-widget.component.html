@@ -9,7 +9,7 @@
         </div>
         <chat-avatar [image]="system.avatar"></chat-avatar>
         <h3 class="system-greeting">
-          {{ getSystemMessage() }}
+          {{ getSystemGreeting() }}
         </h3>
       </div>
     </div>
@@ -17,7 +17,8 @@
       <!--<button class="chat-button" (click)="toggleNormalConversation()">Normal</button>-->
       <div class="chat-message-bottom" #bottom></div>
       <ng-container *ngFor="let message of chatMessages.slice().reverse()">
-        <div *ngIf="message.from == 'user' || message.from == 'assistant'" class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
+        <!--<div *ngIf="message.from == 'user' || message.from == 'assistant'" class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">-->
+        <div  class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
           <div>
             <chat-avatar [image]="getAvatarForRole(message.from)" class="chat-message-from-avatar"></chat-avatar>
             <div class="chat-message-text">

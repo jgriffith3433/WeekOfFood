@@ -8,6 +8,9 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTODeleteProduct : ChatAICommandArgumentsDTO
 {
     [Required]
+    [Description("Whether or not the user gave permission to delete the product")]
+    public bool? UserGavePermission { get; set; }
+    [Required]
     [Description("Name of the product")]
     public string ProductName { get; set; }
 }

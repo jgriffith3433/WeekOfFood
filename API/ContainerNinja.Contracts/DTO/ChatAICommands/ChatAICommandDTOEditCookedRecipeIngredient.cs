@@ -4,12 +4,15 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("substitute_logged_recipe_ingredient", "Substitutes an ingredient in a logged recipe")]
-public record ChatAICommandDTOSubstituteCookedRecipeIngredient : ChatAICommandArgumentsDTO
+[ChatCommandSpecification("edit_logged_recipe_ingredient", "Delete one ingredient and add another")]
+public record ChatAICommandDTOEditCookedRecipeIngredient : ChatAICommandArgumentsDTO
 {
     [Required]
+    [Description("Whether or not the user gave permission to substitute an ingredient in the logged recipe")]
+    public bool? UserGavePermission { get; set; }
+    [Required]
     [Description("Name of the logged recipe")]
-    public string RecipeName { get; set; }
+    public int Id { get; set; }
     [Required]
     [Description("Name of the original ingredient")]
     public string OriginalIngredient { get; set; }

@@ -29,62 +29,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
         {
-            var predicate = PredicateBuilder.New<Recipe>();
-            var searchTerms = string.Join(' ', model.Command.OriginalName.ToLower().Split('-')).Split(' ');
-            foreach (var searchTerm in searchTerms)
+            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+
+            if (recipe == null)
             {
-                predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
+                var systemResponse = "Could not find recipe by id '" + model.Command.Id;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_recipe_id"" }");
             }
 
-            var query = _repository.Recipes.Set.AsExpandable().Where(predicate).ToList();
-
-            Recipe recipe;
-            if (query.Count == 0)
+            var existingRecipeWithName = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.NewName.ToLower());
+            if (existingRecipeWithName != null)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.OriginalName;
+                var systemResponse = "Recipe already exists: " + model.Command.NewName;
                 throw new ChatAIException(systemResponse);
             }
-            else if (query.Count == 1)
-            {
-                if (query[0].Name.ToLower() == model.Command.OriginalName.ToLower())
-                {
-                    //exact match
-                    recipe = query[0];
-                }
-                else
-                {
-                    //unsure, ask user
-                    var systemResponse = "Could not find recipe by name '" + model.Command.OriginalName + "'. Did you mean: " + query[0].Name + "?";
-                    throw new ChatAIException(systemResponse);
-                }
-            }
-            else
-            {
-                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.OriginalName.ToLower());
-                if (exactMatch != null)
-                {
-                    //exact match
-                    recipe = query[0];
-                }
-                else
-                {
-                    //unsure, ask user
-                    var systemResponse = "Multiple records found: " + string.Join(", ", query.Select(r => r.Name));
-                    throw new ChatAIException(systemResponse);
-                }
-            }
-            if (recipe != null)
-            {
-                var existingRecipeWithName = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.NewName.ToLower());
-                if (existingRecipeWithName != null)
-                {
-                    var systemResponse = "Recipe already exists: " + model.Command.NewName;
-                    throw new ChatAIException(systemResponse);
-                }
 
-                recipe.Name = model.Command.NewName;
-                _repository.Recipes.Update(recipe);
-            }
+            recipe.Name = model.Command.NewName;
+            _repository.Recipes.Update(recipe);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             return "Success";
