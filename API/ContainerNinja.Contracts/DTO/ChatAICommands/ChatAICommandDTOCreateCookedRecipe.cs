@@ -12,8 +12,8 @@ public record ChatAICommandDTOCreateCookedRecipe : ChatAICommandArgumentsDTO
     public bool? UserGavePermission { get; set; }
 
     [Required]
-    [Description("Name of the recipe to log")]
-    public string RecipeName { get; set; }
+    [Description("Id recipe to log")]
+    public int RecipeId { get; set; }
 
     [Required]
     [Description("When did the user make the recipe in DateTime format")]

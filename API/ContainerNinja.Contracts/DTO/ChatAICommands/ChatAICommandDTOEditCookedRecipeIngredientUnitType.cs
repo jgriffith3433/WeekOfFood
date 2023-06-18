@@ -11,11 +11,11 @@ public record ChatAICommandDTOEditCookedRecipeIngredientUnitType : ChatAICommand
     [Description("Whether or not the user gave permission to change the unit type for the logged recipe's ingredient")]
     public bool? UserGavePermission { get; set; }
     [Required]
-    [Description("Name of the recipe")]
-    public string RecipeName { get; set; }
+    [Description("Id of the logged recipe")]
+    public int LoggedRecipeId { get; set; }
     [Required]
-    [Description("Name of the ingredient")]
-    public string IngredientName { get; set; }
+    [Description("Id of the logged ingredient to change the unit type of")]
+    public int LoggedIngredientId { get; set; }
     [Required]
     [Description("New unit type")]
     public string UnitType { get; set; }

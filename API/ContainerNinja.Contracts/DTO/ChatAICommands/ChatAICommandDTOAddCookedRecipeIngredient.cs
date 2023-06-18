@@ -11,8 +11,8 @@ public record ChatAICommandDTOAddCookedRecipeIngredient : ChatAICommandArguments
     [Description("Whether or not the user gave permission to add an ingredient to the logged recipe")]
     public bool? UserGavePermission { get; set; }
     [Required]
-    [Description("Name of the logged recipe")]
-    public string RecipeName { get; set; }
+    [Description("Id of the logged recipe")]
+    public int LoggedRecipeId { get; set; }
     [Required]
     [Description("Name of the ingredient")]
     public string IngredientName { get; set; }

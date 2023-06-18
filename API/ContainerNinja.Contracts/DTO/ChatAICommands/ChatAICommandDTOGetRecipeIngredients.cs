@@ -8,6 +8,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOGetRecipeIngredients : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Name of the recipe to get ingredients for")]
-    public string RecipeName { get; set; }
+    [Description("Id of the recipe to get ingredients of")]
+    public int RecipeId { get; set; }
 }

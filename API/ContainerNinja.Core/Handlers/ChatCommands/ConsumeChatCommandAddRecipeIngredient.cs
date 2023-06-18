@@ -8,6 +8,8 @@ using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -29,64 +31,44 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandAddRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var predicate = PredicateBuilder.New<Recipe>();
-            var searchTerms = string.Join(' ', model.Command.RecipeName.ToLower().Split('-')).Split(' ');
-            foreach (var searchTerm in searchTerms)
+            var recipe = _repository.Recipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Id == model.Command.RecipeId);
+            if (recipe == null)
             {
-                predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
-            }
-
-            var query = _repository.Recipes.Set.AsExpandable().Where(predicate).ToList();
-            Recipe recipe;
-            if (query.Count == 0)
-            {
-                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse);
-            }
-            else if (query.Count == 1)
-            {
-                if (query[0].Name.ToLower() == model.Command.RecipeName.ToLower())
-                {
-                    //exact match
-                    recipe = query[0];
-                }
-                else
-                {
-                    //unsure, ask user
-                    var systemResponse = "Could not find recipe by name '" + model.Command.RecipeName + "'. Did you mean: " + query[0].Name + "?";
-                    throw new ChatAIException(systemResponse);
-                }
             }
             else
             {
-                var exactMatch = query.FirstOrDefault(r => r.Name.ToLower() == model.Command.RecipeName.ToLower());
-                if (exactMatch != null)
+                var recipeCalledIngredient = _repository.CalledIngredients.CreateProxy();
                 {
-                    //exact match
-                    recipe = query[0];
-                }
-                else
-                {
-                    //unsure, ask user
-                    var systemResponse = "Multiple records found: " + string.Join(", ", query.Select(r => r.Name));
-                    throw new ChatAIException(systemResponse);
-                }
-            }
-            if (recipe != null)
-            {
-                var calledIngredient = _repository.CalledIngredients.CreateProxy();
-                {
-                    calledIngredient.Name = model.Command.IngredientName;
-                    calledIngredient.Recipe = recipe;
-                    calledIngredient.Verified = false;
-                    calledIngredient.Units = model.Command.Units;
-                    calledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
+                    recipeCalledIngredient.Name = model.Command.IngredientName;
+                    recipeCalledIngredient.Units = model.Command.Units;
+                    recipeCalledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
                 };
-                recipe.CalledIngredients.Add(calledIngredient);
+                recipe.CalledIngredients.Add(recipeCalledIngredient);
                 _repository.Recipes.Update(recipe);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+
+            var recipeObject = new JObject();
+            recipeObject["RecipeId"] = recipe.Id;
+            if (recipe != null)
+            {
+                recipeObject["RecipeName"] = recipe.Name;
+                recipeObject["Serves"] = recipe.Serves;
+            }
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in recipe.CalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["IngredientId"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return $"Added ingredient: {model.Command.IngredientName}\n" + JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

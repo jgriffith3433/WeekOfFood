@@ -7,7 +7,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandGetRecipeIngredientsValidator()
         {
-            RuleFor(v => v.Command.RecipeName).NotEmpty().WithMessage("RecipeName is required");
+            RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage("RecipeId is required");
         }
     }
 }

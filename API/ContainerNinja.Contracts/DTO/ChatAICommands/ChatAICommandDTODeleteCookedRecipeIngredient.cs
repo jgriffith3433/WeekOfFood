@@ -11,8 +11,8 @@ public record ChatAICommandDTODeleteCookedRecipeIngredient : ChatAICommandArgume
     [Description("Whether or not the user gave permission to delete the logged recipe's ingredient")]
     public bool? UserGavePermission { get; set; }
     [Required]
-    [Description("Name of the logged recipe")]
-    public string RecipeName { get; set; }
+    [Description("Id of the logged recipe")]
+    public int LoggedRecipeId { get; set; }
     [Required]
     [Description("Name of the ingredient to delete")]
     public string IngredientName { get; set; }

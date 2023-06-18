@@ -46,7 +46,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             foreach (var recipe in query)
             {
                 var recipeObject = new JObject();
-                recipeObject["Id"] = recipe.Id;
+                recipeObject["RecipeId"] = recipe.Id;
                 recipeObject["RecipeName"] = recipe.Name;
                 results.Add(recipeObject);
             }

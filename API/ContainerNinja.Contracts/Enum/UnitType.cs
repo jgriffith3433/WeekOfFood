@@ -17,6 +17,9 @@
         Bun = 12,
         Bottle = 13,
         Slice = 14,
+        Box = 15,
+        Bag = 16,
+        Gallon = 17,
     }
 
     public static class UnitTypeExtensionMethods
@@ -69,6 +72,15 @@
                 case "slice":
                 case "slices":
                     return UnitType.Slice;
+                case "box":
+                case "boxes":
+                    return UnitType.Box;
+                case "bag":
+                case "bags":
+                    return UnitType.Bag;
+                case "gallon":
+                case "gallons":
+                    return UnitType.Gallon;
                 default:
                     return UnitType.None;
             }

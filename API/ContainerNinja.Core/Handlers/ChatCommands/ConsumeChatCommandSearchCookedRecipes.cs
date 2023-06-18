@@ -40,23 +40,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             var results = new JArray();
             foreach (var cookedRecipe in query)
             {
-                var recipeObject = new JObject();
-                recipeObject["Id"] = cookedRecipe.Id;
+                var loggedRecipeObject = new JObject();
+                loggedRecipeObject["LoggedRecipeId"] = cookedRecipe.Id;
                 if (cookedRecipe.Recipe != null)
                 {
-                    recipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
-                    recipeObject["Serves"] = cookedRecipe.Recipe.Serves;
+                    loggedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
+                    loggedRecipeObject["Serves"] = cookedRecipe.Recipe.Serves;
                 }
                 var recipeIngredientsArray = new JArray();
                 foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
                 {
                     var ingredientObject = new JObject();
-                    ingredientObject["Id"] = ingredient.Id;
+                    ingredientObject["LoggedIngredientId"] = ingredient.Id;
                     ingredientObject["IngredientName"] = ingredient.Name;
                     recipeIngredientsArray.Add(ingredientObject);
                 }
-                recipeObject["Ingredients"] = recipeIngredientsArray;
-                results.Add(recipeObject);
+                loggedRecipeObject["Ingredients"] = recipeIngredientsArray;
+                results.Add(loggedRecipeObject);
             }
             return "Logged Recipes:\n" + JsonConvert.SerializeObject(results);
         }

@@ -2,8 +2,6 @@ using MediatR;
 using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
-using ContainerNinja.Contracts.Data.Entities;
-using Microsoft.EntityFrameworkCore;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
 using Newtonsoft.Json;
@@ -29,36 +27,33 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
             if (recipeEntity == null)
             {
-                var systemResponse = "Could not find recipe by ID: " + model.Command.Id;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse);
             }
-            var calledIngredient = recipeEntity.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.OriginalIngredient.ToLower()));
+            var calledIngredient = recipeEntity.CalledIngredients.FirstOrDefault(ci => ci.Id == model.Command.IngredientId);
 
             if (calledIngredient == null)
             {
-                var systemResponse = "Could not find ingredient by name: " + model.Command.OriginalIngredient;
+                var systemResponse = "Could not find ingredient by ID: " + model.Command.IngredientId;
                 throw new ChatAIException(systemResponse);
             }
-            else
-            {
-                calledIngredient.Name = model.Command.NewIngredient;
-                calledIngredient.ProductStock = null;
-                _repository.CalledIngredients.Update(calledIngredient);
-            }
+            calledIngredient.Name = model.Command.NewIngredientName;
+            calledIngredient.ProductStock = null;
+            _repository.CalledIngredients.Update(calledIngredient);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
             var recipeObject = new JObject();
-            recipeObject["Id"] = recipeEntity.Id;
+            recipeObject["RecipeId"] = recipeEntity.Id;
             recipeObject["RecipeName"] = recipeEntity.Name;
             recipeObject["Serves"] = recipeEntity.Serves;
             var recipeIngredientsArray = new JArray();
             foreach (var ingredient in recipeEntity.CalledIngredients)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();

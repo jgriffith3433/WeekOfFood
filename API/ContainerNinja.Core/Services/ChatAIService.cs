@@ -21,9 +21,6 @@ namespace ContainerNinja.Core.Services
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IOpenAIService _openAIService;
         private IList<ChatFunction> _functionSpecifications;
-        private string _salamiSandwichJsonObject;
-        private string _salamiSandwichWithMayoJsonObject;
-        private string _searchRecipesJsonArray;
 
         public ChatAIService(IWebHostEnvironment webHostEnvironment)
         {
@@ -35,84 +32,7 @@ namespace ContainerNinja.Core.Services
             });
             _functionSpecifications = GetChatCommandSpecifications();
 
-            _salamiSandwichJsonObject = Newtonsoft.Json.JsonConvert.SerializeObject(SalamiSandwichResponse());
-            _salamiSandwichWithMayoJsonObject = Newtonsoft.Json.JsonConvert.SerializeObject(SalamiSandwichWithMayoResponse());
-            _searchRecipesJsonArray = Newtonsoft.Json.JsonConvert.SerializeObject(SearchRecipesResponse());
         }
-
-        private JObject SalamiSandwichResponse()
-        {
-            var recipeObject = new JObject();
-            recipeObject["Id"] = 2;
-            recipeObject["RecipeName"] = "Salami sandwich";
-            recipeObject["Serves"] = 1;
-            var recipeIngredientsArray = new JArray();
-            foreach (var ingredient in new dynamic[]
-            {
-                new { Id = 1, Name = "Hoagie bun", Units = 2, UnitType = "slice" },
-                new { Id = 2, Name = "Yellow mustard", Units = 1, UnitType = "teaspoon" },
-                new { Id = 3, Name = "Salami", Units = 6, UnitType = "slice" },
-                new { Id = 4, Name = "Colby-Jack cheese", Units = 2, UnitType = "slice" },
-            }
-            )
-            {
-                var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
-                ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["Units"] = ingredient.Units;
-                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
-                recipeIngredientsArray.Add(ingredientObject);
-            }
-            recipeObject["Ingredients"] = recipeIngredientsArray;
-            return recipeObject;
-        }
-
-        private JObject SalamiSandwichWithMayoResponse()
-        {
-            var recipeObject = new JObject();
-            recipeObject["Id"] = 2;
-            recipeObject["RecipeName"] = "Salami sandwich";
-            recipeObject["Serves"] = 1;
-            var recipeIngredientsArray = new JArray();
-            foreach (var ingredient in new dynamic[]
-            {
-                new { Id = 1, Name = "Hoagie bun", Units = 2, UnitType = "slice" },
-                new { Id = 2, Name = "Mayo", Units = 1, UnitType = "teaspoon" },
-                new { Id = 3, Name = "Salami", Units = 6, UnitType = "slice" },
-                new { Id = 4, Name = "Colby-Jack cheese", Units = 2, UnitType = "slice" },
-            }
-            )
-            {
-                var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
-                ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["Units"] = ingredient.Units;
-                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
-                recipeIngredientsArray.Add(ingredientObject);
-            }
-            recipeObject["Ingredients"] = recipeIngredientsArray;
-            return recipeObject;
-        }
-
-        private JArray SearchRecipesResponse()
-        {
-            var recipesArray = new JArray();
-            foreach (var recipe in new dynamic[]
-            {
-                new { Id = 1, Name = "Ham sandwich", },
-                new { Id = 2, Name = "Turkey sandwich", },
-                new { Id = 3, Name = "Salami sandwich", },
-            })
-            {
-                var recipeObject = new JObject();
-                recipeObject["Id"] = recipe.Id;
-                recipeObject["RecipeName"] = recipe.Name;
-                recipesArray.Add(recipeObject);
-            }
-
-            return recipesArray;
-        }
-
 
         public static IList<ChatFunction> GetChatCommandSpecifications()
         {
@@ -256,79 +176,6 @@ namespace ContainerNinja.Core.Services
                 Temperature = 0.6f
             };
             return chatCompletionCreateRequest;
-        }
-
-        private string[] GetCommandsForCurrentUrl(string currentUrl)
-        {
-            switch (currentUrl)
-            {
-
-                case "recipes":
-                    return new string[]
-                    {
-    "none",
-    "go_to_page",
-    "edit_recipe_name",
-    "add_recipe_ingredient",
-    "create_recipe",
-    "delete_recipe",
-    "edit_recipe_ingredient_unittype",
-    "add_recipe_ingredient",
-    "substitute_recipe_ingredient"
-                    };
-                case "cooked_recipes":
-                    return new string[]
-                    {
-    "none",
-    "go_to_page",
-    "add_cooked_recipe_ingredient",
-    "create_cooked_recipe",
-    "substitute_cooked_recipe_ingredient",
-    "edit_cooked_recipe_ingredient_unittype",
-    "delete_cooked_recipe"
-                    };
-                case "products":
-                    return new string[]
-                    {
-    "none",
-    "go_to_page",
-    "edit_product_unit_type",
-    "create_product",
-    "delete_product"
-                    };
-                case "home":
-                default:
-                    return new string[]
-                    {
-    "none",
-    "go_to_page"
-                    };
-            }
-        }
-
-        private string[] GetAllCommands()
-        {
-            return new string[] {
-"go_to_page",
-"order",
-"edit_recipe_name",
-"substitute_recipe_ingredient",
-"substitute_cooked_recipe_ingredient",
-"add_recipe_ingredient",
-"add_cooked_recipe_ingredient",
-"remove_recipe_ingredient",
-"remove_cooked_recipe_ingredient",
-"edit_recipe_ingredient_unittype",
-"edit_cooked_recipe_ingredient_unittype",
-"edit_product_unit_type",
-"create_product",
-"delete_product",
-"create_recipe",
-"delete_recipe",
-"create_cooked_recipe",
-"none",
-"delete_cooked_recipe",
-};
         }
 
         private string[] GetPages()

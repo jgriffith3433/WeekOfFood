@@ -11,15 +11,15 @@ public record ChatAICommandDTOOrder : ChatAICommandArgumentsDTO
     [Description("Whether or not the user gave permission to create a new order")]
     public bool? UserGavePermission { get; set; }
     [Required]
-    [Description("Items to order")]
-    public List<ChatAICommandDTOOrderItem> Items { get; set; }
+    [Description("Products to order")]
+    public List<ChatAICommandDTOOrder_Product> Products { get; set; }
 }
 
-public record ChatAICommandDTOOrderItem : ChatAICommandArgumentsDTO
+public record ChatAICommandDTOOrder_Product
 {
     [Required]
-    [Description("Name of the item")]
-    public string ItemName { get; set; }
+    [Description("Id of the product")]
+    public int ProductId { get; set; }
     [Required]
     [Description("How many units")]
     public long Quantity { get; set; }

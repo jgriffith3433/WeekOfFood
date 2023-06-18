@@ -11,8 +11,8 @@ public record ChatAICommandDTOEditProductUnitType : ChatAICommandArgumentsDTO
     [Description("Whether or not the user gave permission to change the product's unit type")]
     public bool? UserGavePermission { get; set; }
     [Required]
-    [Description("Name of the product")]
-    public string ProductName { get; set; }
+    [Description("Id of the product to change the unit type of")]
+    public int ProductId { get; set; }
     [Required]
     [Description("New unit type")]
     public string UnitType { get; set; }

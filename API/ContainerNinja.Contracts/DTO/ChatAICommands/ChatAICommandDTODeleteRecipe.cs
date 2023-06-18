@@ -12,5 +12,5 @@ public record ChatAICommandDTODeleteRecipe : ChatAICommandArgumentsDTO
     public bool? UserGavePermission { get; set; }
     [Required]
     [Description("Id of the recipe")]
-    public int? Id { get; set; }
+    public int? RecipeId { get; set; }
 }

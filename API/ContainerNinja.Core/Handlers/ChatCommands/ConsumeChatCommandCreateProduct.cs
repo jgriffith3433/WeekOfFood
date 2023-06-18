@@ -4,6 +4,7 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Core.Common;
+using ContainerNinja.Core.Exceptions;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -25,6 +26,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateProduct model, CancellationToken cancellationToken)
         {
+            var existingProductWithName = _repository.Products.Set.FirstOrDefault(p => p.Name.ToLower() == model.Command.ProductName.ToLower());
+
+            if (existingProductWithName != null)
+            {
+                var systemResponse = "Product already exists: " + model.Command.ProductName;
+                throw new ChatAIException(systemResponse);
+            }
+
             var productEntity = _repository.Products.CreateProxy();
             {
                 productEntity.Name = model.Command.ProductName;

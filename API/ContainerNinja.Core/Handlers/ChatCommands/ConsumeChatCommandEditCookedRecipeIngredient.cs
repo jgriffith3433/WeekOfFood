@@ -29,22 +29,22 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditCookedRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(cr => cr.Id == model.Command.Id);
+            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(cr => cr.Id == model.Command.LoggedRecipeId);
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find cooked recipe by ID: " + model.Command.Id;
+                var systemResponse = "Could not find cooked recipe by ID: " + model.Command.LoggedRecipeId;
                 throw new ChatAIException(systemResponse);
             }
-            var cookedRecipeCalledIngredient = cookedRecipe.CookedRecipeCalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.OriginalIngredient.ToLower()));
+            var cookedRecipeCalledIngredient = cookedRecipe.CookedRecipeCalledIngredients.FirstOrDefault(ci => ci.Id == model.Command.LoggedIngredientId);
 
             if (cookedRecipeCalledIngredient == null)
             {
-                var systemResponse = "Could not find ingredient by name: " + model.Command.OriginalIngredient;
+                var systemResponse = "Could not find ingredient by ID: " + model.Command.LoggedIngredientId;
                 throw new ChatAIException(systemResponse);
             }
             else
             {
-                cookedRecipeCalledIngredient.Name = model.Command.NewIngredient;
+                cookedRecipeCalledIngredient.Name = model.Command.NewIngredientName;
                 cookedRecipeCalledIngredient.CalledIngredient = null;
                 cookedRecipeCalledIngredient.ProductStock = null;
                 _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
@@ -52,7 +52,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
             var cookedRecipeObject = new JObject();
-            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            cookedRecipeObject["LoggedRecipeId"] = cookedRecipe.Id;
             if (cookedRecipe.Recipe != null)
             {
                 cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
@@ -62,14 +62,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["LoggedIngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
-            return $"Substituted ingredient: {model.Command.OriginalIngredient} for {model.Command.NewIngredient}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
+            return $"Substituted ingredient: {cookedRecipeCalledIngredient.Name} for {model.Command.NewIngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

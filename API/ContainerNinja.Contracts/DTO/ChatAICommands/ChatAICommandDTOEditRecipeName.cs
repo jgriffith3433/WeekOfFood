@@ -11,8 +11,8 @@ public record ChatAICommandDTOEditRecipeName : ChatAICommandArgumentsDTO
     [Description("Whether or not the user gave permission to change the recipe's name")]
     public bool? UserGavePermission { get; set; }
     [Required]
-    [Description("Id of the recipe")]
-    public int Id { get; set; }
+    [Description("Id of the recipe to change the name of")]
+    public int RecipeId { get; set; }
     [Required]
     [Description("New name")]
     public string NewName { get; set; }

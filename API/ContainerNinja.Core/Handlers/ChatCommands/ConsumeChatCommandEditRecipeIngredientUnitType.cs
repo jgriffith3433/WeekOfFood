@@ -2,11 +2,11 @@ using MediatR;
 using ContainerNinja.Contracts.Data;
 using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
-using ContainerNinja.Contracts.Data.Entities;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using OpenAI.ObjectModels;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -28,29 +28,39 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredientUnitType model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower().Contains(model.Command.RecipeName.ToLower()));
+            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
             if (recipe == null)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse);
             }
-            else
+            var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Id == model.Command.IngredientId);
+            if (calledIngredient == null)
             {
-                var calledIngredient = recipe.CalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.IngredientName.ToLower()));
-                if (calledIngredient == null)
-                {
-                    var systemResponse = "Could not find ingredient by name: " + model.Command.IngredientName;
-                    throw new ChatAIException(systemResponse);
-                }
-                else
-                {
-                    calledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
-                    _repository.CalledIngredients.Update(calledIngredient);
-                }
+                var systemResponse = "Could not find ingredient by ID: " + model.Command.IngredientId;
+                throw new ChatAIException(systemResponse);
             }
+            calledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
+            _repository.CalledIngredients.Update(calledIngredient);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            return "Success";
+
+            var recipeObject = new JObject();
+            recipeObject["RecipeId"] = recipe.Id;
+            recipeObject["RecipeName"] = recipe.Name;
+            recipeObject["Serves"] = recipe.Serves;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in recipe.CalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["IngredientId"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["Units"] = ingredient.Units;
+                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
+            return "Recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

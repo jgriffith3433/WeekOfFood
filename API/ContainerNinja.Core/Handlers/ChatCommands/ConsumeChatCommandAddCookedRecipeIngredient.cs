@@ -29,11 +29,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandAddCookedRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Name.ToLower() == model.Command.RecipeName.ToLower());
+            var cookedRecipe = _repository.CookedRecipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Id == model.Command.LoggedRecipeId);
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by name: " + model.Command.RecipeName;
-                throw new ChatAIException(systemResponse);
+                var systemResponse = "Could not find logged recipe by ID: " + model.Command.LoggedRecipeId;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_logged_recipe_id"" }");
             }
             else
             {
@@ -50,7 +50,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
             var cookedRecipeObject = new JObject();
-            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            cookedRecipeObject["LoogedRecipeId"] = cookedRecipe.Id;
             if (cookedRecipe.Recipe != null)
             {
                 cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
@@ -60,14 +60,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["LoggedIngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
-            return $"Added ingredient: {model.Command.IngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
+            return $"Added logged ingredient: {model.Command.IngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

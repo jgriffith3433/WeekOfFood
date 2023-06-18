@@ -79,7 +79,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 throw new ChatAIException(systemResponse);
             }
             var recipeObject = new JObject();
-            recipeObject["Id"] = recipe.Id;
+            recipeObject["RecipeId"] = recipe.Id;
             model.Response.ForceFunctionCall = "auto";
             return "Recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }

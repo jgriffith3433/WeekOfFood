@@ -23,4 +23,8 @@ export class HomeComponent implements OnInit {
   logARecipe(): void {
     this.howDoIService.send("Log that I ate a meal");
   }
+
+  takeStock(): void {
+    this.howDoIService.send("I'm going to take stock");
+  }
 }

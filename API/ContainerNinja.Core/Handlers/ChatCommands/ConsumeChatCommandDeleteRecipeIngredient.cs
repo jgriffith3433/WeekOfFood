@@ -29,10 +29,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteRecipeIngredient model, CancellationToken cancellationToken)
         {
-            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
             if (recipeEntity == null)
             {
-                var systemResponse = "Could not find recipe by ID: " + model.Command.Id;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse);
             }
 
@@ -40,7 +40,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             if (calledIngredient == null)
             {
-                var systemResponse = "No ingredient '" + model.Command.IngredientName + "' found on recipe '" + model.Command.Id + "'. The ingredients are: " + string.Join(", ", recipeEntity.CalledIngredients.Select(ci => ci.Name));
+                var systemResponse = "No ingredient '" + model.Command.IngredientName + "' found on recipe '" + model.Command.RecipeId + "'. The ingredients are: " + string.Join(", ", recipeEntity.CalledIngredients.Select(ci => ci.Name));
                 throw new ChatAIException(systemResponse);
             }
 
@@ -48,14 +48,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository.Recipes.Update(recipeEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             var recipeObject = new JObject();
-            recipeObject["Id"] = recipeEntity.Id;
+            recipeObject["RecipeId"] = recipeEntity.Id;
             recipeObject["RecipeName"] = recipeEntity.Name;
             recipeObject["Serves"] = recipeEntity.Serves;
             var recipeIngredientsArray = new JArray();
             foreach (var ingredient in recipeEntity.CalledIngredients)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();

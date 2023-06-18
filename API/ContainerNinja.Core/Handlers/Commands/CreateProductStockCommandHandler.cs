@@ -32,6 +32,14 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public async Task<int> Handle(CreateProductStockCommand request, CancellationToken cancellationToken)
         {
+            var existingProductStockWithName = _repository.ProductStocks.Set.FirstOrDefault(p => p.Name.ToLower() == request.Name.ToLower());
+
+            if (existingProductStockWithName != null)
+            {
+                var systemResponse = "ProductStock already exists: " + request.Name;
+                throw new Exception(systemResponse);
+            }
+
             var productStockEntity = _repository.ProductStocks.CreateProxy();
             {
                 productStockEntity.Name = request.Name;

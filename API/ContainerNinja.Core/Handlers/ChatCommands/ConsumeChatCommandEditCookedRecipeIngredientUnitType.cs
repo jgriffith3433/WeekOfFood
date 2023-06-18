@@ -28,19 +28,19 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditCookedRecipeIngredientUnitType model, CancellationToken cancellationToken)
         {
-            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(r => r.Recipe.Name.ToLower().Contains(model.Command.RecipeName.ToLower()));
+            var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(r => r.Id == model.Command.LoggedRecipeId);
 
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by name: " + model.Command.RecipeName;
-                throw new ChatAIException(systemResponse);
+                var systemResponse = "Could not find logged recipe by ID: " + model.Command.LoggedRecipeId;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_logged_recipe_id"" }");
             }
             else
             {
-                var cookedRecipeCalledIngredient = cookedRecipe.CookedRecipeCalledIngredients.FirstOrDefault(ci => ci.Name.ToLower().Contains(model.Command.IngredientName.ToLower()));
+                var cookedRecipeCalledIngredient = cookedRecipe.CookedRecipeCalledIngredients.FirstOrDefault(ci => ci.Id == model.Command.LoggedIngredientId);
                 if (cookedRecipeCalledIngredient == null)
                 {
-                    var systemResponse = "Could not find ingredient by name: " + model.Command.IngredientName;
+                    var systemResponse = "Could not find logged ingredient by ID: " + model.Command.LoggedIngredientId;
                     throw new ChatAIException(systemResponse);
                 }
                 else

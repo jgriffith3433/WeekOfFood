@@ -12,5 +12,5 @@ public record ChatAICommandDTODeleteCookedRecipe : ChatAICommandArgumentsDTO
     public bool? UserGavePermission { get; set; }
     [Required]
     [Description("Id of the recipe log")]
-    public int Id { get; set; }
+    public int LoggedRecipeId { get; set; }
 }

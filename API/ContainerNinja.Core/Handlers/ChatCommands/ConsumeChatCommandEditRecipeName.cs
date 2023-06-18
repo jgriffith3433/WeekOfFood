@@ -4,10 +4,6 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
-using ContainerNinja.Contracts.Data.Entities;
-using LinqKit;
-using Microsoft.EntityFrameworkCore;
-using OpenAI.ObjectModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -29,11 +25,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
             if (recipe == null)
             {
-                var systemResponse = "Could not find recipe by id '" + model.Command.Id;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse, @"{ ""name"": ""get_recipe_id"" }");
             }
 

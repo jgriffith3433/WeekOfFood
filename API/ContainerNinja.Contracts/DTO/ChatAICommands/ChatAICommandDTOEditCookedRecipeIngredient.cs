@@ -12,11 +12,11 @@ public record ChatAICommandDTOEditCookedRecipeIngredient : ChatAICommandArgument
     public bool? UserGavePermission { get; set; }
     [Required]
     [Description("Name of the logged recipe")]
-    public int Id { get; set; }
+    public int LoggedRecipeId { get; set; }
     [Required]
-    [Description("Name of the original ingredient")]
-    public string OriginalIngredient { get; set; }
+    [Description("Id of the logged ingredient to delete")]
+    public int LoggedIngredientId { get; set; }
     [Required]
     [Description("Name of the new ingredient")]
-    public string NewIngredient { get; set; }
+    public string NewIngredientName { get; set; }
 }

@@ -30,11 +30,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateCookedRecipe model, CancellationToken cancellationToken)
         {
-            var recipe = _repository.Recipes.Set.Where(r => r.Name.ToLower() == model.Command.RecipeName.ToLower()).SingleOrDefaultAsync(cancellationToken).Result;
+            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
             if (recipe == null)
             {
-                var systemResponse = "Could not find recipe by name: " + model.Command.RecipeName;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse);
             }
             var cookedRecipe = _repository.CookedRecipes.CreateProxy();
@@ -60,7 +60,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             await _repository.CommitAsync();
 
             var cookedRecipeObject = new JObject();
-            cookedRecipeObject["Id"] = cookedRecipe.Id;
+            cookedRecipeObject["LoogedRecipeId"] = cookedRecipe.Id;
             if (cookedRecipe.Recipe != null)
             {
                 cookedRecipeObject["RecipeName"] = cookedRecipe.Recipe.Name;
@@ -70,7 +70,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             foreach (var ingredient in cookedRecipe.CookedRecipeCalledIngredients)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["LoggedIngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();

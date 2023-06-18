@@ -27,24 +27,24 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandDeleteRecipe model, CancellationToken cancellationToken)
         {
-            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.Id);
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
             if (recipeEntity == null)
             {
-                var systemResponse = "Could not find recipe by id: " + model.Command.Id;
+                var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse, @"{ ""name"": ""get_recipe_id"" }");
             }
             _repository.Recipes.Delete(recipeEntity.Id);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
             var recipeObject = new JObject();
-            recipeObject["Id"] = recipeEntity.Id;
+            recipeObject["RecipeId"] = recipeEntity.Id;
             recipeObject["RecipeName"] = recipeEntity.Name;
             recipeObject["Serves"] = recipeEntity.Serves;
             var recipeIngredientsArray = new JArray();
             foreach (var ingredient in recipeEntity.CalledIngredients)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["Id"] = ingredient.Id;
+                ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();
