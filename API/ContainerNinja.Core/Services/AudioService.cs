@@ -18,6 +18,8 @@ namespace ContainerNinja.Core.Services
 
         public byte[] StripNoiseAndTrimSilence(byte[] data)
         {
+            //TODO: figure out what's doing wrong with trimming
+            return data;
             using (var readerStream = new MemoryStream(data))
             {
                 using (var reader = new WaveFileReader(readerStream))

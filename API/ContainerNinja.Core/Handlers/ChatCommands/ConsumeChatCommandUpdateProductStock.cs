@@ -36,6 +36,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 if (item.StockedProductId.HasValue)
                 {
+                    if (item.StockedProductId.Value == 1)
+                    {
+                        //TODO: ai magically saying 1
+                        item.StockedProductId = null;
+                        continue;
+                    }
                     var existingProductStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == item.StockedProductId);
                     if (existingProductStockEntity == null)
                     {
@@ -111,6 +117,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                             var productStockObject = new JObject();
                             productStockObject["StockedProductId"] = existingProductStockEntities[0].Id;
+                            productStockObject["WalmartId"] = existingProductStockEntities[0].Product.WalmartId;
                             productStockObject["ItemName"] = existingProductStockEntities[0].Name;
 
                             systemMessage += JsonConvert.SerializeObject(productStockObject);
@@ -153,6 +160,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             {
                                 var productStockObject = new JObject();
                                 productStockObject["StockedProductId"] = existingProductStockEntity.Id;
+                                productStockObject["WalmartId"] = existingProductStockEntity.Product.WalmartId;
                                 productStockObject["ItemName"] = existingProductStockEntity.Name;
                                 multipleRecordsArray.Add(productStockObject);
                             }
@@ -183,9 +191,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 var productStockObject = new JObject();
                 productStockObject["StockedProductId"] = productStock.Id;
+                productStockObject["WalmartId"] = productStock.Product.WalmartId;
                 productStockObject["ItemName"] = productStock.Name;
                 productStockArray.Add(productStockObject);
             }
+            model.Response.NavigateToPage = "product-stocks";
             return "Updated stock:\n" + JsonConvert.SerializeObject(productStockArray);
         }
     }

@@ -34,6 +34,8 @@ namespace ContainerNinja.Core.Data
         public IRecipeRepository Recipes => new RecipeRepository(_context);
         public ICookedRecipeRepository CookedRecipes => new CookedRecipeRepository(_context);
         public ICookedRecipeCalledIngredientRepository CookedRecipeCalledIngredients => new CookedRecipeCalledIngredientRepository(_context);
+        public IOrderRepository Orders => new OrderRepository(_context);
+        public IOrderProductRepository OrderProducts => new OrderProductRepository(_context);
 
         public async Task CommitAsync()
         {

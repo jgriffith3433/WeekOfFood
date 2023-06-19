@@ -38,6 +38,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             //_repository.CookedRecipes.Update(cookedRecipe);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "logged-recipes";
             return "Success";
         }
     }

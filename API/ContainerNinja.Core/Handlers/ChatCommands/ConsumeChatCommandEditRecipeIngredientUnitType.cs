@@ -55,11 +55,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
+                ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;
+            model.Response.NavigateToPage = "recipes";
             return "Recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }
     }

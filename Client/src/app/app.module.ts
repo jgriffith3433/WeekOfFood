@@ -24,6 +24,7 @@ import { CalledIngredientsComponent } from './components/pages/called-ingredient
 import { RecipesComponent } from './components/pages/recipes/recipes.component';
 import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
 import { PortfolioComponent } from './components/pages/portfolio/portfolio.component';
+import { OrdersComponent } from './components/pages/orders/orders.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import { PortfolioComponent } from './components/pages/portfolio/portfolio.compo
     RecipesComponent,
     CookedRecipesComponent,
     PortfolioComponent,
+    OrdersComponent,
   ],
   imports: [
     BrowserModule,

@@ -20,6 +20,8 @@ namespace ContainerNinja.Contracts.Data
         IRecipeRepository Recipes { get; }
         ICookedRecipeRepository CookedRecipes { get; }
         ICookedRecipeCalledIngredientRepository CookedRecipeCalledIngredients { get; }
+        IOrderRepository Orders { get; }
+        IOrderProductRepository OrderProducts { get; }
         Task CommitAsync();
     }
 }

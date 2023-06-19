@@ -81,6 +81,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             var loggedRecipeObject = new JObject();
             loggedRecipeObject["LoggedRecipeId"] = cookedRecipe.Id;
             model.Response.ForceFunctionCall = "auto";
+            model.Response.NavigateToPage = "logged-recipes";
             return "LoggedRecipe:\n" + JsonConvert.SerializeObject(loggedRecipeObject);
         }
     }

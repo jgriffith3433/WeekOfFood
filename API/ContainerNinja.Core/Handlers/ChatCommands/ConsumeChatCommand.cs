@@ -78,13 +78,19 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             chatCommandConsumerType.GetProperty("Response")?.SetValue(chatCommandConsumer, chatResponseVM);
 
                             var result = await _mediator.Send(chatCommandConsumer, cancellationToken) as string;
-                            chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                            {
-                                Content = result,
-                                From = StaticValues.ChatMessageRoles.Function,
-                                To = StaticValues.ChatMessageRoles.Assistant,
-                                Name = chatAICommandName,
-                            });
+                            request.CurrentChatMessage.Content = result;
+                            request.CurrentChatMessage.FunctionCall = null;
+                            request.CurrentChatMessage.Name = chatAICommandName;
+                            request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
+                            request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                            request.CurrentChatMessage.Received = false;
+                            //chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                            //{
+                            //    Content = result,
+                            //    From = StaticValues.ChatMessageRoles.Function,
+                            //    To = StaticValues.ChatMessageRoles.Assistant,
+                            //    Name = chatAICommandName,
+                            //});
                             if (string.IsNullOrEmpty(chatResponseVM.ForceFunctionCall))
                             {
                                 chatResponseVM.ForceFunctionCall = "auto";

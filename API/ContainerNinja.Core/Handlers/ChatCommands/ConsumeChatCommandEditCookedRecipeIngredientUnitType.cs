@@ -50,6 +50,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "logged-recipes";
             return "Success";
         }
     }

@@ -47,6 +47,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 var productStockObject = new JObject();
                 productStockObject["StockedProductId"] = productStock.Id;
+                productStockObject["WalmartId"] = productStock.Product.WalmartId;
                 productStockObject["ItemName"] = productStock.Name;
                 productStockObject["Units"] = productStock.Units;
                 productStockObject["UnitType"] = productStock.Product.UnitType.ToString();
@@ -56,6 +57,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 return $"No Product Stock matching the search term: {model.Command.Search}";
             }
+            model.Response.NavigateToPage = "product-stocks";
             return "Product Stock:\n" + JsonConvert.SerializeObject(results);
         }
     }

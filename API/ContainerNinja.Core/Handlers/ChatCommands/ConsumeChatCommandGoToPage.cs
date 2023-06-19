@@ -24,8 +24,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandGoToPage model, CancellationToken cancellationToken)
         {
-            model.Response.NavigateToPage = string.Join('-', model.Command.Page.Split(' ')).ToLower();
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = string.Join('-', model.Command.Page.Split(' ')).ToLower();
             return $"Navigation complete: The user is now on the {model.Command.Page} page.";
         }
     }

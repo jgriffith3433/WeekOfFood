@@ -72,6 +72,8 @@ namespace ContainerNinja.Core.Mapper
             CreateMap<ChatMessage, ChatMessageVM>();
             CreateMap<ChatMessageVM, ChatMessage>();
 
+            CreateMap<Order, OrderDTO>();
+
         }
     }
 }

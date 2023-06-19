@@ -26,6 +26,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         {
             //Command logic
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "template";
             return "Success";
         }
     }

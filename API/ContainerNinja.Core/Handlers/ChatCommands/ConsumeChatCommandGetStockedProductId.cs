@@ -91,10 +91,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var systemResponse = "Could not find stocked product by name '" + model.Command.StockedProductName + "'.";
                 throw new ChatAIException(systemResponse);
             }
-            var productObject = new JObject();
-            productObject["StockedProductId"] = productStock.Id;
+            var productStockObject = new JObject();
+            productStockObject["StockedProductId"] = productStock.Id;
+            productStockObject["WalmartId"] = productStock.Product.WalmartId;
+            productStockObject["ItemName"] = productStock.Name;
             model.Response.ForceFunctionCall = "auto";
-            return "StockedProduct:\n" + JsonConvert.SerializeObject(productObject);
+            model.Response.NavigateToPage = "product-stocks";
+            return "StockedProduct:\n" + JsonConvert.SerializeObject(productStockObject);
         }
     }
 }

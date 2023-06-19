@@ -58,6 +58,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 loggedRecipeObject["Ingredients"] = recipeIngredientsArray;
                 results.Add(loggedRecipeObject);
             }
+            model.Response.NavigateToPage = "logged-recipes";
             return "Logged Recipes:\n" + JsonConvert.SerializeObject(results);
         }
     }

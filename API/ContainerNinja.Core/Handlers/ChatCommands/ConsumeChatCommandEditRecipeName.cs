@@ -44,6 +44,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository.Recipes.Update(recipe);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "recipes";
             return "Success";
         }
     }

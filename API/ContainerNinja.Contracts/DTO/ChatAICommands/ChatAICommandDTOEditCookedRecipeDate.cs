@@ -15,5 +15,5 @@ public record ChatAICommandDTOEditCookedRecipeDate : ChatAICommandArgumentsDTO
     public int LoggedRecipeId { get; set; }
     [Required]
     [Description("When the recipe was used")]
-    public DateTime When { get; set; }
+    public DateTime? When { get; set; }
 }

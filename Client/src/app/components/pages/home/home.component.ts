@@ -27,4 +27,8 @@ export class HomeComponent implements OnInit {
   takeStock(): void {
     this.howDoIService.send("I'm going to take stock");
   }
+
+  placeAnOrder(): void {
+    this.howDoIService.send("I want to place an order");
+  }
 }

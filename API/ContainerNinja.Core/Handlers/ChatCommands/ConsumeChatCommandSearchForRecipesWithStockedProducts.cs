@@ -36,12 +36,26 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var recipeObject = new JObject();
                 recipeObject["RecipeId"] = recipe.Id;
                 recipeObject["RecipeName"] = recipe.Name;
+                recipeObject["Serves"] = recipe.Serves;
+                var recipeIngredientsArray = new JArray();
+                foreach (var ingredient in recipe.CalledIngredients)
+                {
+                    var ingredientObject = new JObject();
+                    ingredientObject["IngredientId"] = ingredient.Id;
+                    ingredientObject["IngredientName"] = ingredient.Name;
+                    ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
+                    ingredientObject["Units"] = ingredient.Units;
+                    ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                    recipeIngredientsArray.Add(ingredientObject);
+                }
+                recipeObject["Ingredients"] = recipeIngredientsArray;
                 results.Add(recipeObject);
             }
             if (results.Count == 0)
             {
                 return $"There are no recipes containing ingredients that are linked to any of the stocked products.";
             }
+            model.Response.NavigateToPage = "recipes";
             return "Recipes:\n" + JsonConvert.SerializeObject(results);
         }
     }

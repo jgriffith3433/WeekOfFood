@@ -48,6 +48,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             productStockEntity.Product = productEntity;
             _repository.ProductStocks.Add(productStockEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "products";
             return $"Successfully created product {model.Command.ProductName}";
         }
     }

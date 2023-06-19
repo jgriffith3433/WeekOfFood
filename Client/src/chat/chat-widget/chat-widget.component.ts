@@ -874,19 +874,21 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         newChatMessages.push(response.chatMessages[i]);
       }
     }
-    if (this.speechSynthesisOn && speak && !this.recording) {
-      let textToSpeak = "";
-      if (newChatMessages.length > 0) {
-        let mostRecentMessage = newChatMessages[newChatMessages.length - 1];
+    if (newChatMessages.length > 0) {
+      let mostRecentMessage = newChatMessages[newChatMessages.length - 1];
+
+      if (this.speechSynthesisOn && speak && !this.recording) {
+        let textToSpeak = "";
+
         if (mostRecentMessage.content && mostRecentMessage.from == this.assistant.name) {
           textToSpeak = mostRecentMessage.content;
         }
-      }
 
-      if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1 && textToSpeak.indexOf('That model is currently overloaded with other requests.') == -1) {
-        this.chatService.getChatTextToSpeech(textToSpeak).subscribe(result => {
-          this.audioSource = result;
-        });
+        if (textToSpeak && textToSpeak.indexOf('Rate limit reached') == -1 && textToSpeak.indexOf('That model is currently overloaded with other requests.') == -1) {
+          this.chatService.getChatTextToSpeech(textToSpeak).subscribe(result => {
+            this.audioSource = result;
+          });
+        }
       }
     }
     if (response.createNewChat) {

@@ -39,6 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 _repository.Products.Update(product);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "products";
             return "Success";
         }
     }

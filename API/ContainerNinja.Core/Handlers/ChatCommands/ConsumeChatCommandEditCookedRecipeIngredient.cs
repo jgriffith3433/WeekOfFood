@@ -69,6 +69,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 recipeIngredientsArray.Add(ingredientObject);
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
+            model.Response.NavigateToPage = "logged-recipes";
             return $"Substituted ingredient: {cookedRecipeCalledIngredient.Name} for {model.Command.NewIngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }

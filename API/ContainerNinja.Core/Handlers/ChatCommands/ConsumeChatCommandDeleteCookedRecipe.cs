@@ -62,6 +62,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
 
+            model.Response.NavigateToPage = "logged-recipes";
             return "Deleted log:\n" + JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }

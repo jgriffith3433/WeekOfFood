@@ -17,5 +17,5 @@ public record ChatAICommandDTOCreateCookedRecipe : ChatAICommandArgumentsDTO
 
     [Required]
     [Description("When did the user make the recipe in DateTime format")]
-    public DateTime When { get; set; }
+    public DateTime? When { get; set; }
 }

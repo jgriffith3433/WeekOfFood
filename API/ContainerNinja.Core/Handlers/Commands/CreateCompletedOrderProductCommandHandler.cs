@@ -53,7 +53,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
             _repository.CompletedOrders.Update(completedOrderEntity);
 
-            var searchResponse = _walmartService.Search(completedOrderProductEntity.Name);
+            var searchResponse = await _walmartService.Search(completedOrderProductEntity.Name);
 
             completedOrderProductEntity.WalmartSearchResponse = JsonSerializer.Serialize(searchResponse);
 

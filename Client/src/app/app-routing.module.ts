@@ -14,6 +14,7 @@ import { CalledIngredientsComponent } from './components/pages/called-ingredient
 import { RecipesComponent } from './components/pages/recipes/recipes.component';
 import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
 import { PortfolioComponent } from './components/pages/portfolio/portfolio.component';
+import { OrdersComponent } from './components/pages/orders/orders.component';
 
 const routes: Routes = [
   {
@@ -40,6 +41,11 @@ const routes: Routes = [
   {
     path: 'completed-orders'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: CompletedOrdersComponent },
+    ]
+  },
+  {
+    path: 'orders'/*, canActivate: [AuthGuard]*/, children: [
+      { path: '', component: OrdersComponent },
     ]
   },
   {

@@ -1,4 +1,5 @@
 ﻿using ContainerNinja.Contracts.Enum;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContainerNinja.Contracts.Data.Entities
 {
@@ -16,6 +17,6 @@ namespace ContainerNinja.Contracts.Data.Entities
         public bool Verified { get; set; }
         public UnitType UnitType { get; set; }
         public virtual IList<CompletedOrderProduct> CompletedOrderProducts { get; private set; } = new List<CompletedOrderProduct>();
-        public virtual ProductStock ProductStock { get; set; }
+        public virtual ProductStock? ProductStock { get; set; }
     }
 }

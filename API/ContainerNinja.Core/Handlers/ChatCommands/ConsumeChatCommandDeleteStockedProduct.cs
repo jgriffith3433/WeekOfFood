@@ -39,10 +39,18 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     calledIngredient.ProductStock = null;
                     _repository.CalledIngredients.Update(calledIngredient);
                 }
-                _repository.ProductStocks.Delete(productStockEntity.Id);
+                var cookedRecipeCalledIngredients = _repository.CookedRecipeCalledIngredients.Set.Where(ci => ci.ProductStock != null && ci.ProductStock == productStockEntity);
+                foreach (var cookedRecipeCalledIngredient in cookedRecipeCalledIngredients)
+                {
+                    cookedRecipeCalledIngredient.ProductStock = null;
+                    _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
+                }
+
                 _repository.Products.Delete(productStockEntity.Product.Id);
+                _repository.ProductStocks.Delete(productStockEntity.Id);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            model.Response.NavigateToPage = "product-stocks";
             return "Success";
         }
     }
