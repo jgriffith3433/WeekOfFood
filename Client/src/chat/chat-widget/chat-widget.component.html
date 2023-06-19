@@ -1,5 +1,5 @@
-<div class="wrapper {{theme}}">
-  <div class="chat-box" [class.d-flex]="visible" [class.d-none]="!visible" [@fadeInOut]="visible">
+<div class="wrapper {{theme}}"  [class.d-none]="!visible">
+  <div class="chat-box" [class.d-flex]="visible" [@fadeInOut]="visible">
     <div class="chat-box-header">
       <div class="">
         <div class="system-status">
@@ -18,7 +18,7 @@
       <div class="chat-message-bottom" #bottom></div>
       <ng-container *ngFor="let message of chatMessages.slice().reverse()">
         <!--<div *ngIf="message.from == 'user' || message.from == 'assistant'" class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">-->
-        <div  class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
+        <div class="chat-message" [class.chat-message-received]="message.from != 'user'" [@fadeIn] [class.chat-message-sent]="message.from == 'user'">
           <div>
             <chat-avatar [image]="getAvatarForRole(message.from)" class="chat-message-from-avatar"></chat-avatar>
             <div class="chat-message-text">
@@ -62,9 +62,9 @@
     <button class="chat-button" (click)="detectSpeechVolume()" style="right:440px;"><span>Detect Speech</span></button>
     <button class="chat-button" (click)="detectRoomAndSpeechVolume()" style="right:600px;"><span>Detect Both</span></button>-->
   </div>
-  <button class="chat-button" (click)="userToggleChat()">
-    <span [@fadeIn] *ngIf="visible">X</span>
-    <span [@fadeIn] *ngIf="!visible">?</span>
-  </button>
   <audio [src]="audioSource" id="audio" controls #audio></audio>
 </div>
+<button class="chat-button" (click)="userToggleChat()">
+  <span [@fadeIn] *ngIf="visible">X</span>
+  <span [@fadeIn] *ngIf="!visible">?</span>
+</button>

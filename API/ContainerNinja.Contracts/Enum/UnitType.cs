@@ -20,6 +20,10 @@
         Box = 15,
         Bag = 16,
         Gallon = 17,
+        Gram = 18,
+        Milliliters = 19,
+        Leaves = 20,
+        Handful = 21,
     }
 
     public static class UnitTypeExtensionMethods
@@ -81,6 +85,18 @@
                 case "gallon":
                 case "gallons":
                     return UnitType.Gallon;
+                case "gram":
+                case "grams":
+                    return UnitType.Gram;
+                case "milliliter":
+                case "milliliters":
+                    return UnitType.Milliliters;
+                case "leaf":
+                case "leaves":
+                    return UnitType.Leaves;
+                case "handful":
+                case "handfuls":
+                    return UnitType.Handful;
                 default:
                     return UnitType.None;
             }

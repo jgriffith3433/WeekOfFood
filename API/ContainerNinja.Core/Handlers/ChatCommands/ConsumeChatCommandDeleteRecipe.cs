@@ -39,19 +39,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             var recipeObject = new JObject();
             recipeObject["RecipeId"] = recipeEntity.Id;
             recipeObject["RecipeName"] = recipeEntity.Name;
-            recipeObject["Serves"] = recipeEntity.Serves;
-            var recipeIngredientsArray = new JArray();
-            foreach (var ingredient in recipeEntity.CalledIngredients)
-            {
-                var ingredientObject = new JObject();
-                ingredientObject["IngredientId"] = ingredient.Id;
-                ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
-                ingredientObject["Units"] = ingredient.Units;
-                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
-                recipeIngredientsArray.Add(ingredientObject);
-            }
-            recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
             return "Deleted recipe:\n" + JsonConvert.SerializeObject(recipeObject);
         }

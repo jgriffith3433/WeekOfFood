@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("link_recipe_ingredient_to_stocked_product", "Links a recipe's ingredient to a stocked product by ID")]
+//[ChatCommandSpecification("link_recipe_ingredient_to_stocked_product", "Links a recipe's ingredient to a stocked product by ID")]
 public record ChatAICommandDTOLinkRecipeIngredientToStockedProduct : ChatAICommandArgumentsDTO
 {
     [Required]

@@ -16,8 +16,12 @@ export class HomeComponent implements OnInit {
 
   }
 
+  youMakeANewRecipe(): void {
+    this.howDoIService.send("I want you to make a recipe for me.");
+  }
+
   makeANewRecipe(): void {
-    this.howDoIService.send("I want to make a new recipe.");
+    this.howDoIService.send("I want to add my own recipe.");
   }
 
   logARecipe(): void {

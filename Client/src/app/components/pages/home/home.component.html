@@ -7,7 +7,11 @@
   <div class="container-fluid">
     <h1 class="display-4">How do I...</h1>
     <div class="row">
-      <div class="lead"><a href="javascript:void(0)" (click)="makeANewRecipe()">Make a new recipe</a></div>
+      <div class="lead"><span>Recipes</span></div>
+      <div class="row">
+        <a href="javascript:void(0)" (click)="youMakeANewRecipe()">Have the ai create its own recipe</a>
+        <a href="javascript:void(0)" (click)="makeANewRecipe()">Have the ai add your recipe</a>
+      </div>
     </div>
     <div class="row">
       <div class="lead"><a href="javascript:void(0)" (click)="logARecipe()">Log that I ate a meal</a></div>

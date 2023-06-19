@@ -93,8 +93,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             var productStockObject = new JObject();
             productStockObject["StockedProductId"] = productStock.Id;
-            productStockObject["WalmartId"] = productStock.Product.WalmartId;
-            productStockObject["ItemName"] = productStock.Name;
+            productStockObject["StockedProductName"] = productStock.Name;
             model.Response.ForceFunctionCall = "auto";
             model.Response.NavigateToPage = "product-stocks";
             return "StockedProduct:\n" + JsonConvert.SerializeObject(productStockObject);

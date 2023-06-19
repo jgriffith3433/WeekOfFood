@@ -47,10 +47,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 var productStockObject = new JObject();
                 productStockObject["StockedProductId"] = productStock.Id;
-                productStockObject["WalmartId"] = productStock.Product.WalmartId;
-                productStockObject["ItemName"] = productStock.Name;
-                productStockObject["Units"] = productStock.Units;
-                productStockObject["UnitType"] = productStock.Product.UnitType.ToString();
+                productStockObject["StockedProductName"] = productStock.Name;
                 results.Add(productStockObject);
             }
             if (results.Count == 0)

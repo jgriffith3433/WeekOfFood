@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Google.Api;
+using OpenAI.ObjectModels.ResponseModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -130,14 +131,20 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
 
                 chatCommandEntity.Error = FlattenException(ex) + "\n" + errors;
-                chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                {
-                    Content = string.IsNullOrEmpty(errors) ? "More information required" : "Validation:\n" + errors,
-                    From = StaticValues.ChatMessageRoles.System,
-                    To = StaticValues.ChatMessageRoles.Assistant,
-                    Name = chatAICommandName,
-                });
+                request.CurrentChatMessage.Content = string.IsNullOrEmpty(errors) ? "More information required" : "Could not complete function:\n" + errors;
+                request.CurrentChatMessage.FunctionCall = null;
+                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
+                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = ex.ForceFunctionCall;
+                //chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                //{
+                //    Content = string.IsNullOrEmpty(errors) ? "More information required" : "Validation:\n" + errors,
+                //    From = StaticValues.ChatMessageRoles.System,
+                //    To = StaticValues.ChatMessageRoles.Assistant,
+                //    Name = chatAICommandName,
+                //});
                 request.ChatConversation.Content = JsonSerializer.Serialize(request.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
@@ -145,14 +152,20 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             catch (ChatAIException ex)
             {
                 chatCommandEntity.Error = FlattenException(ex);
-                chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                {
-                    Content = ex.Message,
-                    From = StaticValues.ChatMessageRoles.Function,
-                    To = StaticValues.ChatMessageRoles.Assistant,
-                    Name = chatAICommandName,
-                });
+                request.CurrentChatMessage.Content = ex.Message;
+                request.CurrentChatMessage.FunctionCall = null;
+                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
+                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = ex.ForceFunctionCall;
+                //chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                //{
+                //    Content = ex.Message,
+                //    From = StaticValues.ChatMessageRoles.System,
+                //    To = StaticValues.ChatMessageRoles.Assistant,
+                //    Name = chatAICommandName,
+                //});
                 request.ChatConversation.Content = JsonSerializer.Serialize(request.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
@@ -161,14 +174,20 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 _repository.ChangeTracker.Clear();
                 chatCommandEntity.Error = FlattenException(ex);
-                chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                {
-                    Content = chatCommandEntity.Error,
-                    From = StaticValues.ChatMessageRoles.Function,
-                    To = StaticValues.ChatMessageRoles.Assistant,
-                    Name = chatAICommandName,
-                });
+                request.CurrentChatMessage.Content = chatCommandEntity.Error;
+                request.CurrentChatMessage.FunctionCall = null;
+                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
+                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = "none";
+                //chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                //{
+                //    Content = chatCommandEntity.Error,
+                //    From = StaticValues.ChatMessageRoles.Function,
+                //    To = StaticValues.ChatMessageRoles.Assistant,
+                //    Name = chatAICommandName,
+                //});
                 request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
@@ -176,14 +195,20 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             catch (Exception ex)
             {
                 chatCommandEntity.Error = FlattenException(ex);
-                chatResponseVM.ChatMessages.Add(new ChatMessageVM
-                {
-                    Content = chatCommandEntity.Error,
-                    From = StaticValues.ChatMessageRoles.Function,
-                    To = StaticValues.ChatMessageRoles.Assistant,
-                    Name = chatAICommandName,
-                });
+                request.CurrentChatMessage.Content = chatCommandEntity.Error;
+                request.CurrentChatMessage.FunctionCall = null;
+                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
+                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = "none";
+                //chatResponseVM.ChatMessages.Add(new ChatMessageVM
+                //{
+                //    Content = chatCommandEntity.Error,
+                //    From = StaticValues.ChatMessageRoles.Function,
+                //    To = StaticValues.ChatMessageRoles.Assistant,
+                //    Name = chatAICommandName,
+                //});
                 request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();

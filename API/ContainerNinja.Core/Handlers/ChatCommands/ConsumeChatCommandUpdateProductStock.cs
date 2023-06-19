@@ -117,8 +117,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                             var productStockObject = new JObject();
                             productStockObject["StockedProductId"] = existingProductStockEntities[0].Id;
+                            productStockObject["StockedProductName"] = existingProductStockEntities[0].Name;
                             productStockObject["WalmartId"] = existingProductStockEntities[0].Product.WalmartId;
-                            productStockObject["ItemName"] = existingProductStockEntities[0].Name;
 
                             systemMessage += JsonConvert.SerializeObject(productStockObject);
                             throw new ChatAIException(systemMessage);
@@ -160,8 +160,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             {
                                 var productStockObject = new JObject();
                                 productStockObject["StockedProductId"] = existingProductStockEntity.Id;
+                                productStockObject["StockedProductName"] = existingProductStockEntity.Name;
                                 productStockObject["WalmartId"] = existingProductStockEntity.Product.WalmartId;
-                                productStockObject["ItemName"] = existingProductStockEntity.Name;
                                 multipleRecordsArray.Add(productStockObject);
                             }
 
@@ -191,8 +191,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 var productStockObject = new JObject();
                 productStockObject["StockedProductId"] = productStock.Id;
+                productStockObject["StockedProductName"] = productStock.Name;
                 productStockObject["WalmartId"] = productStock.Product.WalmartId;
-                productStockObject["ItemName"] = productStock.Name;
                 productStockArray.Add(productStockObject);
             }
             model.Response.NavigateToPage = "product-stocks";

@@ -7,10 +7,11 @@ using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Core.Common;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ContainerNinja.Core.Exceptions;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "create_recipe" })]
+    [ChatCommandModel(new[] { "create_recipe" })]
     public class ConsumeChatCommandCreateRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateRecipe>
     {
         public ChatAICommandDTOCreateRecipe Command { get; set; }
@@ -42,7 +43,30 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     calledIngredient.Units = createRecipeIngredient.Units;
                     calledIngredient.UnitType = createRecipeIngredient.UnitType.UnitTypeFromString();
                 };
+
                 recipeEntity.CalledIngredients.Add(calledIngredient);
+
+                var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Name.ToLower() == createRecipeIngredient.IngredientName.ToLower());
+
+                if (productStockEntity == null)
+                {
+                    var productEntity = _repository.Products.CreateProxy();
+                    {
+                        productEntity.Name = createRecipeIngredient.IngredientName;
+                        productEntity.UnitType = createRecipeIngredient.UnitType.UnitTypeFromString();
+                    };
+
+                    //always ensure a product stock record exists for each product
+                    productStockEntity = _repository.ProductStocks.CreateProxy();
+                    {
+                        productStockEntity.Name = createRecipeIngredient.IngredientName;
+                        productStockEntity.Units = 1;
+                    };
+                    productStockEntity.Product = productEntity;
+                    _repository.ProductStocks.Add(productStockEntity);
+                }
+
+                calledIngredient.ProductStock = productStockEntity;
             }
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
@@ -50,8 +74,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             var recipeObject = new JObject();
             recipeObject["RecipeId"] = recipeEntity.Id;
-            recipeObject["RecipeName"] = recipeEntity.Name;
-            recipeObject["Serves"] = recipeEntity.Serves;
             var recipeIngredientsArray = new JArray();
             foreach (var ingredient in recipeEntity.CalledIngredients)
             {
@@ -59,8 +81,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
                 ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
-                ingredientObject["Units"] = ingredient.Units;
-                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;

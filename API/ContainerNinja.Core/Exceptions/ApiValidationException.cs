@@ -26,7 +26,7 @@ namespace ContainerNinja.Core.Exceptions
             }
             else
             {
-                ForceFunctionCall = "none";
+                ForceFunctionCall = "auto";
             }
         }
 

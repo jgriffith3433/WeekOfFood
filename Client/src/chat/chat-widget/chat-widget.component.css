@@ -14,7 +14,7 @@
   height: 100vh;
   right: 0px;
   bottom: 0px;
-  z-index: 2;
+  z-index: 9;
 }
 
 #audio {
@@ -22,7 +22,7 @@
 }
 
 .chat-button {
-  z-index: 1;
+  z-index: 8;
   width: 60px;
   height: 60px;
   position: absolute;
@@ -38,7 +38,7 @@
 }
 
 .chat-button-header {
-  z-index: 1;
+  z-index: 8;
   font-weight: bold;
   color: #fff;
   border: 1px solid #fff;
@@ -54,7 +54,7 @@
 .chat-button-mic {
   top: 10px;
   right: 10px;
-  z-index: 3;
+  z-index: 10;
   position: absolute;
   background-color: white !important;
   border: 0;
@@ -64,7 +64,7 @@
 }
 
 .chat-box {
-  z-index: 2;
+  z-index: 9;
   position: absolute;
   left: 0;
   height: 100vh;
@@ -180,7 +180,7 @@ Received message style
       bottom: 0;
       border-right: solid 10px #B9D6F2;
       border-top: solid 10px transparent;
-      z-index: 0;
+      z-index: 7;
     }
 
   .chat-message-received .chat-message-date {
@@ -217,7 +217,7 @@ Sent message style
       bottom: 0;
       border-left: solid 10px #84DCCF;
       border-top: solid 10px transparent;
-      z-index: 0;
+      z-index: 7;
     }
 
   .chat-message-sent .chat-message-date {
@@ -256,6 +256,27 @@ Sent message style
   background: #DD0031;
 }
 
+/* Extra small devices (landscape phones, 150px and up)*/
+@media (min-width: 150px) {
+  .wrapper {
+    top: 0px;
+    left: 0px;
+  }
+
+  .chat-button {
+    display: block;
+  }
+
+  .chat-box {
+    top: 5px;
+    left: 0px;
+    padding-top: 30px;
+    height: 100vh;
+    width: 100vw;
+    border-radius: 10px;
+  }
+}
+
 /* Small devices (landscape phones, 576px and up)*/
 @media (min-width: 576px) {
   .wrapper {
@@ -265,10 +286,6 @@ Sent message style
 
   .chat-button {
     display: block;
-  }
-
-  .chat-button-header {
-    display: none;
   }
 
   .chat-box {

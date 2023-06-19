@@ -21,7 +21,7 @@
   background-color: inherit;
   color: inherit;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
-  z-index: 2;
+  z-index: 9;
 }
 
   .chat-input-text::-webkit-input-placeholder {
@@ -40,21 +40,24 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1;
+  z-index: 8;
+  width: 100%;
 }
 
 #recordingFrequenciesVisualizer {
   position: absolute;
   top: 50px;
   left: 0;
-  z-index: 1;
+  z-index: 8;
+  width: 100%;
 }
 
 #speechToTextVisualizer {
   position: absolute;
   top: 100px;
   left: 0;
-  z-index: 1;
+  z-index: 8;
+  width: 100%;
 }
 
 .chat-input-submit {

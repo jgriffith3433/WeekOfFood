@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                 if (productStockEntity.Product.WalmartId.HasValue == false)
                 {
-                    var systemResponse = "Stocked Product is not linked to a walmart product yet: " + stockedProductToOrder.StockedProductId;
+                    var systemResponse = $"Stocked Product ({stockedProductToOrder.StockedProductId}) is not linked to a walmart product yet";
                     throw new ChatAIException(systemResponse, @"{ ""name"": ""link_stocked_product_to_walmart_product"" }");
                 }
             }

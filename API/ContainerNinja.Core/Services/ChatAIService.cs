@@ -155,11 +155,11 @@ namespace ContainerNinja.Core.Services
                 Model = Models.ChatGpt3_5Turbo0613,
                 Functions = _functionSpecifications,
                 FunctionCall = "auto",
-                Temperature = 0.2f,
+                Temperature = 0.8f,
                 //MaxTokens = 400,
                 //FrequencyPenalty = _1,
                 //PresencePenalty = _1,
-                TopP = 0.1f
+                //TopP = 0.1f
             };
             return chatCompletionCreateRequest;
         }
