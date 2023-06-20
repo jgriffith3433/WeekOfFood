@@ -1,7 +1,7 @@
 ﻿
 namespace ContainerNinja.Contracts.DTO
 {
-    public class ProductDTO
+    public class WalmartProductDetailsDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -15,6 +15,5 @@ namespace ContainerNinja.Contracts.DTO
         public float Price { get; set; }
         public bool Verified { get; set; }
         public int UnitType { get; set; }
-        public int? ProductStockId { get; set; }
     }
 }

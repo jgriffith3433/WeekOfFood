@@ -11,7 +11,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleFor(v => v.Command.StockedProducts).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "get_stocked_products" }));
             RuleForEach(v => v.Command.StockedProducts).ChildRules(i =>
             {
-                i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId is required");
+                i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId field is required");
             });
         }
     }

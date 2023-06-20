@@ -4,14 +4,17 @@ import { Subject } from "rxjs";
   providedIn: 'root'
 })
 export class HowDoIService {
-  public promise: Subject<string>;
+  public promise: Subject<any>;
 
   constructor(
   ) {
-    this.promise = new Subject<string>();
+    this.promise = new Subject<any>();
   }
 
-  public send(how: string) {
-    this.promise.next(how);
+  public send(how: string, forceFunctionCall: string = "none") {
+    this.promise.next({
+      how: how,
+      forceFunctionCall: forceFunctionCall
+    });
   }
 }

@@ -39,17 +39,24 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 throw new ChatAIException(systemResponse);//, @"{ ""name"": ""get_order_id"" }");
             }
 
-            var notLinkedToWalmartProducts = new List<long>();
+            var notLinkedToWalmartProducts = new List<int>();
+            var noUnitConversionToWalmartProducts = new List<int>();
             foreach (var stockedProductToOrder in model.Command.StockedProducts)
             {
                 var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == stockedProductToOrder.StockedProductId);
                 if (productStockEntity == null)
                 {
-                    var systemResponse = "Could not find product by ID: " + stockedProductToOrder.StockedProductId;
+                    var systemResponse = "Could not find stocked product by ID: " + stockedProductToOrder.StockedProductId;
                     throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
                 }
 
-                if (productStockEntity.Product.WalmartId.HasValue == false)
+                if (productStockEntity.WalmartProduct == null)
+                {
+                    notLinkedToWalmartProducts.Add(stockedProductToOrder.StockedProductId);
+                    var systemResponse = $"Stocked Product ({stockedProductToOrder.StockedProductId}) is not linked to a walmart product yet";
+                }
+
+                if (productStockEntity.WalmartProduct.WalmartId.HasValue == false)
                 {
                     notLinkedToWalmartProducts.Add(stockedProductToOrder.StockedProductId);
                     var systemResponse = $"Stocked Product ({stockedProductToOrder.StockedProductId}) is not linked to a walmart product yet";
@@ -65,14 +72,15 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == stockedProductToOrder.StockedProductId);
 
-                var orderProductEntity = _repository.OrderProducts.CreateProxy();
+                var orderItemEntity = _repository.OrderItems.CreateProxy();
                 {
-                    orderProductEntity.Product = productStockEntity.Product;
-                    orderProductEntity.WalmartId = productStockEntity.Product.WalmartId;
-                    orderProductEntity.Name = productStockEntity.Name;
+                    orderItemEntity.Product = productStockEntity.WalmartProduct;
+                    orderItemEntity.WalmartId = productStockEntity.WalmartProduct.WalmartId;
+                    orderItemEntity.Name = productStockEntity.Name;
+                    orderItemEntity.Quantity = stockedProductToOrder.Quantity;
                 }
-                _repository.OrderProducts.Add(orderProductEntity);
-                orderEntity.OrderProducts.Add(orderProductEntity);
+                _repository.OrderItems.Add(orderItemEntity);
+                orderEntity.OrderItems.Add(orderItemEntity);
             }
             _repository.Orders.Update(orderEntity);
 
@@ -82,15 +90,15 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             var orderObject = new JObject();
             orderObject["OrderId"] = orderEntity.Id;
             var orderProductsArray = new JArray();
-            foreach (var orderProduct in orderEntity.OrderProducts)
+            foreach (var orderProduct in orderEntity.OrderItems)
             {
                 var ingredientObject = new JObject();
-                ingredientObject["OrderProductId"] = orderProduct.Id;
-                ingredientObject["OrderProductName"] = orderProduct.Name;
-                ingredientObject["OrderProductWalmartId"] = orderProduct.WalmartId;
+                ingredientObject["OrderItemId"] = orderProduct.Id;
+                ingredientObject["OrderItemName"] = orderProduct.Name;
+                ingredientObject["OrderItemWalmartId"] = orderProduct.WalmartId;
                 orderProductsArray.Add(ingredientObject);
             }
-            orderObject["OrderProducts"] = orderProductsArray;
+            orderObject["OrderItems"] = orderProductsArray;
             model.Response.NavigateToPage = "orders";
             return JsonConvert.SerializeObject(orderObject);
         }

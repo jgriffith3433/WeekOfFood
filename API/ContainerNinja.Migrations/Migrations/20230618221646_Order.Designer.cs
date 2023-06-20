@@ -438,7 +438,7 @@ namespace ContainerNinja.Migrations.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderProducts");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Product", b =>
@@ -766,7 +766,7 @@ namespace ContainerNinja.Migrations.Migrations
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderProduct", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Order", null)
-                        .WithMany("OrderProducts")
+                        .WithMany("OrderItems")
                         .HasForeignKey("OrderId");
 
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
@@ -820,7 +820,7 @@ namespace ContainerNinja.Migrations.Migrations
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Order", b =>
                 {
-                    b.Navigation("OrderProducts");
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Product", b =>

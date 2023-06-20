@@ -38,8 +38,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             var orderObject = new JObject();
             orderObject["OrderId"] = orderEntity.Id;
-            var orderProductsArray = new JArray();
-            orderObject["OrderProducts"] = orderProductsArray;
+            var orderItemsArray = new JArray();
+            orderObject["OrderItems"] = orderItemsArray;
             model.Response.NavigateToPage = "orders";
             return JsonConvert.SerializeObject(orderObject);
         }

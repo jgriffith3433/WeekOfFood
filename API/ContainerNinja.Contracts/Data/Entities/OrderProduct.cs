@@ -1,10 +1,11 @@
 ﻿
 namespace ContainerNinja.Contracts.Data.Entities
 {
-    public class OrderProduct : AuditableEntity
+    public class OrderItem : AuditableEntity
     {
         public string Name { get; set; }
         public long? WalmartId { get; set; }
-        public virtual Product? Product { get; set; }
+        public int Quantity { get; set; }
+        public virtual WalmartProduct? Product { get; set; }
     }
 }

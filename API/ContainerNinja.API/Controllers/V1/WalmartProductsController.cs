@@ -18,22 +18,22 @@ namespace ContainerNinja.Controllers.V1
     [ApiController]
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
-    public class ProductsController : ControllerBase
+    public class WalmartProductsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
-        public ProductsController(IMediator mediator)
+        public WalmartProductsController(IMediator mediator)
         {
             _mediator = mediator;
         }
 
         [MapToApiVersion("1.0")]
         [HttpGet]
-        [ProducesResponseType(typeof(GetAllProductsVM), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(GetAllWalmartProductsVM), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<GetAllProductsVM>> Get()
+        public async Task<ActionResult<GetAllWalmartProductsVM>> Get()
         {
-            var query = new GetAllProductsQuery();
+            var query = new GetAllWalmartProductsQuery();
             return await _mediator.Send(query);
         }
 
@@ -41,7 +41,7 @@ namespace ContainerNinja.Controllers.V1
         [HttpPost]
         [ProducesResponseType(typeof(int), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<int>> Create(CreateProductCommand command)
+        public async Task<ActionResult<int>> Create(CreateWalmartProductCommand command)
         {
             return await _mediator.Send(command);
         }
@@ -49,9 +49,9 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WalmartProductDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<ProductDTO>> Update(int id, UpdateProductCommand command)
+        public async Task<ActionResult<WalmartProductDTO>> Update(int id, UpdateProductCommand command)
         {
             if (command == null || id != command.Id)
             {
@@ -64,9 +64,9 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPut("UpdateProductName/{id}")]
-        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WalmartProductDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<ProductDTO>> UpdateProductName(int id, UpdateProductNameCommand command)
+        public async Task<ActionResult<WalmartProductDTO>> UpdateProductName(int id, UpdateProductNameCommand command)
         {
             if (command == null || id != command.Id)
             {
@@ -79,9 +79,9 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPut("UpdateUnitType/{id}")]
-        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WalmartProductDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<ProductDTO>> UpdateUnitType(int id, UpdateProductUnitTypeCommand command)
+        public async Task<ActionResult<WalmartProductDTO>> UpdateUnitType(int id, UpdateProductUnitTypeCommand command)
         {
             if (command == null || id != command.Id)
             {
@@ -93,9 +93,9 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpPut("UpdateSize/{id}")]
-        [ProducesResponseType(typeof(ProductDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WalmartProductDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<ProductDTO>> UpdateSize(int id, UpdateProductSizeCommand command)
+        public async Task<ActionResult<WalmartProductDTO>> UpdateSize(int id, UpdateProductSizeCommand command)
         {
             if (command == null || id != command.Id)
             {
@@ -107,9 +107,9 @@ namespace ContainerNinja.Controllers.V1
 
         [MapToApiVersion("1.0")]
         [HttpGet("GetProductDetails")]
-        [ProducesResponseType(typeof(ProductDetailsDTO), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(WalmartProductDetailsDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<ProductDetailsDTO>> GetProductDetails([FromQuery] GetProductDetailsQuery query)
+        public async Task<ActionResult<WalmartProductDetailsDTO>> GetProductDetails([FromQuery] GetProductDetailsQuery query)
         {
             return await _mediator.Send(query);
         }
@@ -120,7 +120,7 @@ namespace ContainerNinja.Controllers.V1
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
         public async Task<ActionResult<int>> Delete(int id)
         {
-            return await _mediator.Send(new DeleteProductCommand
+            return await _mediator.Send(new DeleteWalmartProductCommand
             {
                 Id = id
             });

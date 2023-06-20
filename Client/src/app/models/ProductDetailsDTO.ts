@@ -1,4 +1,4 @@
-import { ProductDTO } from "./ProductDTO";
+import { WalmartProductDTO } from "./WalmartProductDTO";
 
 export class ProductDetailsDTO {
   id?: number;

@@ -38,20 +38,20 @@
       </div>
 
       <ul id="completedOrderProducts" class="list-group mb-2 list-group-flush">
-        <li class="list-group-item" *ngFor="let completedOrderProduct of selectedCompletedOrder.completedOrderProducts; index as i" [ngClass]="{'disabled': completedOrderProduct.product, 'list-group-item-warning': !completedOrderProduct.product, 'list-group-item-danger': completedOrderProduct.walmartError}">
+        <li class="list-group-item" *ngFor="let completedOrderProduct of selectedCompletedOrder.completedOrderProducts; index as i" [ngClass]="{'disabled': completedOrderProduct.walmartProduct, 'list-group-item-warning': !completedOrderProduct.walmartProduct, 'list-group-item-danger': completedOrderProduct.walmartError}">
           <div class="d-flex">
             <div class="flex-fill">
               <input id="{{ 'completedOrderProductName' + i }}" *ngIf="completedOrderProduct == selectedCompletedOrderProduct" type="text"
                      class="form-control item-input-control" [(ngModel)]="completedOrderProduct.name" (keyup.enter)="updateCompletedOrderProduct(completedOrderProduct, true)"
                      (blur)="updateCompletedOrderProduct(completedOrderProduct)" autofocus="autofocus" />
-              <div *ngIf="completedOrderProduct.product" class="item-name form-control form-control-plaintext">
+              <div *ngIf="completedOrderProduct.walmartProduct" class="item-name form-control form-control-plaintext">
                 <input type="text" readonly class="form-control-plaintext" value="{{ completedOrderProduct.name }}">
               </div>
-              <div *ngIf="!completedOrderProduct.product && completedOrderProduct != selectedCompletedOrderProduct" (click)="editCompletedOrderProduct(completedOrderProduct, 'completedOrderProductName' + i)" class="item-name form-control item-input-control">
+              <div *ngIf="!completedOrderProduct.walmartProduct && completedOrderProduct != selectedCompletedOrderProduct" (click)="editCompletedOrderProduct(completedOrderProduct, 'completedOrderProductName' + i)" class="item-name form-control item-input-control">
                 <span>{{ completedOrderProduct.name }}</span>
               </div>
             </div>
-            <div *ngIf="!completedOrderProduct.product" class="item-commands d-flex">
+            <div *ngIf="!completedOrderProduct.walmartProduct" class="item-commands d-flex">
               <button *ngIf="completedOrderProduct.id != 0" (click)="showCompletedOrderProductDetailsModal(completedOrderProductDetailsModalTemplate, completedOrderProduct)" class="my-auto btn btn-default btn-xs" role="button">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>
@@ -59,7 +59,7 @@
           </div>
         </li>
         <li class="list-group-item" (click)="addCompletedOrderProduct()">
-          <button class="btn btn-default">Add Completed Order Product...</button>
+          <button class="btn btn-default">Add Completed Order walmartProduct...</button>
         </li>
       </ul>
     </div>
@@ -112,7 +112,7 @@
     <div class="form">
       <div class="form-group">
         <label for="search">Search by Name</label>
-        <div *ngIf="!completedOrderProductDetailsEditor.product && completedOrderProductDetailsEditor.walmartSearchItems">
+        <div *ngIf="!completedOrderProductDetailsEditor.walmartProduct && completedOrderProductDetailsEditor.walmartSearchItems">
           <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="completedOrderProductDetailsEditor.search"
                  [ngClass]="{ 'is-invalid': completedOrderProductDetailsEditor.error }" (keyup.enter)="searchCompletedOrderProductName()" />
           <div class="float-end">
@@ -122,7 +122,7 @@
             <option [ngValue]="walmartSearchItem.itemId" *ngFor="let walmartSearchItem of completedOrderProductDetailsEditor.walmartSearchItems">{{ walmartSearchItem.name }}</option>
           </select>
         </div>
-        <div *ngIf="!completedOrderProductDetailsEditor.product && !completedOrderProductDetailsEditor.walmartSearchItems">
+        <div *ngIf="!completedOrderProductDetailsEditor.walmartProduct && !completedOrderProductDetailsEditor.walmartSearchItems">
           <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="completedOrderProductDetailsEditor.search"
                  [ngClass]="{ 'is-invalid': completedOrderProductDetailsEditor.error }" (keyup.enter)="searchCompletedOrderProductName()" />
           <div class="float-end">

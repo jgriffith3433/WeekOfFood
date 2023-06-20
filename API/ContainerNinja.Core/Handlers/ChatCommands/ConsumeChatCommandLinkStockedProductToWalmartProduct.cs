@@ -6,6 +6,7 @@ using ContainerNinja.Core.Common;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Contracts.Services;
 using ContainerNinja.Contracts.Data.Entities;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -51,7 +52,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     notFoundWalmartIds.Add(link.WalmartProductId);
                     continue;
                 }
-                stockedProductEntity.Product.WalmartId = link.WalmartProductId;
+                stockedProductEntity.Name = walmartItemResult.name;
+                stockedProductEntity.WalmartProduct.WalmartId = link.WalmartProductId;
+                //always update values from walmart to keep synced
+                stockedProductEntity.WalmartProduct.WalmartItemResponse = JsonConvert.SerializeObject(walmartItemResult);
+                stockedProductEntity.WalmartProduct.Name = walmartItemResult.name;
+                stockedProductEntity.WalmartProduct.Price = walmartItemResult.salePrice;
+                stockedProductEntity.WalmartProduct.WalmartSize = walmartItemResult.size;
+                stockedProductEntity.WalmartProduct.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", walmartItemResult.name, walmartItemResult.itemId);
                 stockedProductsToUpdate.Add(stockedProductEntity);
             }
             if (notFoundWalmartIds.Count > 0)

@@ -8,7 +8,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandSearchWalmartProductsForStockedProductsValidator()
         {
-            RuleFor(v => v.Command.StockedProductIds).NotEmpty().WithMessage("StockedProductIds is required");
+            RuleFor(v => v.Command.StockedProductIds).NotEmpty().WithMessage("StockedProductIds field is required");
         }
     }
 }

@@ -7,8 +7,8 @@ namespace ContainerNinja.Core.Validators
     {
         public ValidateUserDTOValidator()
         {
-            RuleFor(x => x.EmailAddress).NotEmpty().WithMessage("EmailAddress is required");
-            RuleFor(x => x.Password).NotEmpty().WithMessage("Password is required");
+            RuleFor(x => x.EmailAddress).NotEmpty().WithMessage("EmailAddress field is required");
+            RuleFor(x => x.Password).NotEmpty().WithMessage("Password field is required");
             RuleFor(x => x.EmailAddress).EmailAddress().WithMessage("Not a valid EmailAddress");
         }
     }

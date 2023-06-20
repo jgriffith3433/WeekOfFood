@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace ContainerNinja.Core.Validators
 {
-    public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
+    public class UpdateWalmartProductCommandValidator : AbstractValidator<UpdateProductCommand>
     {
-        public UpdateProductCommandValidator()
+        public UpdateWalmartProductCommandValidator()
         {
             RuleFor(x => x.WalmartId).NotEmpty();
         }

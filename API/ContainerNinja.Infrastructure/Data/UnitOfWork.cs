@@ -26,7 +26,7 @@ namespace ContainerNinja.Core.Data
         public IUserRepository Users => new UserRepository(_context);
         public IChatCommandRepository ChatCommands => new ChatCommandRepository(_context);
         public IChatConversationRepository ChatConversations => new ChatConversationRepository(_context);
-        public IProductRepository Products => new ProductRepository(_context);
+        public IWalmartProductRepository WalmartProducts => new WalmartProductRepository(_context);
         public ICompletedOrderRepository CompletedOrders => new CompletedOrderRepository(_context);
         public ICompletedOrderProductRepository CompletedOrderProducts => new CompletedOrderProductRepository(_context);
         public IProductStockRepository ProductStocks => new ProductStockRepository(_context);
@@ -35,7 +35,7 @@ namespace ContainerNinja.Core.Data
         public ICookedRecipeRepository CookedRecipes => new CookedRecipeRepository(_context);
         public ICookedRecipeCalledIngredientRepository CookedRecipeCalledIngredients => new CookedRecipeCalledIngredientRepository(_context);
         public IOrderRepository Orders => new OrderRepository(_context);
-        public IOrderProductRepository OrderProducts => new OrderProductRepository(_context);
+        public IOrderItemRepository OrderItems => new OrderItemRepository(_context);
 
         public async Task CommitAsync()
         {

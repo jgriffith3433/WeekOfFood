@@ -18,7 +18,7 @@
     <tr *ngFor="let productStock of productStocks index as i">
       <td>{{ productStock.id }}</td>
       <td>{{ productStock.name }}</td>
-      <td>{{ getUnitTypeNameFromUnitTypeValue(productStock.product != null ? productStock.product.unitType : -1) }}</td>
+      <td>{{ getUnitTypeNameFromUnitTypeValue(productStock.unitType) }}</td>
       <td>
         <input id="{{ 'productStock' + i }}" *ngIf="productStock == selectedProductStockUnits" type="text"
                class="form-control item-input-control" [(ngModel)]="productStock.units" (change)="updateProductStockUnits(productStock)"

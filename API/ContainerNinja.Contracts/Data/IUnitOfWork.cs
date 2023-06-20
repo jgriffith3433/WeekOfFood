@@ -12,7 +12,7 @@ namespace ContainerNinja.Contracts.Data
         IUserRepository Users { get; }
         IChatCommandRepository ChatCommands { get; }
         IChatConversationRepository ChatConversations { get; }
-        IProductRepository Products { get; }
+        IWalmartProductRepository WalmartProducts { get; }
         ICompletedOrderRepository CompletedOrders { get; }
         ICompletedOrderProductRepository CompletedOrderProducts { get; }
         IProductStockRepository ProductStocks { get; }
@@ -21,7 +21,7 @@ namespace ContainerNinja.Contracts.Data
         ICookedRecipeRepository CookedRecipes { get; }
         ICookedRecipeCalledIngredientRepository CookedRecipeCalledIngredients { get; }
         IOrderRepository Orders { get; }
-        IOrderProductRepository OrderProducts { get; }
+        IOrderItemRepository OrderItems { get; }
         Task CommitAsync();
     }
 }

@@ -17,26 +17,24 @@ namespace ContainerNinja.Core.Mapper
             CreateMap<TodoItem, TodoItemDTO>()
                 .ForMember(d => d.Priority, opt => opt.MapFrom(s => (int)s.Priority));
 
-            CreateMap<Product, ProductDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
-                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => s.ProductStock != null ? s.ProductStock.Id : -1));
+            CreateMap<WalmartProduct, WalmartProductDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType));
 
-            CreateMap<Product, ProductDetailsDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
-                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => s.ProductStock != null ? s.ProductStock.Id : -1));
+            CreateMap<WalmartProduct, WalmartProductDetailsDTO>()
+                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType));
 
-            CreateMap<ProductDTO, ProductDetailsDTO>();
-            CreateMap<ProductDetailsDTO, ProductDTO>();
+            CreateMap<WalmartProductDTO, WalmartProductDetailsDTO>();
+            CreateMap<WalmartProductDetailsDTO, WalmartProductDTO>();
 
             CreateMap<CompletedOrder, CompletedOrderDTO>();
 
-            CreateMap<CompletedOrderProduct, CompletedOrderProductDTO>();
+            CreateMap<CompletedOrderWalmartProduct, CompletedOrderProductDTO>();
 
             CreateMap<ProductStock, ProductStockDTO>()
-                .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.Product.Id));
+                .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.WalmartProduct.Id));
 
             CreateMap<ProductStock, ProductStockDetailsDTO>()
-                .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.Product.Id));
+                .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.WalmartProduct.Id));
 
             CreateMap<ProductStockDTO, ProductStockDetailsDTO>();
             CreateMap<ProductStockDetailsDTO, ProductStockDTO>();
@@ -74,7 +72,7 @@ namespace ContainerNinja.Core.Mapper
 
             CreateMap<Order, OrderDTO>();
 
-            CreateMap<OrderProduct, OrderProductDTO>();
+            CreateMap<OrderItem, OrderItemDTO>();
 
         }
     }

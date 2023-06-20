@@ -46,7 +46,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     calledIngredient.Recipe = recipeEntity;
                     calledIngredient.Verified = false;
                     calledIngredient.Units = createRecipeIngredient.Units;
-                    calledIngredient.UnitType = createRecipeIngredient.UnitType.UnitTypeFromString();
+                    calledIngredient.UnitType = createRecipeIngredient.UnitType;
                 };
 
                 recipeEntity.CalledIngredients.Add(calledIngredient);
@@ -55,19 +55,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                 if (productStockEntity == null)
                 {
-                    var productEntity = _repository.Products.CreateProxy();
-                    {
-                        productEntity.Name = createRecipeIngredient.IngredientName;
-                        productEntity.UnitType = createRecipeIngredient.UnitType.UnitTypeFromString();
-                    };
-
-                    //always ensure a product stock record exists for each product
                     productStockEntity = _repository.ProductStocks.CreateProxy();
                     {
                         productStockEntity.Name = createRecipeIngredient.IngredientName;
-                        productStockEntity.Units = 1;
                     };
-                    productStockEntity.Product = productEntity;
                     _repository.ProductStocks.Add(productStockEntity);
                 }
 
@@ -89,7 +80,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
-            return "Created recipe:\n" + JsonConvert.SerializeObject(recipeObject);
+            model.Response.ForceFunctionCall = "none";
+            return JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

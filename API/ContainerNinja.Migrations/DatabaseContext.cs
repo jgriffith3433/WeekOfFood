@@ -47,15 +47,15 @@ namespace ContainerNinja.Migrations
         public DbSet<User> Users { get; set; }
         public DbSet<ChatCommand> ChatCommands { get; set; }
         public DbSet<ChatConversation> ChatConversations { get; set; }
-        public DbSet<Product> Products { get; set; }
+        public DbSet<WalmartProduct> WalmartProducts { get; set; }
         public DbSet<CompletedOrder> CompletedOrders { get; set; }
-        public DbSet<CompletedOrderProduct> CompletedOrderProducts { get; set; }
+        public DbSet<CompletedOrderWalmartProduct> CompletedOrderProducts { get; set; }
         public DbSet<ProductStock> ProductStocks { get; set; }
         public DbSet<CalledIngredient> CalledIngredient { get; set; }
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<CookedRecipe> CookedRecipes { get; set; }
         public DbSet<CookedRecipeCalledIngredient> CookedRecipeCalledIngredients { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderProduct> OrderProducts { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
     }
 }

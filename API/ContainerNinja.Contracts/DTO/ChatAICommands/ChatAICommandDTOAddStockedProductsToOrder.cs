@@ -24,6 +24,6 @@ public record ChatAICommandDTOAddStockedProductsToOrder_StockedProduct
     [Description("Id of the stocked product")]
     public int StockedProductId { get; set; }
     [Required]
-    [Description("How many should be ordered")]
-    public long Quantity { get; set; }
+    [Description("How many should be ordered. Convert from the stocked product unit type to the walmart size to get this number.")]
+    public int Quantity { get; set; }
 }

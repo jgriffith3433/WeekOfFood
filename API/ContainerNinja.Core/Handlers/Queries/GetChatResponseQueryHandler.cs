@@ -75,7 +75,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                         chatResponseVM.ChatMessages.Add(chatMessageVM);
                         chatResponseVM.ForceFunctionCall = "auto";
                     }
-                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
+                    else if (messageToHandle.From == "function")
                     {
                         var chatMessageVM = await _chatAIService.GetChatResponse(chatResponseVM.ChatMessages, model.ForceFunctionCall);
                         chatResponseVM.ChatMessages.Add(chatMessageVM);
@@ -93,17 +93,10 @@ namespace ContainerNinja.Core.Handlers.Queries
                         throw new NotImplementedException();
                     }
                 }
-                else if (messageToHandle.To == StaticValues.ChatMessageRoles.Function)
+                else if (messageToHandle.To == "function")
                 {
                     if (messageToHandle.From == StaticValues.ChatMessageRoles.Assistant)
                     {
-                        var functionCall = messageToHandle.FunctionCall.Value.Deserialize<ChatAICommandDTO>(new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true,
-                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                            AllowTrailingCommas = true,
-                        });
-
                         chatResponseVM = await _mediator.Send(new ConsumeChatCommand
                         {
                             ChatConversation = model.ChatConversation,
@@ -126,7 +119,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                         //TODO: Implement system to function communication
                         throw new NotImplementedException();
                     }
-                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
+                    else if (messageToHandle.From == "function")
                     {
                         //TODO: Implement function to function communication
                         throw new NotImplementedException();
@@ -144,7 +137,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     {
                         throw new NotImplementedException();
                     }
-                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
+                    else if (messageToHandle.From == "function")
                     {
                         throw new NotImplementedException();
                     }
@@ -164,7 +157,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     {
                         throw new NotImplementedException();
                     }
-                    else if (messageToHandle.From == StaticValues.ChatMessageRoles.Function)
+                    else if (messageToHandle.From == "function")
                     {
                         throw new NotImplementedException();
                     }

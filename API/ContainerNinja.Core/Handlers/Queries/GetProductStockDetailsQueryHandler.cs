@@ -47,21 +47,22 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             var productStockDetailsDTO = _mapper.Map<ProductStockDetailsDTO>(productStockDTO);
 
-            var searchResults = from p in _repository.Products.Set where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) || p.Id == productStockDTO.ProductId select p;
+            //TODO: needs to be looked at after relationship change
+            //var searchResults = from p in _repository.WalmartProducts.Set where EF.Functions.Like(p.Name, string.Format("%{0}%", request.Name)) || p.Id == productStockDTO.ProductId select p;
 
-            productStockDetailsDTO.ProductSearchItems = _mapper.Map<IEnumerable<ProductDTO>>(searchResults).ToList();
+            //productStockDetailsDTO.ProductSearchItems = _mapper.Map<IEnumerable<WalmartProductDTO>>(searchResults).ToList();
 
-            foreach (var productSearchItem in productStockDetailsDTO.ProductSearchItems)
-            {
-                if (productSearchItem.ProductStockId == request.Id)
-                {
-                    productSearchItem.Name += " ( Linked )";
-                }
-                else if (productSearchItem.ProductStockId != null)
-                {
-                    productSearchItem.Name += " ( Merge )";
-                }
-            }
+            //foreach (var productSearchItem in productStockDetailsDTO.ProductSearchItems)
+            //{
+            //    if (productSearchItem.ProductStockId == request.Id)
+            //    {
+            //        productSearchItem.Name += " ( Linked )";
+            //    }
+            //    else if (productSearchItem.ProductStockId != null)
+            //    {
+            //        productSearchItem.Name += " ( Merge )";
+            //    }
+            //}
             return productStockDetailsDTO;
         }
     }

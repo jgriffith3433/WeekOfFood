@@ -18,7 +18,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public int ProductId { get; init; }
 
-        public float? Units { get; init; }
+        public float Units { get; init; }
     }
 
     public class UpdateProductStockDetailsCommandHandler : IRequestHandler<UpdateProductStockDetailsCommand, ProductStockDetailsDTO>
@@ -45,10 +45,10 @@ namespace ContainerNinja.Core.Handlers.Commands
                 throw new NotFoundException($"No Product Stock found for the Id {request.Id}");
             }
 
-            if (productStockEntity.Product == null || request.ProductId != productStockEntity.Product.Id)
+            if (productStockEntity.WalmartProduct == null || request.ProductId != productStockEntity.WalmartProduct.Id)
             {
                 //First search for product stocks that are already linked to the product
-                var alreadyLinkedProductStock = _repository.ProductStocks.Set.Where(p => p.Product.Id == request.ProductId).FirstOrDefault();
+                var alreadyLinkedProductStock = _repository.ProductStocks.Set.Where(p => p.WalmartProduct.Id == request.ProductId).FirstOrDefault();
                 if (alreadyLinkedProductStock != null)
                 {
                     //we found an existing product stock, merge
@@ -64,12 +64,12 @@ namespace ContainerNinja.Core.Handlers.Commands
                 else
                 {
                     //no product stock found that was already linked to product, link this one
-                    var productEntity = _repository.Products.Get(request.ProductId);
+                    var productEntity = _repository.WalmartProducts.Get(request.ProductId);
                     if (productStockEntity == null)
                     {
                         throw new NotFoundException($"No Product Stock found for the Id {request.ProductId}");
                     }
-                    productStockEntity.Product = productEntity;
+                    productStockEntity.WalmartProduct = productEntity;
                 }
             }
 
@@ -84,8 +84,8 @@ namespace ContainerNinja.Core.Handlers.Commands
             _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
 
-            var productDTO = _mapper.Map<ProductDTO>(productStockEntity.Product);
-            _cache.SetItem($"product_{request.Id}", productDTO);
+            var walmartProductDTO = _mapper.Map<WalmartProductDTO>(productStockEntity.WalmartProduct);
+            _cache.SetItem($"product_{request.Id}", walmartProductDTO);
             _cache.RemoveItem("products");
 
             return _mapper.Map<ProductStockDetailsDTO>(productStockDTO);

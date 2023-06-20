@@ -31,10 +31,6 @@ namespace ContainerNinja.Core.Handlers.Commands
                 throw new NotFoundException($"No Product Stock found for the Id {request.Id}");
             }
 
-            _cache.RemoveItem("products");
-            _cache.RemoveItem($"product_{productStockEntity.Product.Id}");
-            _repository.Products.Delete(productStockEntity.Product.Id);
-
             _cache.RemoveItem("product_stocks");
             _cache.RemoveItem($"product_stock_{request.Id}");
             _repository.ProductStocks.Delete(request.Id);

@@ -1,4 +1,4 @@
-import { ProductDTO } from "./ProductDTO";
+import { WalmartProductDTO } from "./WalmartProductDTO";
 
 export class CompletedOrderProductDTO {
   id?: number = undefined;
@@ -8,5 +8,5 @@ export class CompletedOrderProductDTO {
   walmartSearchResponse?: string | undefined = undefined;
   walmartError?: string | undefined = undefined;
   completedOrderId?: number = undefined;
-  product?: ProductDTO | undefined = undefined;
+  walmartProduct?: WalmartProductDTO | undefined = undefined;
 }

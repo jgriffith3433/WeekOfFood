@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ContainerNinja.Contracts.Data.Entities
 {
-    public class Product : AuditableEntity
+    public class WalmartProduct : AuditableEntity
     {
         public string Name { get; set; }
         public long? WalmartId { get; set; }
@@ -16,7 +16,7 @@ namespace ContainerNinja.Contracts.Data.Entities
         public float Price { get; set; }
         public bool Verified { get; set; }
         public UnitType UnitType { get; set; }
-        public virtual IList<CompletedOrderProduct> CompletedOrderProducts { get; private set; } = new List<CompletedOrderProduct>();
-        public virtual ProductStock? ProductStock { get; set; }
+        public virtual IList<CompletedOrderWalmartProduct> CompletedOrderProducts { get; private set; } = new List<CompletedOrderWalmartProduct>();
+        public virtual IList<ProductStock>? ProductStocks { get; set; } = new List<ProductStock>();
     }
 }

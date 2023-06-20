@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("create_product", "Create a new product")]
+[ChatCommandSpecification("create_walmart_product", "Create a new walmart product to be used for placing orders")]
 public record ChatAICommandDTOCreateProduct : ChatAICommandArgumentsDTO
 {
     [Required]

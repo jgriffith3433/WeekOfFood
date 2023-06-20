@@ -47,7 +47,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     cookedRecipeCalledIngredient.Name = model.Command.IngredientName;
                     //cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
                     cookedRecipeCalledIngredient.Units = model.Command.Units;
-                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
+                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType;
                 };
                 cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
                 _repository.CookedRecipes.Update(cookedRecipe);
@@ -67,8 +67,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["LoggedIngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["Units"] = ingredient.Units;
-                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["IngredientUnits"] = ingredient.Units;
+                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;

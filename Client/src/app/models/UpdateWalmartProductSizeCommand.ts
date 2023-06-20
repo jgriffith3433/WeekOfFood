@@ -1,5 +1,5 @@
 
-export class UpdateProductSizeCommand {
+export class UpdateWalmartProductSizeCommand {
   id?: number = undefined;
   size?: number = undefined;
 }

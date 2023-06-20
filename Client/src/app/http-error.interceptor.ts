@@ -70,12 +70,12 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     }
 
     // It's a protocol relative url with the same origin.
-    // For example: //www.example.com/api/Products
+    // For example: //www.example.com/api/WalmartProducts
     if (req.url.startsWith(`//${window.location.host}/`)) {
       return true;
     }
 
-    // It's a relative url like /api/Products
+    // It's a relative url like /api/WalmartProducts
     if (/^\/[^\/].*/.test(req.url)) {
       return true;
     }

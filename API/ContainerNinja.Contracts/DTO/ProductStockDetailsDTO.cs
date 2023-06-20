@@ -1,4 +1,6 @@
 ﻿
+using ContainerNinja.Contracts.Enum;
+
 namespace ContainerNinja.Contracts.DTO
 {
     public class ProductStockDetailsDTO
@@ -9,10 +11,12 @@ namespace ContainerNinja.Contracts.DTO
 
         public float? Units { get; set; }
 
+        public UnitType UnitType { get; set; }
+
         public int? ProductId { get; set; }
 
-        public ProductDTO Product { get; set; }
+        public WalmartProductDTO Product { get; set; }
 
-        public IList<ProductDTO> ProductSearchItems { get; set; } = new List<ProductDTO>();
+        public IList<WalmartProductDTO> ProductSearchItems { get; set; } = new List<WalmartProductDTO>();
     }
 }

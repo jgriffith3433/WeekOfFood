@@ -7,8 +7,8 @@ namespace ContainerNinja.Core.Validators
     {
         public UpdateTodoItemDetailsValidator()
         {
-            RuleFor(x => x.ListId).NotEmpty().WithMessage("ListId is required");
-            RuleFor(x => x.Priority).NotEmpty().WithMessage("Priority is required");
+            RuleFor(x => x.ListId).NotEmpty().WithMessage("ListId field is required");
+            RuleFor(x => x.Priority).NotEmpty().WithMessage("Priority field is required");
         }
     }
 }

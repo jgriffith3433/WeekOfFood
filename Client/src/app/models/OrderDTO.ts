@@ -1,6 +1,6 @@
-import { OrderProductDTO } from "./OrderProductDTO";
+import { OrderItemDTO } from "./OrderItemDTO";
 
 export class OrderDTO {
   id?: number = undefined;
-  orderProducts?: OrderProductDTO[] = undefined;
+  orderItems?: OrderItemDTO[] = undefined;
 }

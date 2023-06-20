@@ -1,66 +1,64 @@
-﻿using Namotion.Reflection;
-using NJsonSchema;
+﻿using System.Text.Json.Nodes;
+using Namotion.Reflection;
 using NJsonSchema.Generation;
+using NJsonSchema;
 using System.Text.Json;
 
 namespace ContainerNinja.Contracts.Common
 {
     public class ChatCommandSpecification : Attribute
     {
-        public ChatCommandSpecification(string name, string? description, string? parametersSchema = null)
+        public ChatCommandSpecification(string name, string? description)
         {
             Names = new string[]
             {
                 name
             };
             Description = description;
-            if (parametersSchema != null)
-            {
-                CreateParametersSchemaElementFromString(parametersSchema);
-            }
         }
 
-        public ChatCommandSpecification(string[] names, string? description, string? parametersSchema = null)
+        public ChatCommandSpecification(string[] names, string? description)
         {
             Names = names;
             Description = description;
-            if (parametersSchema != null)
-            {
-                CreateParametersSchemaElementFromString(parametersSchema);
-            }
         }
 
-        public void CreateParametersSchemaFromType(Type type)
+        public dynamic? GetFunctionParametersFromType(Type type)
         {
             var settings = new JsonSchemaGeneratorSettings
             {
+                DefaultEnumHandling = EnumHandling.String,
                 FlattenInheritanceHierarchy = true,
                 UseXmlDocumentation = false,
                 ResolveExternalXmlDocumentation = false,
                 SchemaNameGenerator = new SchemaNameGenerator(),
                 GenerateExamples = false,
                 GenerateAbstractSchemas = false,
-                
-                
+                AllowReferencesWithProperties = false,
+                AlwaysAllowAdditionalObjectProperties = false,
             };
-            var json = JsonSchema.FromType(type, settings).ToJson();
-            CreateParametersSchemaElementFromString(json);
-        }
-
-        protected void CreateParametersSchemaElementFromString(string parameters)
-        {
-            ParametersSchema = JsonSerializer.Deserialize<JsonElement>(parameters, new JsonSerializerOptions
+            var jsonString = JsonSchema.FromType(type, settings).ToJson();
+            var jsonObject = JsonSerializer.Deserialize<JsonObject>(jsonString, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
                 AllowTrailingCommas = true,
             });
+            if (jsonObject["properties"] == null)
+            {
+                jsonObject.Add("properties", new JsonObject());
+            }
+            return jsonObject;
+            //return JsonSerializer.Serialize(jsonObject, new JsonSerializerOptions
+            //{
+            //    PropertyNameCaseInsensitive = true,
+            //    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            //    AllowTrailingCommas = true,
+            //});
         }
-
 
         public string[] Names { get; set; }
         public string? Description { get; set; }
-        public JsonElement? ParametersSchema { get; set; }
     }
 
     public class SchemaNameGenerator : ISchemaNameGenerator
@@ -84,3 +82,69 @@ namespace ContainerNinja.Contracts.Common
         }
     }
 }
+
+
+/*using System.ComponentModel.DataAnnotations;
+using System.ComponentModel;
+using System.Reflection;
+using System.Text.Json.Nodes;
+
+namespace ContainerNinja.Contracts.Common
+{
+    public class ChatCommandSpecification : Attribute
+    {
+        public ChatCommandSpecification(string name, string? description)
+        {
+            Names = new string[]
+            {
+                name
+            };
+            Description = description;
+        }
+
+        public ChatCommandSpecification(string[] names, string? description)
+        {
+            Names = names;
+            Description = description;
+        }
+
+        public void CreateFunctionParametersFromType(Type type)
+        {
+            var properties = type.GetProperties();
+
+            var functionParameterPropertiesObject = new JsonObject();
+            var functionParameterPropertiesRequiredListArray = new JsonArray();
+
+            foreach (var property in properties)
+            {
+                var required = property.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(RequiredAttribute)) != null;
+                var description = property.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(DescriptionAttribute));
+                var typeName = property.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(JsonSchemaTypeName));
+                //var enumList = property.CustomAttributes.FirstOrDefault(ca => ca.AttributeType == typeof(JsonSchemaEnumList));
+
+                var functionParameterPropertyObject = new JsonObject();
+                {
+                    functionParameterPropertyObject.Add("type", typeName.ToString());
+                    functionParameterPropertyObject.Add("description", description.ToString());
+                    //functionParameterPropertyObject.Add("enum", string.Join(", ", enumList));
+                };
+                if (required)
+                {
+                    functionParameterPropertiesRequiredListArray.Add(property.Name);
+                }
+                functionParameterPropertiesObject.Add(property.Name, functionParameterPropertyObject);
+            }
+            var functionParametersObject = new JsonObject();
+            {
+                functionParametersObject.Add("type", "object");
+                functionParametersObject.Add("properties", functionParameterPropertiesObject);
+                functionParametersObject.Add("required", functionParameterPropertiesRequiredListArray);
+            };
+        }
+
+        public string[] Names { get; set; }
+        public string? Description { get; set; }
+        public JsonObject? FunctionParameters { get; set; }
+    }
+}
+*/

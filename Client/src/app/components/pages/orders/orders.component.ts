@@ -2,7 +2,7 @@ import { Component, TemplateRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OrderDTO } from '../../../models/OrderDTO';
-import { OrderProductDTO } from '../../../models/OrderProductDTO';
+import { OrderItemDTO } from '../../../models/OrderItemDTO';
 import { UnitTypeDTO } from '../../../models/UnitTypeDTO';
 import { OrdersService } from '../../../providers/orders.service';
 
@@ -48,7 +48,7 @@ export class OrdersComponent implements OnInit {
 
   //  Orders
   //remainingOrderProducts(order: OrderDTO): number | undefined {
-  //  return order.OrderProducts?.filter(t => !t.walmartId).length;
+  //  return order.orderItems?.filter(t => !t.walmartId).length;
   //}
 
   //showNewOrderModal(template: TemplateRef<any>): void {
@@ -66,7 +66,7 @@ export class OrdersComponent implements OnInit {
   //    id: 0,
   //    name: this.newOrderEditor.name,
   //    userImport: this.newOrderEditor.userImport,
-  //    OrderProducts: []
+  //    orderItems: []
   //  } as OrderDTO;
 
   //  this.ordersService.create(Order as CreateOrderCommand).subscribe(
@@ -138,17 +138,17 @@ export class OrdersComponent implements OnInit {
   //}
 
   //// Products
-  //showOrderProductDetailsModal(template: TemplateRef<any>, OrderProduct: OrderProductDTO): void {
+  //showOrderProductDetailsModal(template: TemplateRef<any>, orderItem: OrderItemDTO): void {
   //  if (this.selectedOrder) {
-  //    this.ordersService.getOrderProduct(OrderProduct.id).subscribe(
+  //    this.ordersService.getOrderProduct(orderItem.id).subscribe(
   //      result => {
   //        if (this.selectedOrder) {
-  //          if (this.selectedOrder.OrderProducts) {
+  //          if (this.selectedOrder.orderItems) {
   //            this.selectedOrderProduct = result;
-  //            for (var i = this.selectedOrder.OrderProducts.length - 1; i >= 0; i--) {
-  //              if (this.selectedOrder.OrderProducts[i].id == this.selectedOrderProduct?.id) {
+  //            for (var i = this.selectedOrder.orderItems.length - 1; i >= 0; i--) {
+  //              if (this.selectedOrder.orderItems[i].id == this.selectedOrderProduct?.id) {
   //                if (this.selectedOrderProduct) {
-  //                  this.selectedOrder.OrderProducts[i] = this.selectedOrderProduct;
+  //                  this.selectedOrder.orderItems[i] = this.selectedOrderProduct;
   //                }
   //                break;
   //              }
@@ -170,20 +170,20 @@ export class OrdersComponent implements OnInit {
   //  }
   //}
 
-  getWalmartLinkFromOrderProduct(orderProduct: OrderProductDTO): string {
-    return "https://www.walmart.com/ip/" + orderProduct.name + "/" + orderProduct.walmartId;
+  getWalmartLinkFromOrderProduct(orderItem: OrderItemDTO): string {
+    return "https://www.walmart.com/ip/" + orderItem.name + "/" + orderItem.walmartId;
   }
 
   //searchOrderProductName(): void {
   //  this.ordersService.searchOrderProductName(this.OrderProductDetailsEditor.id, this.OrderProductDetailsEditor.search).subscribe(
   //    result => {
   //      if (this.selectedOrder) {
-  //        if (this.selectedOrder.OrderProducts) {
+  //        if (this.selectedOrder.orderItems) {
   //          this.selectedOrderProduct = result;
-  //          for (var i = this.selectedOrder.OrderProducts.length - 1; i >= 0; i--) {
-  //            if (this.selectedOrder.OrderProducts[i].id == this.selectedOrderProduct?.id) {
+  //          for (var i = this.selectedOrder.orderItems.length - 1; i >= 0; i--) {
+  //            if (this.selectedOrder.orderItems[i].id == this.selectedOrderProduct?.id) {
   //              if (this.selectedOrderProduct) {
-  //                this.selectedOrder.OrderProducts[i] = this.selectedOrderProduct;
+  //                this.selectedOrder.orderItems[i] = this.selectedOrderProduct;
   //              }
   //              break;
   //            }
@@ -212,16 +212,16 @@ export class OrdersComponent implements OnInit {
   //}
 
   //updateOrderProductDetails(): void {
-  //  const OrderProduct = this.OrderProductDetailsEditor as UpdateOrderProductCommand;
-  //  this.ordersService.updateOrderProduct(this.selectedOrderProduct?.id, OrderProduct).subscribe(
+  //  const orderItem = this.OrderProductDetailsEditor as UpdateOrderProductCommand;
+  //  this.ordersService.updateOrderProduct(this.selectedOrderProduct?.id, orderItem).subscribe(
   //    result => {
   //      if (this.selectedOrder) {
-  //        if (this.selectedOrder.OrderProducts) {
+  //        if (this.selectedOrder.orderItems) {
   //          this.selectedOrderProduct = result;
-  //          for (var i = this.selectedOrder.OrderProducts.length - 1; i >= 0; i--) {
-  //            if (this.selectedOrder.OrderProducts[i].id == this.selectedOrderProduct?.id) {
+  //          for (var i = this.selectedOrder.orderItems.length - 1; i >= 0; i--) {
+  //            if (this.selectedOrder.orderItems[i].id == this.selectedOrderProduct?.id) {
   //              if (this.selectedOrderProduct) {
-  //                this.selectedOrder.OrderProducts[i] = this.selectedOrderProduct;
+  //                this.selectedOrder.orderItems[i] = this.selectedOrderProduct;
   //              }
   //              break;
   //            }
@@ -237,45 +237,45 @@ export class OrdersComponent implements OnInit {
   //}
 
   //addOrderProduct() {
-  //  const OrderProduct = {
+  //  const orderItem = {
   //    id: 0,
   //    name: '',
-  //  } as OrderProductDTO;
+  //  } as OrderItemDTO;
   //  if (this.selectedOrder) {
-  //    this.selectedOrder.OrderProducts?.push(OrderProduct);
-  //    if (this.selectedOrder.OrderProducts) {
-  //      const index = this.selectedOrder.OrderProducts.length - 1;
-  //      this.editOrderProduct(OrderProduct, 'OrderProductName' + index);
+  //    this.selectedOrder.orderItems?.push(orderItem);
+  //    if (this.selectedOrder.orderItems) {
+  //      const index = this.selectedOrder.orderItems.length - 1;
+  //      this.editOrderProduct(orderItem, 'OrderProductName' + index);
   //    }
   //  }
   //}
 
-  //editOrderProduct(OrderProduct: OrderProductDTO, inputId: string): void {
-  //  this.selectedOrderProduct = OrderProduct;
+  //editOrderProduct(orderItem: OrderItemDTO, inputId: string): void {
+  //  this.selectedOrderProduct = orderItem;
   //  setTimeout(() => document.getElementById(inputId)?.focus(), 100);
   //}
 
-  //updateOrderProduct(OrderProduct: OrderProductDTO, pressedEnter: boolean = false): void {
-  //  const isNewOrderProduct = OrderProduct.id === 0;
+  //updateOrderProduct(orderItem: OrderItemDTO, pressedEnter: boolean = false): void {
+  //  const isNewOrderProduct = orderItem.id === 0;
 
-  //  if (!OrderProduct.name?.trim()) {
-  //    this.deleteOrderProduct(OrderProduct);
+  //  if (!orderItem.name?.trim()) {
+  //    this.deleteOrderProduct(orderItem);
   //    return;
   //  }
 
-  //  if (OrderProduct.id === 0) {
+  //  if (orderItem.id === 0) {
   //    this.ordersService
   //      .createOrderProduct({
-  //        ...OrderProduct, OrderId: this.selectedOrder?.id
+  //        ...orderItem, OrderId: this.selectedOrder?.id
   //      } as CreateOrderProductCommand)
   //      .subscribe(
   //        result => {
-  //          OrderProduct.id = result;
+  //          orderItem.id = result;
   //        },
   //        error => console.error(error)
   //      );
   //  } else {
-  //    this.ordersService.updateOrderProduct(OrderProduct.id, OrderProduct).subscribe(
+  //    this.ordersService.updateOrderProduct(orderItem.id, orderItem).subscribe(
   //      () => console.log('Update succeeded.'),
   //      error => console.error(error)
   //    );
@@ -288,24 +288,24 @@ export class OrdersComponent implements OnInit {
   //  }
   //}
 
-  //deleteOrderProduct(OrderProduct: OrderProductDTO | undefined) {
+  //deleteOrderProduct(orderItem: OrderItemDTO | undefined) {
   //  if (this.OrderProductDetailsModalRef) {
   //    this.OrderProductDetailsModalRef.hide();
   //  }
 
-  //  if (this.selectedOrder && this.selectedOrderProduct && OrderProduct) {
-  //    if (OrderProduct.id === 0) {
-  //      const OrderProductIndex = this.selectedOrder.OrderProducts?.indexOf(this.selectedOrderProduct);
+  //  if (this.selectedOrder && this.selectedOrderProduct && orderItem) {
+  //    if (orderItem.id === 0) {
+  //      const OrderProductIndex = this.selectedOrder.orderItems?.indexOf(this.selectedOrderProduct);
   //      if (OrderProductIndex) {
-  //        this.selectedOrder.OrderProducts?.splice(OrderProductIndex, 1);
+  //        this.selectedOrder.orderItems?.splice(OrderProductIndex, 1);
   //      }
   //    }
   //    else {
-  //      this.ordersService.deleteOrderProduct(OrderProduct.id).subscribe(
+  //      this.ordersService.deleteOrderProduct(orderItem.id).subscribe(
   //        result => {
   //          if (this.selectedOrder && this.selectedOrderProduct) {
-  //            this.selectedOrder.OrderProducts = this.selectedOrder.OrderProducts?.filter(
-  //              t => t.id !== OrderProduct.id
+  //            this.selectedOrder.orderItems = this.selectedOrder.orderItems?.filter(
+  //              t => t.id !== orderItem.id
   //            );
   //          }
   //        },

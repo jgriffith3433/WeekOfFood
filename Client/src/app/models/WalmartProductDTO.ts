@@ -1,5 +1,5 @@
 
-export class ProductDTO {
+export class WalmartProductDTO {
   id?: number = undefined;
   name?: string = undefined;
   walmartId?: number | undefined = undefined;

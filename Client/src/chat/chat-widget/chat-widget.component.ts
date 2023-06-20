@@ -200,12 +200,12 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     this.howDoISubscription = this.howDoIService.promise.subscribe(how => this.howDoICallback(how));
   }
 
-  howDoICallback(how: string) {
+  howDoICallback(howDoI: any) {
     if (!this.visible) {
       this.userToggleChat();
     }
-    this._forceFunctionCall = "none";
-    this.sendMessage(how, false);
+    this._forceFunctionCall = howDoI.forceFunctionCall;
+    this.sendMessage(howDoI.how, false);
   }
 
   public get visible() {

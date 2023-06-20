@@ -35,6 +35,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             foreach (var searchTerm in searchTerms)
             {
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
+                if (searchTerm[searchTerm.Length - 1] == 's')
+                {
+                    predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm.Substring(0, searchTerm.Length - 1)));
+                }
             }
 
             var query = _repository.ProductStocks.Set.AsExpandable().Where(predicate).ToList();

@@ -2,5 +2,5 @@
 
 namespace ContainerNinja.Contracts.Data.Repositories
 {
-    public interface ICompletedOrderProductRepository : IRepository<CompletedOrderProduct> { }
+    public interface ICompletedOrderProductRepository : IRepository<CompletedOrderWalmartProduct> { }
 }

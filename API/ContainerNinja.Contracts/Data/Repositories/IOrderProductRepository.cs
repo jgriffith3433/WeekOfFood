@@ -2,5 +2,5 @@
 
 namespace ContainerNinja.Contracts.Data.Repositories
 {
-    public interface IOrderProductRepository : IRepository<OrderProduct> { }
+    public interface IOrderItemRepository : IRepository<OrderItem> { }
 }

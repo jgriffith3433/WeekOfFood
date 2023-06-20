@@ -1,5 +1,4 @@
 ﻿using ContainerNinja.Contracts.Services;
-using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using OpenAI;
 using OpenAI.Interfaces;
@@ -9,10 +8,9 @@ using OpenAI.ObjectModels;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Common;
 using System.Reflection;
-using NJsonSchema;
-using System.Linq;
 using ContainerNinja.Contracts.Common;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System.Dynamic;
 
 namespace ContainerNinja.Core.Services
 {
@@ -20,7 +18,7 @@ namespace ContainerNinja.Core.Services
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IOpenAIService _openAIService;
-        private IList<ChatFunction> _functionSpecifications;
+        private IList<FunctionDefinition> _functionSpecifications;
 
         public ChatAIService(IWebHostEnvironment webHostEnvironment)
         {
@@ -34,19 +32,23 @@ namespace ContainerNinja.Core.Services
 
         }
 
-        public static IList<ChatFunction> GetChatCommandSpecifications()
+        public static IList<FunctionDefinition> GetChatCommandSpecifications()
         {
             try
             {
-                var chatFunctions = new List<ChatFunction>();
+                var chatFunctions = new List<FunctionDefinition>();
                 foreach (var ccsType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypes()).Where(x => x.GetCustomAttribute<ChatCommandSpecification>() != null))
                 {
                     var ccs = ccsType.GetCustomAttribute<ChatCommandSpecification>();
 
                     foreach (var name in ccs.Names)
                     {
-                        ccs.CreateParametersSchemaFromType(ccsType);
-                        chatFunctions.Add(new ChatFunction(name, ccs.Description, ccs.ParametersSchema));
+                        chatFunctions.Add(new FunctionDefinition
+                        {
+                            Name = name,
+                            Description = ccs.Description,
+                            Parameters = ccs.GetFunctionParametersFromType(ccsType),
+                        });
                     }
                 }
                 return chatFunctions;
@@ -57,7 +59,7 @@ namespace ContainerNinja.Core.Services
                 /*Could not load type 'Castle.Proxies.CookedRecipeCalledIngredientProxy' from assembly 'DynamicProxyGenAssembly2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                  at System.Reflection.RuntimeModule.GetTypes(RuntimeModule module)
                 */
-                return new List<ChatFunction>();
+                return new List<FunctionDefinition>();
             }
         }
 
@@ -66,7 +68,7 @@ namespace ContainerNinja.Core.Services
             var chatCompletionCreateRequest = CreateChatCompletionCreateRequest();
             if (!string.IsNullOrEmpty(forceFunctionCall) && forceFunctionCall.Contains("{"))
             {
-                chatCompletionCreateRequest.FunctionCall = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Dynamic.ExpandoObject>(forceFunctionCall);
+                chatCompletionCreateRequest.FunctionCall = JsonConvert.DeserializeObject<ExpandoObject>(forceFunctionCall);
             }
             else
             {
@@ -88,39 +90,47 @@ namespace ContainerNinja.Core.Services
                     From = chatResponse.Role,
                     To = GetToFromChatResponse(chatResponse),
                     Name = chatResponse.Name,
-                    FunctionCall = chatResponse.FunctionCall,
+                    FunctionCall = FunctionCallToJson(chatResponse.FunctionCall),
                 };
             }
         }
 
         private string GetToFromChatResponse(ChatMessage chatMessage)
         {
-            if (IsString(chatMessage.FunctionCall))
+            if (chatMessage.FunctionCall != null)
             {
-                return StaticValues.ChatMessageRoles.Function;
+                return "function";
             }
             else
             {
-                if (IsDefined(chatMessage.FunctionCall))
-                {
-                    return StaticValues.ChatMessageRoles.Function;
-                }
-                else
-                {
-                    return StaticValues.ChatMessageRoles.User;
-                }
+                return StaticValues.ChatMessageRoles.User;
             }
+            //if (IsString(chatMessage.FunctionCall))
+            //{
+            //    return "function";
+            //}
+            //else
+            //{
+            //    if (IsDefined(chatMessage.FunctionCall))
+            //    {
+            //        return "function";
+            //    }
+            //    else
+            //    {
+            //        return StaticValues.ChatMessageRoles.User;
+            //    }
+            //}
         }
 
-        public bool IsDefined(JsonElement? jsonElement)
-        {
-            return jsonElement.HasValue && jsonElement.Value.ValueKind != JsonValueKind.Null && jsonElement.Value.ValueKind != JsonValueKind.Undefined;
-        }
+        //public bool IsDefined(JsonObject? jsonElement)
+        //{
+        //    return jsonElement.HasValue && jsonElement.Value.ValueKind != JsonValueKind.Null && jsonElement.Value.ValueKind != JsonValueKind.Undefined;
+        //}
 
-        public bool IsString(JsonElement? jsonElement)
-        {
-            return jsonElement.HasValue && jsonElement.Value.ValueKind == JsonValueKind.String;
-        }
+        //public bool IsString(JsonObject? jObject)
+        //{
+        //    return jObject.HasValue && jObject.Value.ValueKind == JsonValueKind.String;
+        //}
 
         public async Task<ChatMessageVM> GetNormalChatResponse(List<ChatMessageVM> chatMessages)
         {
@@ -142,9 +152,30 @@ namespace ContainerNinja.Core.Services
                     From = chatResponse.Role,
                     To = GetToFromChatResponse(chatResponse),
                     Name = chatResponse.Name,
-                    FunctionCall = chatResponse.FunctionCall,
+                    FunctionCall = FunctionCallToJson(chatResponse.FunctionCall),
                 };
             }
+        }
+
+        protected static FunctionParameters? JsonToFunctionParameters(string? jsonString)
+        {
+            if (string.IsNullOrEmpty(jsonString))
+            {
+                return null;
+            }
+            return JsonConvert.DeserializeObject<FunctionParameters>(jsonString, new JsonSerializerSettings
+            {
+                PreserveReferencesHandling = PreserveReferencesHandling.All
+            });
+        }
+
+        protected static string? FunctionCallToJson(FunctionCall? functionCall)
+        {
+            if (functionCall == null)
+            {
+                return null;
+            }
+            return JsonConvert.SerializeObject(functionCall);
         }
 
         private ChatCompletionCreateRequest CreateChatCompletionCreateRequest()
@@ -694,7 +725,7 @@ ChatMessage.FromSystem("You are a conversationalist. Have fun talking with the u
                 }
                 else
                 {
-                    throw new Exception(JsonSerializer.Serialize(response.Error));
+                    throw new Exception(JsonConvert.SerializeObject(response.Error));
                 }
             }
             return string.Join("\n", response.Text);

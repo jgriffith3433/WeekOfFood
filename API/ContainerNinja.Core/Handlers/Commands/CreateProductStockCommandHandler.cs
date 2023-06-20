@@ -45,23 +45,13 @@ namespace ContainerNinja.Core.Handlers.Commands
                 productStockEntity.Name = request.Name;
             };
 
-            var productEntity = _repository.Products.CreateProxy();
-            {
-                productEntity.Name = request.Name;
-                productEntity.ProductStock = productStockEntity;
-            };
-
             _repository.ProductStocks.Add(productStockEntity);
-            _repository.Products.Add(productEntity);
 
             await _repository.CommitAsync();
 
             var productStockDTO = _mapper.Map<ProductStockDTO>(productStockEntity);
             _cache.SetItem($"product_stock_{productStockDTO.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
-
-            var productDTO = _mapper.Map<ProductDTO>(productEntity);
-            _cache.SetItem($"product_{productDTO.Id}", productDTO);
             _cache.RemoveItem("products");
             return productStockDTO.Id;
         }

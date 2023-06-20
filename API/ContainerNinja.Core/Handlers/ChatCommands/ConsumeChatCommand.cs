@@ -11,6 +11,11 @@ using System.Reflection;
 using ContainerNinja.Core.Common;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using ContainerNinja.Contracts.DTO.ChatAICommands;
+using System.Dynamic;
+using System.Text.Json.Nodes;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -39,12 +44,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<ChatResponseVM> Handle(ConsumeChatCommand request, CancellationToken cancellationToken)
         {
-            var chatAICommandName = request.CurrentChatMessage.FunctionCall.Value.GetProperty("name").GetString();
+            var functionCallObject = JsonConvert.DeserializeObject<ChatAICommandDTO>(request.CurrentChatMessage.FunctionCall);
+
             var chatCommandEntity = _repository.ChatCommands.CreateProxy();
             {
-                chatCommandEntity.RawChatAICommand = JsonSerializer.Serialize(request.CurrentChatMessage);
+                chatCommandEntity.RawChatAICommand = JsonConvert.SerializeObject(request.CurrentChatMessage);
                 chatCommandEntity.CurrentUrl = request.CurrentUrl;
-                chatCommandEntity.CommandName = chatAICommandName;
+                chatCommandEntity.CommandName = functionCallObject.Name;
                 chatCommandEntity.ChatConversationId = request.ChatConversation.Id;
             };
             _repository.ChatCommands.Add(chatCommandEntity);
@@ -59,44 +65,39 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             };
             try
             {
-                if (!string.IsNullOrEmpty(chatAICommandName))
+                if (!string.IsNullOrEmpty(functionCallObject.Name))
                 {
-                    var chatCommandConsumerType = GetChatCommandConsumerType(string.Join("_", chatAICommandName.ToLower().Split(" ")));
+                    var chatCommandConsumerType = GetChatCommandConsumerType(string.Join("_", functionCallObject.Name.ToLower().Split(" ")));
                     if (chatCommandConsumerType != null)
                     {
                         var chatCommandConsumer = Activator.CreateInstance(chatCommandConsumerType);
                         if (chatCommandConsumer != null)
                         {
-                            object? jsonObject = null;
+                            object? functionCallArgumentsObject = null;
                             try
                             {
-                                jsonObject = JsonSerializer.Deserialize(request.CurrentChatMessage.FunctionCall.Value.GetProperty("arguments").GetString(), GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType), new JsonSerializerOptions
-                                {
-                                    PropertyNameCaseInsensitive = true,
-                                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                                    AllowTrailingCommas = true,
-                                });
+                                functionCallArgumentsObject = JsonConvert.DeserializeObject(functionCallObject.Arguments, GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType));
                             }
                             catch (Exception ex)
                             {
-                                throw new ChatAIException(ex.Message, JsonSerializer.Serialize(new { name = chatAICommandName }));
+                                throw new ChatAIException(ex.Message, JsonConvert.SerializeObject(new { name = functionCallObject.Name }));
                             }
 
-                            chatCommandConsumerType.GetProperty("Command")?.SetValue(chatCommandConsumer, jsonObject);
+                            chatCommandConsumerType.GetProperty("Command")?.SetValue(chatCommandConsumer, functionCallArgumentsObject);
 
                             chatCommandConsumerType.GetProperty("Response")?.SetValue(chatCommandConsumer, chatResponseVM);
 
                             var result = await _mediator.Send(chatCommandConsumer, cancellationToken) as string;
                             request.CurrentChatMessage.Content = result;
                             request.CurrentChatMessage.FunctionCall = null;
-                            request.CurrentChatMessage.Name = chatAICommandName;
+                            request.CurrentChatMessage.Name = functionCallObject.Name;
                             request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
-                            request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                            request.CurrentChatMessage.From = "function";
                             request.CurrentChatMessage.Received = false;
                             //chatResponseVM.ChatMessages.Add(new ChatMessageVM
                             //{
                             //    Content = result,
-                            //    From = StaticValues.ChatMessageRoles.Function,
+                            //    From = "function",
                             //    To = StaticValues.ChatMessageRoles.Assistant,
                             //    Name = chatAICommandName,
                             //});
@@ -108,42 +109,46 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     }
                     else
                     {
-                        throw new ChatAIException("Unknown command: " + chatAICommandName);
+                        throw new ChatAIException("Unknown command: " + functionCallObject.Name);
                     }
                 }
                 chatCommandEntity.ChangedData = chatResponseVM.Dirty;
                 chatCommandEntity.UnknownCommand = chatResponseVM.UnknownCommand;
                 chatCommandEntity.NavigateToPage = chatResponseVM.NavigateToPage;
-                request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
             catch (ApiValidationException ex)
             {
-                var errors = "";
+                var errors = new JsonObject();
 
                 foreach (var error in ex.Errors)
                 {
                     var validationMessage = "";
                     foreach (var v in error.Value)
                     {
-                        if (!v.Contains("ForceFunctionCall="))
+                        if (v.Contains("ForceFunctionCall="))
                         {
-                            validationMessage += "\n" + v;
+                            validationMessage += "More information required";
+                        }
+                        else
+                        {
+                            validationMessage += " " + v;
                         }
                     }
-                    if (!string.IsNullOrEmpty(validationMessage))
+                    if (!string.IsNullOrEmpty(validationMessage.Trim()))
                     {
-                        errors += "\n" + error.Key + ":" + validationMessage;
+                        errors.Add(error.Key, validationMessage.Trim());
                     }
                 }
 
-                chatCommandEntity.Error = FlattenException(ex) + "\n" + errors;
-                request.CurrentChatMessage.Content = string.IsNullOrEmpty(errors) ? "More information required" : "Could not complete function:\n" + errors;
+                chatCommandEntity.Error = FlattenException(ex) + errors;
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = errors });
                 request.CurrentChatMessage.FunctionCall = null;
-                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
-                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.From = "function";
                 request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = ex.ForceFunctionCall;
                 //chatResponseVM.ChatMessages.Add(new ChatMessageVM
@@ -153,18 +158,18 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonSerializer.Serialize(request.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
             catch (ChatAIException ex)
             {
                 chatCommandEntity.Error = FlattenException(ex);
-                request.CurrentChatMessage.Content = ex.Message;
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = ex.Message });
                 request.CurrentChatMessage.FunctionCall = null;
-                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
-                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.From = "function";
                 request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = ex.ForceFunctionCall;
                 //chatResponseVM.ChatMessages.Add(new ChatMessageVM
@@ -174,7 +179,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonSerializer.Serialize(request.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
@@ -182,42 +187,42 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 _repository.ChangeTracker.Clear();
                 chatCommandEntity.Error = FlattenException(ex);
-                request.CurrentChatMessage.Content = chatCommandEntity.Error;
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = chatCommandEntity.Error });
                 request.CurrentChatMessage.FunctionCall = null;
-                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
-                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.From = "function";
                 request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = "auto";
                 //chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 //{
                 //    Content = chatCommandEntity.Error,
-                //    From = StaticValues.ChatMessageRoles.Function,
+                //    From = "function",
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
             catch (Exception ex)
             {
                 chatCommandEntity.Error = FlattenException(ex);
-                request.CurrentChatMessage.Content = chatCommandEntity.Error;
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = chatCommandEntity.Error });
                 request.CurrentChatMessage.FunctionCall = null;
-                request.CurrentChatMessage.Name = chatAICommandName;
+                request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
-                request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
+                request.CurrentChatMessage.From = "function";
                 request.CurrentChatMessage.Received = false;
                 chatResponseVM.ForceFunctionCall = "auto";
                 //chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 //{
                 //    Content = chatCommandEntity.Error,
-                //    From = StaticValues.ChatMessageRoles.Function,
+                //    From = "function",
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonSerializer.Serialize(chatResponseVM.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }

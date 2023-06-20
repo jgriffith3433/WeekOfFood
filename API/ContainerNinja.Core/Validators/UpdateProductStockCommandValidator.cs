@@ -8,7 +8,7 @@ namespace ContainerNinja.Core.Validators
     {
         public UpdateProductStockCommandValidator()
         {
-            //RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required");
+            //RuleFor(x => x.Title).NotEmpty().WithMessage("Title field is required");
             //RuleFor(x => x.Color).NotEmpty().WithMessage("Tag a colorCode to the TodoList");
         }
     }

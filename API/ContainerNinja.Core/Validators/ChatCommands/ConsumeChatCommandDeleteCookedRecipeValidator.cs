@@ -8,7 +8,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         public ConsumeChatCommandDeleteCookedRecipeValidator()
         {
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
-            RuleFor(v => v.Command.LoggedRecipeId).NotEmpty().WithMessage("LoggedRecipeId is required");
+            RuleFor(v => v.Command.LoggedRecipeId).NotEmpty().WithMessage("LoggedRecipeId field is required");
         }
     }
 }

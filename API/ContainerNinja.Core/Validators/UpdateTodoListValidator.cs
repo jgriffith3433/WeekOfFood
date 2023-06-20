@@ -7,7 +7,7 @@ namespace ContainerNinja.Core.Validators
     {
         public UpdateTodoListValidator()
         {
-            RuleFor(x => x.Title).NotEmpty().WithMessage("Title is required");
+            RuleFor(x => x.Title).NotEmpty().WithMessage("Title field is required");
         }
     }
 }

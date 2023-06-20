@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace ContainerNinja.Core.Validators
 {
-    public class UpdateProductNameCommandValidator : AbstractValidator<UpdateProductNameCommand>
+    public class CreateWalmartProductCommandValidator : AbstractValidator<CreateWalmartProductCommand>
     {
-        public UpdateProductNameCommandValidator()
+        public CreateWalmartProductCommandValidator()
         {
             RuleFor(x => x.Name).MaximumLength(200).NotEmpty();
         }

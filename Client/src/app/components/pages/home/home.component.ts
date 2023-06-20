@@ -28,6 +28,10 @@ export class HomeComponent implements OnInit {
     this.howDoIService.send("I want to order everything I need for a recipe.");
   }
 
+  whatDoIHaveInStock(): void {
+    this.howDoIService.send("What do I have in stock", "auto");
+  }
+
   logARecipe(): void {
     this.howDoIService.send("Log that I ate a meal");
   }

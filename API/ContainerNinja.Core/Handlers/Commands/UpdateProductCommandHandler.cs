@@ -12,14 +12,14 @@ using System.Text.Json;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
-    public record UpdateProductCommand : IRequest<ProductDTO>
+    public record UpdateProductCommand : IRequest<WalmartProductDTO>
     {
         public int Id { get; init; }
 
         public long? WalmartId { get; init; }
     }
 
-    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, ProductDTO>
+    public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, WalmartProductDTO>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
@@ -36,9 +36,9 @@ namespace ContainerNinja.Core.Handlers.Commands
             _walmartService = walmartService;
         }
 
-        async Task<ProductDTO> IRequestHandler<UpdateProductCommand, ProductDTO>.Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+        async Task<WalmartProductDTO> IRequestHandler<UpdateProductCommand, WalmartProductDTO>.Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
-            var productEntity = _repository.Products.Set.FirstOrDefault(p => p.Id == request.Id);
+            var productEntity = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Id == request.Id);
 
             if (productEntity == null)
             {
@@ -49,7 +49,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             {
                 //Found walmart id by searching and user manually set the product by selecting walmart id
 
-                var existingProductEntity = _repository.Products.GetAll().Where(p => p.WalmartId == request.WalmartId).FirstOrDefault();
+                var existingProductEntity = _repository.WalmartProducts.GetAll().Where(p => p.WalmartId == request.WalmartId).FirstOrDefault();
 
                 if (existingProductEntity != null)
                 {
@@ -67,7 +67,6 @@ namespace ContainerNinja.Core.Handlers.Commands
                     //always update values from walmart to keep synced
                     productEntity.WalmartItemResponse = serializedItemResponse;
                     productEntity.Name = itemResponse.name;
-                    productEntity.ProductStock.Name = itemResponse.name;
                     productEntity.Price = itemResponse.salePrice;
                     productEntity.WalmartSize = itemResponse.size;
                     productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
@@ -76,19 +75,17 @@ namespace ContainerNinja.Core.Handlers.Commands
                 {
                     productEntity.Error = ex.Message;
                 }
-                _repository.Products.Update(productEntity);
+                _repository.WalmartProducts.Update(productEntity);
                 await _repository.CommitAsync();
             }
 
-            var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
-            _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
 
-            var productDTO = _mapper.Map<ProductDTO>(productEntity);
-            _cache.SetItem($"product_{request.Id}", productDTO);
+            var walmartProductDTO = _mapper.Map<WalmartProductDTO>(productEntity);
+            _cache.SetItem($"product_{request.Id}", walmartProductDTO);
             _cache.RemoveItem("products");
 
-            return productDTO;
+            return walmartProductDTO;
         }
     }
 }

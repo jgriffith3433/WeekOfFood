@@ -17,7 +17,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpErrorInterceptor } from './http-error.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { ProductsComponent } from './components/pages/products/products.component';
+import { ProductsComponent } from './components/pages/walmart-products/walmart-products.component';
 import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
 import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
 import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';

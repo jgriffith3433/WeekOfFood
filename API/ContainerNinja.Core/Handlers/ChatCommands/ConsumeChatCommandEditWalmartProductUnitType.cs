@@ -10,13 +10,13 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "edit_product_unit_type" })]
-    public class ConsumeChatCommandEditProductUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditProductUnitType>
+    public class ConsumeChatCommandEditWalmartProductUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditProductUnitType>
     {
         public ChatAICommandDTOEditProductUnitType Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditProductUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditProductUnitType, string>
+    public class ConsumeChatCommandEditProductUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditWalmartProductUnitType, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -25,23 +25,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandEditProductUnitType model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditWalmartProductUnitType model, CancellationToken cancellationToken)
         {
             if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
             {
                 model.Response.ForceFunctionCall = "none";
                 return "Ask for permission";
             }
-            var product = _repository.Products.Set.FirstOrDefault(p => p.Id == model.Command.ProductId);
-            if (product == null)
+            var walmartProduct = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Id == model.Command.ProductId);
+            if (walmartProduct == null)
             {
                 var systemResponse = "Could not find product by ID: " + model.Command.ProductId;
                 throw new ChatAIException(systemResponse);
             }
             else
             {
-                product.UnitType = model.Command.UnitType.UnitTypeFromString();
-                _repository.Products.Update(product);
+                walmartProduct.UnitType = model.Command.UnitType;
+                _repository.WalmartProducts.Update(walmartProduct);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             model.Response.NavigateToPage = "products";

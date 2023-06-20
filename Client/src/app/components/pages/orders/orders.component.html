@@ -37,25 +37,25 @@
         </button>-->
       </div>
 
-      <ul id="orderProducts" class="list-group mb-2 list-group-flush">
-        <li class="list-group-item" *ngFor="let orderProduct of selectedOrder.orderProducts; index as i" [ngClass]="{'disabled': !orderProduct.product, 'list-group-item-warning': !orderProduct.product }">
+      <ul id="orderItems" class="list-group mb-2 list-group-flush">
+        <li class="list-group-item" *ngFor="let orderItem of selectedOrder.orderItems; index as i" [ngClass]="{'disabled': !orderItem.walmartProduct, 'list-group-item-warning': !orderItem.walmartProduct }">
           <div class="d-flex">
             <div class="flex-fill">
-              <span>{{ orderProduct.name }}</span>
-              <a href="{{ getWalmartLinkFromOrderProduct(orderProduct) }}">{{ orderProduct.walmartId }}</a>
-              <!--<div *ngIf="!orderProduct.product && orderProduct != selectedOrderProduct" (click)="editOrderProduct(orderProduct, 'orderProductName' + i)" class="item-name form-control item-input-control">
-                <span>{{ orderProduct.name }}</span>
+              <span>{{ orderItem.name }}</span>
+              <a href="{{ getWalmartLinkFromOrderProduct(orderItem) }}">{{ orderItem.walmartId }}</a>
+              <!--<div *ngIf="!orderItem.walmartProduct && orderItem != selectedOrderProduct" (click)="editOrderProduct(orderItem, 'orderProductName' + i)" class="item-name form-control item-input-control">
+                <span>{{ orderItem.name }}</span>
               </div>-->
             </div>
-            <div *ngIf="!orderProduct.product" class="item-commands d-flex">
-              <!--<button *ngIf="orderProduct.id != 0" (click)="showOrderProductDetailsModal(orderProductDetailsModalTemplate, orderProduct)" class="my-auto btn btn-default btn-xs" role="button">
+            <div *ngIf="!orderItem.walmartProduct" class="item-commands d-flex">
+              <!--<button *ngIf="orderItem.id != 0" (click)="showOrderProductDetailsModal(orderProductDetailsModalTemplate, orderItem)" class="my-auto btn btn-default btn-xs" role="button">
                 <i class="bi bi-three-dots-vertical"></i>
               </button>-->
             </div>
           </div>
         </li>
         <!--<li class="list-group-item" (click)="addOrderProduct()">
-          <button class="btn btn-default">Add Order Product...</button>
+          <button class="btn btn-default">Add Order walmartProduct...</button>
         </li>-->
       </ul>
     </div>
@@ -108,7 +108,7 @@
     <div class="form">
       <div class="form-group">
         <label for="search">Search by Name</label>
-        <div *ngIf="!OrderProductDetailsEditor.product && OrderProductDetailsEditor.walmartSearchItems">
+        <div *ngIf="!OrderProductDetailsEditor.walmartProduct && OrderProductDetailsEditor.walmartSearchItems">
           <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="OrderProductDetailsEditor.search"
                  [ngClass]="{ 'is-invalid': OrderProductDetailsEditor.error }" (keyup.enter)="searchOrderProductName()" />
           <div class="float-end">
@@ -118,7 +118,7 @@
             <option [ngValue]="walmartSearchItem.itemId" *ngFor="let walmartSearchItem of OrderProductDetailsEditor.walmartSearchItems">{{ walmartSearchItem.name }}</option>
           </select>
         </div>
-        <div *ngIf="!OrderProductDetailsEditor.product && !OrderProductDetailsEditor.walmartSearchItems">
+        <div *ngIf="!OrderProductDetailsEditor.walmartProduct && !OrderProductDetailsEditor.walmartSearchItems">
           <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="OrderProductDetailsEditor.search"
                  [ngClass]="{ 'is-invalid': OrderProductDetailsEditor.error }" (keyup.enter)="searchOrderProductName()" />
           <div class="float-end">

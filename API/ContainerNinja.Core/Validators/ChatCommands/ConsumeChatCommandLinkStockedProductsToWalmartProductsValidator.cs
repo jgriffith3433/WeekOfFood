@@ -12,12 +12,12 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             var invalidWalmartProductIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(forceFunctionCallObject);
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
 
-            RuleFor(v => v.Command.Links).NotEmpty().WithMessage("Links is required");
+            RuleFor(v => v.Command.Links).NotEmpty().WithMessage("Links field is required");
             RuleForEach(v => v.Command.Links).ChildRules(i =>
             {
-                i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId is required");
+                i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId field is required");
                 var invalidWalmartIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_walmart_products_for_stocked_product" });
-                i.RuleFor(x => x.WalmartProductId).NotEmpty().WithMessage("WalmartProductId is required");
+                i.RuleFor(x => x.WalmartProductId).NotEmpty().WithMessage("WalmartProductId field is required");
                 i.RuleFor(x => x.WalmartProductId).NotEqual(1).WithMessage(invalidWalmartIdMessage);
                 i.RuleFor(x => x.WalmartProductId).NotEqual(12).WithMessage(invalidWalmartIdMessage);
                 i.RuleFor(x => x.WalmartProductId).NotEqual(123).WithMessage(invalidWalmartIdMessage);

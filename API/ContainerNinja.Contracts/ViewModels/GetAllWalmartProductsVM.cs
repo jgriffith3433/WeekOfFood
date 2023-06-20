@@ -2,9 +2,9 @@
 
 namespace ContainerNinja.Contracts.ViewModels
 {
-    public record GetAllProductsVM
+    public record GetAllWalmartProductsVM
     {
-        public List<ProductDTO> Products { get; set; }
+        public List<WalmartProductDTO> WalmartProducts { get; set; }
         public List<UnitTypeDTO> UnitTypes { get; set; }
     }
 }

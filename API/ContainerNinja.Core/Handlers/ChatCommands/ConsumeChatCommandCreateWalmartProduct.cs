@@ -8,30 +8,30 @@ using ContainerNinja.Core.Exceptions;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "create_product" })]
-    public class ConsumeChatCommandCreateProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateProduct>
+    [ChatCommandModel(new [] { "create_walmart_product" })]
+    public class ConsumeChatCommandCreateWalmartProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateProduct>
     {
         public ChatAICommandDTOCreateProduct Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandCreateProductHandler : IRequestHandler<ConsumeChatCommandCreateProduct, string>
+    public class ConsumeChatCommandCreateWalmartProductHandler : IRequestHandler<ConsumeChatCommandCreateWalmartProduct, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandCreateProductHandler(IUnitOfWork repository)
+        public ConsumeChatCommandCreateWalmartProductHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandCreateProduct model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandCreateWalmartProduct model, CancellationToken cancellationToken)
         {
             if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
             {
                 model.Response.ForceFunctionCall = "none";
                 return "Ask for permission";
             }
-            var existingProductWithName = _repository.Products.Set.FirstOrDefault(p => p.Name.ToLower() == model.Command.ProductName.ToLower());
+            var existingProductWithName = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Name.ToLower() == model.Command.ProductName.ToLower());
 
             if (existingProductWithName != null)
             {
@@ -39,19 +39,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 throw new ChatAIException(systemResponse);
             }
 
-            var productEntity = _repository.Products.CreateProxy();
+            var productEntity = _repository.WalmartProducts.CreateProxy();
             {
                 productEntity.Name = model.Command.ProductName;
             };
-
-            //always ensure a product stock record exists for each product
-            var productStockEntity = _repository.ProductStocks.CreateProxy();
-            {
-                productStockEntity.Name = model.Command.ProductName;
-                productStockEntity.Units = 1;
-            };
-            productStockEntity.Product = productEntity;
-            _repository.ProductStocks.Add(productStockEntity);
+            _repository.WalmartProducts.Add(productEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             model.Response.NavigateToPage = "products";
             return $"Successfully created product {model.Command.ProductName}";

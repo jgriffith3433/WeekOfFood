@@ -55,7 +55,7 @@ namespace ContainerNinja.Core.Handlers.Commands
                 completedOrderProductEntity.WalmartSearchResponse = JsonSerializer.Serialize(searchResponse);
             }
             //TODO: Look into this absurd if statement
-            if ((completedOrderProductEntity.WalmartId == null && request.WalmartId != null) || (completedOrderProductEntity.WalmartId != null && completedOrderProductEntity.WalmartId != request.WalmartId || completedOrderProductEntity.Product == null))
+            if ((completedOrderProductEntity.WalmartId == null && request.WalmartId != null) || (completedOrderProductEntity.WalmartId != null && completedOrderProductEntity.WalmartId != request.WalmartId || completedOrderProductEntity.WalmartProduct == null))
             {
                 //Found walmart id by searching and user manually set the product by selecting walmart id
                 completedOrderProductEntity.WalmartId = request.WalmartId;
@@ -68,48 +68,52 @@ namespace ContainerNinja.Core.Handlers.Commands
                         completedOrderProductEntity.WalmartItemResponse = serializedItemResponse;
                         completedOrderProductEntity.Name = itemResponse.name;
 
-                        var productEntity = _repository.Products.Set.FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
+                        //TODO: needs to be look at after changing product-productstocks relationship
+                        //var productEntity = _repository.Products.Set.FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
 
-                        if (productEntity != null)
-                        {
-                            productEntity.ProductStock.Units += 1;
-                            _repository.ProductStocks.Update(productEntity.ProductStock);
-                        }
-                        else
-                        {
-                            productEntity = _repository.Products.CreateProxy();
-                            {
-                                productEntity.Name = itemResponse.name;
-                                productEntity.WalmartId = itemResponse.itemId;
-                            };
+                        //if (productEntity != null)
+                        //{
+                        //    foreach (var productStockEntity in productEntity.ProductStocks)
+                        //    {
+                        //        productStockEntity.Units += 1;
+                        //        _repository.ProductStocks.Update(productStockEntity);
+                        //    }
+                        //}
+                        //else
+                        //{
+                        //    productEntity = _repository.Products.CreateProxy();
+                        //    {
+                        //        productEntity.Name = itemResponse.name;
+                        //        productEntity.WalmartId = itemResponse.itemId;
+                        //    };
 
-                            //always ensure a product stock record exists for each product
-                            productEntity.ProductStock = _repository.ProductStocks.CreateProxy();
-                            {
-                                productEntity.ProductStock.Name = itemResponse.name;
-                                productEntity.ProductStock.Units = 1;
-                                productEntity.ProductStock.Product = productEntity;
-                            };
-                            _repository.ProductStocks.Add(productEntity.ProductStock);
-                            _repository.Products.Add(productEntity);
-                        }
+                        //    //always ensure a product stock record exists for each product
+                        //    productEntity.ProductStocks = _repository.ProductStocks.CreateProxy();
+                        //    {
+                        //        productEntity.ProductStocks.Name = itemResponse.name;
+                        //        productEntity.ProductStocks.Units = 1;
+                        //        productEntity.ProductStocks.WalmartProduct = productEntity;
+                        //    };
+                        //    _repository.ProductStocks.Add(productEntity.ProductStocks);
+                        //    _repository.Products.Add(productEntity);
+                        //}
 
-                        await _repository.CommitAsync();
-                        var productDTO = _mapper.Map<ProductDTO>(productEntity);
-                        _cache.SetItem($"product_{productEntity.Id}", productDTO);
-                        _cache.RemoveItem("products");
+                        //await _repository.CommitAsync();
+                        //var walmartProductDTO = _mapper.Map<WalmartProductDTO>(productEntity);
+                        //_cache.SetItem($"product_{productEntity.Id}", walmartProductDTO);
+                        //_cache.RemoveItem("products");
 
-                        var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
-                        _cache.SetItem($"product_stock_{productEntity.ProductStock.Id}", productStockDTO);
-                        _cache.RemoveItem("product_stocks");
+                        //var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStocks);
+                        //_cache.SetItem($"product_stock_{productEntity.ProductStocks.Id}", productStockDTO);
+                        //_cache.RemoveItem("product_stocks");
 
-                        //always update values from walmart to keep synced
-                        productEntity.WalmartItemResponse = serializedItemResponse;
-                        productEntity.Name = itemResponse.name;
-                        productEntity.Price = itemResponse.salePrice;
-                        productEntity.WalmartSize = itemResponse.size;
-                        productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
-                        completedOrderProductEntity.Product = productEntity;
+                        ////always update values from walmart to keep synced
+                        //productEntity.WalmartItemResponse = serializedItemResponse;
+                        //productEntity.Name = itemResponse.name;
+                        //productEntity.Price = itemResponse.salePrice;
+                        //productEntity.WalmartSize = itemResponse.size;
+                        //productEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", itemResponse.name, itemResponse.itemId);
+                        //completedOrderProductEntity.WalmartProduct = productEntity;
                         _repository.CompletedOrderProducts.Update(completedOrderProductEntity);
                     }
                     catch (Exception ex)

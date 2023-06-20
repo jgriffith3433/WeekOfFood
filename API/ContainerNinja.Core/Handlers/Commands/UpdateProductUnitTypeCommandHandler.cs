@@ -12,14 +12,14 @@ using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
-    public record UpdateProductUnitTypeCommand : IRequest<ProductDTO>
+    public record UpdateProductUnitTypeCommand : IRequest<WalmartProductDTO>
     {
         public int Id { get; init; }
 
         public int UnitType { get; init; }
     }
 
-    public class UpdateProductUnitTypeCommandHandler : IRequestHandler<UpdateProductUnitTypeCommand, ProductDTO>
+    public class UpdateProductUnitTypeCommandHandler : IRequestHandler<UpdateProductUnitTypeCommand, WalmartProductDTO>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
@@ -34,9 +34,9 @@ namespace ContainerNinja.Core.Handlers.Commands
             _logger = logger;
         }
 
-        async Task<ProductDTO> IRequestHandler<UpdateProductUnitTypeCommand, ProductDTO>.Handle(UpdateProductUnitTypeCommand request, CancellationToken cancellationToken)
+        async Task<WalmartProductDTO> IRequestHandler<UpdateProductUnitTypeCommand, WalmartProductDTO>.Handle(UpdateProductUnitTypeCommand request, CancellationToken cancellationToken)
         {
-            var productEntity = _repository.Products.Set.FirstOrDefault(p => p.Id == request.Id);
+            var productEntity = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Id == request.Id);
 
             if (productEntity == null)
             {
@@ -44,18 +44,18 @@ namespace ContainerNinja.Core.Handlers.Commands
             }
 
             productEntity.UnitType = (UnitType)request.UnitType;
-            _repository.Products.Update(productEntity);
+            _repository.WalmartProducts.Update(productEntity);
             await _repository.CommitAsync();
 
-            var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStock);
+            var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStocks);
             _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
             _cache.RemoveItem("product_stocks");
 
-            var productDTO = _mapper.Map<ProductDTO>(productEntity);
-            _cache.SetItem($"product_{request.Id}", productDTO);
+            var walmartProductDTO = _mapper.Map<WalmartProductDTO>(productEntity);
+            _cache.SetItem($"product_{request.Id}", walmartProductDTO);
             _cache.RemoveItem("products");
 
-            return productDTO;
+            return walmartProductDTO;
         }
     }
 }

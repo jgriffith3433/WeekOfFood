@@ -2,27 +2,27 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { CreateProductCommand } from '../../../models/CreateProductCommand';
-import { ProductDTO } from '../../../models/ProductDTO';
+import { WalmartProductDTO } from '../../../models/WalmartProductDTO';
 import { UnitTypeDTO } from '../../../models/UnitTypeDTO';
 import { UpdateProductCommand } from '../../../models/UpdateProductCommand';
 import { UpdateProductNameCommand } from '../../../models/UpdateProductNameCommand';
-import { UpdateProductSizeCommand } from '../../../models/UpdateProductSizeCommand';
+import { UpdateWalmartProductSizeCommand } from '../../../models/UpdateWalmartProductSizeCommand';
 import { UpdateProductUnitTypeCommand } from '../../../models/UpdateProductUnitTypeCommand';
-import { ProductsService } from '../../../providers/products.service';
+import { WalmartProductsService } from '../../../providers/walmart-products.service';
 //UpdateProductCommand,
 //UnitTypeDTO
 
 @Component({
-  selector: 'app-products',
-  templateUrl: './products.component.html'
+  selector: 'app-walmart-products',
+  templateUrl: './walmart-products.component.html'
 })
 export class ProductsComponent implements OnInit {
   debug: boolean = false;
-  products?: ProductDTO[];
+  walmartProducts?: WalmartProductDTO[];
   unitTypes?: UnitTypeDTO[];
-  selectedProductName?: ProductDTO;
-  selectedProductSize?: ProductDTO;
-  selectedProductUnitType?: ProductDTO;
+  selectedProductName?: WalmartProductDTO;
+  selectedProductSize?: WalmartProductDTO;
+  selectedProductUnitType?: WalmartProductDTO;
   productEditor: any = {};
   newProductEditor: any = {};
   productModalRef: BsModalRef;
@@ -30,7 +30,7 @@ export class ProductsComponent implements OnInit {
   deleteProductModalRef: BsModalRef;
 
   constructor(
-    private productsService: ProductsService,
+    private walmartProductsService: WalmartProductsService,
     private modalService: BsModalService,
     private router: Router
   ) {
@@ -41,17 +41,17 @@ export class ProductsComponent implements OnInit {
 
 
   ngOnInit(): void {
-    this.productsService.getAll().subscribe(
+    this.walmartProductsService.getAll().subscribe(
       result => {
-        this.products = result.products;
+        this.walmartProducts = result.walmartProducts;
         this.unitTypes = result.unitTypes;
       },
       error => console.error(error)
     );
   }
 
-  getWalmartLinkFromProduct(product: ProductDTO): string {
-    return "https://www.walmart.com/ip/" + product.name + "/" + product.walmartId;
+  getWalmartLinkFromProduct(walmartProduct: WalmartProductDTO): string {
+    return "https://www.walmart.com/ip/" + walmartProduct.name + "/" + walmartProduct.walmartId;
   }
 
   showNewProductModal(template: TemplateRef<any>): void {
@@ -76,15 +76,15 @@ export class ProductsComponent implements OnInit {
   }
 
   addProduct(): void {
-    const product = {
+    const walmartProduct = {
       id: 0,
       name: this.newProductEditor.name
-    } as ProductDTO;
+    } as WalmartProductDTO;
 
-    this.productsService.create(product as CreateProductCommand).subscribe(
+    this.walmartProductsService.create(walmartProduct as CreateProductCommand).subscribe(
       result => {
-        product.id = result;
-        this.products?.push(product);
+        walmartProduct.id = result;
+        this.walmartProducts?.push(walmartProduct);
         this.newProductModalRef.hide();
         this.newProductEditor = {};
       },
@@ -100,31 +100,31 @@ export class ProductsComponent implements OnInit {
     );
   }
 
-  editProductName(product: ProductDTO, inputId: string): void {
-    this.selectedProductName = product;
+  editProductName(walmartProduct: WalmartProductDTO, inputId: string): void {
+    this.selectedProductName = walmartProduct;
     setTimeout(() => document.getElementById(inputId)?.focus(), 100);
   }
 
-  editProductUnitType(product: ProductDTO, inputId: string): void {
-    this.selectedProductUnitType = product;
+  editWalmartProductUnitType(walmartProduct: WalmartProductDTO, inputId: string): void {
+    this.selectedProductUnitType = walmartProduct;
     setTimeout(() => {
       document.getElementById(inputId)?.focus();
       (<HTMLSelectElement>document.getElementById(inputId)).size = (<HTMLSelectElement>document.getElementById(inputId)).length;
     }, 100);
   }
 
-  editProductSize(product: ProductDTO, inputId: string): void {
-    this.selectedProductSize = product;
+  editProductSize(walmartProduct: WalmartProductDTO, inputId: string): void {
+    this.selectedProductSize = walmartProduct;
     setTimeout(() => { document.getElementById(inputId)?.focus(); }, 100);
   }
 
-  updateProductName(product: ProductDTO, pressedEnter: boolean = false): void {
-    this.productsService.updateName(product.id, product).subscribe(
+  updateProductName(walmartProduct: WalmartProductDTO, pressedEnter: boolean = false): void {
+    this.walmartProductsService.updateName(walmartProduct.id, walmartProduct).subscribe(
       result => {
-        if (this.products) {
-          for (var i = this.products.length - 1; i >= 0; i--) {
-            if (this.products[i].id == result.id) {
-              this.products[i] = result;
+        if (this.walmartProducts) {
+          for (var i = this.walmartProducts.length - 1; i >= 0; i--) {
+            if (this.walmartProducts[i].id == result.id) {
+              this.walmartProducts[i] = result;
               break;
             }
           }
@@ -135,13 +135,13 @@ export class ProductsComponent implements OnInit {
     );
   }
 
-  updateProductUnitType(product: ProductDTO, pressedEnter: boolean = false): void {
-    this.productsService.updateUnitType(product.id, product).subscribe(
+  updateProductUnitType(walmartProduct: WalmartProductDTO, pressedEnter: boolean = false): void {
+    this.walmartProductsService.updateUnitType(walmartProduct.id, walmartProduct).subscribe(
       result => {
-        if (this.products) {
-          for (var i = this.products.length - 1; i >= 0; i--) {
-            if (this.products[i].id == result.id) {
-              this.products[i] = result;
+        if (this.walmartProducts) {
+          for (var i = this.walmartProducts.length - 1; i >= 0; i--) {
+            if (this.walmartProducts[i].id == result.id) {
+              this.walmartProducts[i] = result;
               break;
             }
           }
@@ -152,14 +152,14 @@ export class ProductsComponent implements OnInit {
     );
   }
 
-  updateProductSize(product: ProductDTO, pressedEnter: boolean = false): void {
-    const updateProductSizeCommand = product as UpdateProductSizeCommand;
-    this.productsService.updateSize(product.id, updateProductSizeCommand).subscribe(
+  updateProductSize(walmartProduct: WalmartProductDTO, pressedEnter: boolean = false): void {
+    const updateProductSizeCommand = walmartProduct as UpdateWalmartProductSizeCommand;
+    this.walmartProductsService.updateSize(walmartProduct.id, updateProductSizeCommand).subscribe(
       result => {
-        if (this.products) {
-          for (var i = this.products.length - 1; i >= 0; i--) {
-            if (this.products[i].id == result.id) {
-              this.products[i] = result;
+        if (this.walmartProducts) {
+          for (var i = this.walmartProducts.length - 1; i >= 0; i--) {
+            if (this.walmartProducts[i].id == result.id) {
+              this.walmartProducts[i] = result;
               break;
             }
           }
@@ -172,13 +172,13 @@ export class ProductsComponent implements OnInit {
 
   searchProductName(): void {
     const updateProductNameCommand = this.productEditor as UpdateProductCommand;
-    this.productsService.updateName(this.productEditor.id, updateProductNameCommand).subscribe(
+    this.walmartProductsService.updateName(this.productEditor.id, updateProductNameCommand).subscribe(
       result => {
         this.productEditor = result;
-        if (this.products) {
-          for (var i = this.products.length - 1; i >= 0; i--) {
-            if (this.products[i].id == this.productEditor.id) {
-              this.products[i] = this.productEditor;
+        if (this.walmartProducts) {
+          for (var i = this.walmartProducts.length - 1; i >= 0; i--) {
+            if (this.walmartProducts[i].id == this.productEditor.id) {
+              this.walmartProducts[i] = this.productEditor;
               break;
             }
           }
@@ -195,13 +195,13 @@ export class ProductsComponent implements OnInit {
 
   updateProductDetails(): void {
     const updateProductCommand = this.productEditor as UpdateProductCommand;
-    this.productsService.update(this.productEditor.id, updateProductCommand).subscribe(
+    this.walmartProductsService.update(this.productEditor.id, updateProductCommand).subscribe(
       result => {
         this.productEditor = result;
-        if (this.products) {
-          for (var i = this.products.length - 1; i >= 0; i--) {
-            if (this.products[i].id == this.productEditor.id) {
-              this.products[i] = this.productEditor;
+        if (this.walmartProducts) {
+          for (var i = this.walmartProducts.length - 1; i >= 0; i--) {
+            if (this.walmartProducts[i].id == this.productEditor.id) {
+              this.walmartProducts[i] = this.productEditor;
               break;
             }
           }
@@ -218,13 +218,13 @@ export class ProductsComponent implements OnInit {
     );
   }
 
-  showProductDetailsModal(template: TemplateRef<any>, product: ProductDTO): void {
-    this.productsService.getProductDetails(product.id).subscribe(
+  showProductDetailsModal(template: TemplateRef<any>, walmartProduct: WalmartProductDTO): void {
+    this.walmartProductsService.getProductDetails(walmartProduct.id).subscribe(
       result => {
-        if (this.products) {
-          for (var i = this.products.length - 1; i >= 0; i--) {
-            if (this.products[i].id == result.id) {
-              this.products[i] = result;
+        if (this.walmartProducts) {
+          for (var i = this.walmartProducts.length - 1; i >= 0; i--) {
+            if (this.walmartProducts[i].id == result.id) {
+              this.walmartProducts[i] = result;
               break;
             }
           }
@@ -245,22 +245,22 @@ export class ProductsComponent implements OnInit {
     );
   }
 
-  deleteProduct(product: ProductDTO | undefined) {
-    if (product) {
+  deleteProduct(walmartProduct: WalmartProductDTO | undefined) {
+    if (walmartProduct) {
       if (this.productModalRef) {
         this.productModalRef.hide();
       }
-      if (this.products) {
-        if (product.id === 0) {
+      if (this.walmartProducts) {
+        if (walmartProduct.id === 0) {
           if (this.selectedProductName) {
-            const completedOrderProductIndex = this.products.indexOf(this.selectedProductName);
-            this.products.splice(completedOrderProductIndex, 1);
+            const completedOrderProductIndex = this.walmartProducts.indexOf(this.selectedProductName);
+            this.walmartProducts.splice(completedOrderProductIndex, 1);
           }
         } else {
-          this.productsService.delete(product.id).subscribe(
+          this.walmartProductsService.delete(walmartProduct.id).subscribe(
             () =>
-            (this.products = this.products?.filter(
-              t => t.id !== product.id
+            (this.walmartProducts = this.walmartProducts?.filter(
+              t => t.id !== walmartProduct.id
             )),
             error => console.error(error)
           );

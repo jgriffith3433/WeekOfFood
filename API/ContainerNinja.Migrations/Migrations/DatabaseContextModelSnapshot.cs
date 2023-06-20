@@ -193,7 +193,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.ToTable("CompletedOrders");
                 });
 
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CompletedOrderProduct", b =>
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CompletedOrderWalmartProduct", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -221,9 +221,6 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
                     b.Property<string>("WalmartError")
                         .HasColumnType("nvarchar(max)");
 
@@ -233,6 +230,9 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<string>("WalmartItemResponse")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("WalmartProductId")
+                        .HasColumnType("int");
+
                     b.Property<string>("WalmartSearchResponse")
                         .HasColumnType("nvarchar(max)");
 
@@ -240,7 +240,7 @@ namespace ContainerNinja.Migrations.Migrations
 
                     b.HasIndex("CompletedOrderId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("WalmartProductId");
 
                     b.ToTable("CompletedOrderProducts");
                 });
@@ -395,7 +395,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderProduct", b =>
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -426,6 +426,9 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
                     b.Property<long?>("WalmartId")
                         .HasColumnType("bigint");
 
@@ -435,67 +438,7 @@ namespace ContainerNinja.Migrations.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderProducts");
-                });
-
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Product", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Error")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("Price")
-                        .HasColumnType("real");
-
-                    b.Property<float>("Size")
-                        .HasColumnType("real");
-
-                    b.Property<int>("UnitType")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Verified")
-                        .HasColumnType("bit");
-
-                    b.Property<long?>("WalmartId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("WalmartItemResponse")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WalmartLink")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WalmartSearchResponse")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WalmartSize")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Products");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ProductStock", b =>
@@ -523,16 +466,18 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("UnitType")
                         .HasColumnType("int");
 
-                    b.Property<float?>("Units")
+                    b.Property<float>("Units")
                         .HasColumnType("real");
+
+                    b.Property<int?>("WalmartProductId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductId")
-                        .IsUnique();
+                    b.HasIndex("WalmartProductId");
 
                     b.ToTable("ProductStocks");
                 });
@@ -683,6 +628,66 @@ namespace ContainerNinja.Migrations.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.WalmartProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Size")
+                        .HasColumnType("real");
+
+                    b.Property<int>("UnitType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Verified")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("WalmartId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("WalmartItemResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WalmartLink")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WalmartSearchResponse")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WalmartSize")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WalmartProducts");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CalledIngredient", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductStock")
@@ -709,7 +714,7 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CompletedOrderProduct", b =>
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CompletedOrderWalmartProduct", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.CompletedOrder", "CompletedOrder")
                         .WithMany("CompletedOrderProducts")
@@ -717,13 +722,13 @@ namespace ContainerNinja.Migrations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.WalmartProduct", "WalmartProduct")
                         .WithMany("CompletedOrderProducts")
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("WalmartProductId");
 
                     b.Navigation("CompletedOrder");
 
-                    b.Navigation("Product");
+                    b.Navigation("WalmartProduct");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CookedRecipe", b =>
@@ -760,13 +765,13 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("ProductStock");
                 });
 
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderProduct", b =>
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderItem", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Order", null)
-                        .WithMany("OrderProducts")
+                        .WithMany("OrderItems")
                         .HasForeignKey("OrderId");
 
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.WalmartProduct", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId");
 
@@ -775,13 +780,11 @@ namespace ContainerNinja.Migrations.Migrations
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ProductStock", b =>
                 {
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
-                        .WithOne("ProductStock")
-                        .HasForeignKey("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.WalmartProduct", "WalmartProduct")
+                        .WithMany("ProductStocks")
+                        .HasForeignKey("WalmartProductId");
 
-                    b.Navigation("Product");
+                    b.Navigation("WalmartProduct");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoItem", b =>
@@ -817,14 +820,7 @@ namespace ContainerNinja.Migrations.Migrations
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Order", b =>
                 {
-                    b.Navigation("OrderProducts");
-                });
-
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Product", b =>
-                {
-                    b.Navigation("CompletedOrderProducts");
-
-                    b.Navigation("ProductStock");
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Recipe", b =>
@@ -837,6 +833,13 @@ namespace ContainerNinja.Migrations.Migrations
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.TodoList", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.WalmartProduct", b =>
+                {
+                    b.Navigation("CompletedOrderProducts");
+
+                    b.Navigation("ProductStocks");
                 });
 #pragma warning restore 612, 618
         }

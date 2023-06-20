@@ -50,7 +50,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
                 else
                 {
-                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
+                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType;
                     _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
                 }
             }

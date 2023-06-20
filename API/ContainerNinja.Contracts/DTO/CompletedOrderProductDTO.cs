@@ -11,6 +11,6 @@ namespace ContainerNinja.Contracts.DTO
         public string? WalmartError { get; set; }
         public int CompletedOrderId { get; set; }
 
-        public ProductDTO? Product { get; set; }
+        public WalmartProductDTO? Product { get; set; }
     }
 }

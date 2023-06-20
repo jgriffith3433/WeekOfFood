@@ -1,6 +1,7 @@
 ﻿using ContainerNinja.Contracts.Common;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using ContainerNinja.Contracts.Enum;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
@@ -15,5 +16,5 @@ public record ChatAICommandDTOEditProductUnitType : ChatAICommandArgumentsDTO
     public int ProductId { get; set; }
     [Required]
     [Description("New unit type")]
-    public string UnitType { get; set; }
+    public UnitType UnitType { get; set; }
 }

@@ -4,7 +4,7 @@ using ContainerNinja.Migrations;
 
 namespace ContainerNinja.Core.Data.Repositories
 {
-    public class CompletedOrderProductRepository : Repository<CompletedOrderProduct>, ICompletedOrderProductRepository
+    public class CompletedOrderProductRepository : Repository<CompletedOrderWalmartProduct>, ICompletedOrderProductRepository
     {
         public CompletedOrderProductRepository(DatabaseContext context) : base(context)
         {

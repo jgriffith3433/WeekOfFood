@@ -1,4 +1,5 @@
 ﻿using ContainerNinja.Contracts.Common;
+using ContainerNinja.Contracts.Enum;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -18,5 +19,5 @@ public record ChatAICommandDTOEditRecipeIngredientUnitType : ChatAICommandArgume
     public int IngredientId { get; set; }
     [Required]
     [Description("New unit type")]
-    public string UnitType { get; set; }
+    public UnitType UnitType { get; set; }
 }

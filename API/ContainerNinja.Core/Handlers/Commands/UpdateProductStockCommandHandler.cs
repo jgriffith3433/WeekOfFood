@@ -14,7 +14,7 @@ namespace ContainerNinja.Core.Handlers.Commands
     {
         public int Id { get; init; }
 
-        public float? Units { get; init; }
+        public float Units { get; init; }
     }
 
     public class UpdateProductStockCommandHandler : IRequestHandler<UpdateProductStockCommand, ProductStockDTO>
@@ -51,8 +51,8 @@ namespace ContainerNinja.Core.Handlers.Commands
             _cache.Clear();
             _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
 
-            var productDTO = _mapper.Map<ProductDTO>(productStockEntity.Product);
-            _cache.SetItem($"product_{request.Id}", productDTO);
+            var walmartProductDTO = _mapper.Map<WalmartProductDTO>(productStockEntity.WalmartProduct);
+            _cache.SetItem($"product_{request.Id}", walmartProductDTO);
             return productStockDTO;
         }
     }

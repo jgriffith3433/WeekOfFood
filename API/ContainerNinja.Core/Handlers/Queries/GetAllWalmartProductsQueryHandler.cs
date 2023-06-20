@@ -9,33 +9,33 @@ using ContainerNinja.Contracts.Enum;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
-    public class GetAllProductsQuery : IRequest<GetAllProductsVM>
+    public class GetAllWalmartProductsQuery : IRequest<GetAllWalmartProductsVM>
     {
     }
 
-    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, GetAllProductsVM>
+    public class GetAllWalmartProductsQueryHandler : IRequestHandler<GetAllWalmartProductsQuery, GetAllWalmartProductsVM>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
 
-        public GetAllProductsQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache)
+        public GetAllWalmartProductsQueryHandler(IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
             _mapper = mapper;
             _cache = cache;
         }
 
-        public async Task<GetAllProductsVM> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
+        public async Task<GetAllWalmartProductsVM> Handle(GetAllWalmartProductsQuery request, CancellationToken cancellationToken)
         {
-            var cachedEntities = _cache.GetItem<GetAllProductsVM>("products");
+            var cachedEntities = _cache.GetItem<GetAllWalmartProductsVM>("products");
 
             if (cachedEntities == null)
             {
-                var entities = await Task.FromResult(_repository.Products.GetAll());
-                var result = new GetAllProductsVM
+                var entities = await Task.FromResult(_repository.WalmartProducts.GetAll());
+                var result = new GetAllWalmartProductsVM
                 {
-                    Products = _mapper.Map<List<ProductDTO>>(entities),
+                    WalmartProducts = _mapper.Map<List<WalmartProductDTO>>(entities),
                     UnitTypes = Enum.GetValues(typeof(UnitType))
                     .Cast<UnitType>()
                     .Select(p => new UnitTypeDTO { Value = (int)p, Name = p.ToString() })

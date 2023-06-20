@@ -8,8 +8,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         public ConsumeChatCommandDeleteRecipeIngredientValidator()
         {
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
-            RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage("RecipeId is required");
-            RuleFor(v => v.Command.IngredientName).NotEmpty().WithMessage("IngredientName is required");
+            RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage("RecipeId field is required");
+            RuleFor(v => v.Command.IngredientName).NotEmpty().WithMessage("IngredientName field is required");
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ContainerNinja.Contracts.Common;
+using ContainerNinja.Contracts.Enum;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
@@ -31,5 +32,5 @@ public record ChatAICommandDTOCreateRecipeIngredient
     public float? Units { get; set; }
     [Required]
     [Description("Type of unit")]
-    public string? UnitType { get; set; }
+    public UnitType UnitType { get; set; }
 }

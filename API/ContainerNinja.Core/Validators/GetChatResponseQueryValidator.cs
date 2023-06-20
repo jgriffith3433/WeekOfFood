@@ -10,13 +10,13 @@ namespace ContainerNinja.Core.Validators
         public GetChatResponseQueryValidator()
         {
             RuleFor(v => v.ChatMessages)
-                .NotEmpty().WithMessage("ChatMessages is required");
+                .NotEmpty().WithMessage("ChatMessages field is required");
 
             RuleFor(v => v.ChatConversation)
-                .NotEmpty().WithMessage("ChatConversation is required");
+                .NotEmpty().WithMessage("ChatConversation field is required");
 
             RuleFor(v => v.CurrentUrl)
-                .NotEmpty().WithMessage("CurrentUrl is required");
+                .NotEmpty().WithMessage("CurrentUrl field is required");
 
             /*
             0 = unknown cmd: edit-recipe-ingredient

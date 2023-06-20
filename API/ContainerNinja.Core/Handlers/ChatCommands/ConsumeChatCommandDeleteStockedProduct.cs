@@ -51,7 +51,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
                 }
 
-                _repository.Products.Delete(productStockEntity.Product.Id);
                 _repository.ProductStocks.Delete(productStockEntity.Id);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

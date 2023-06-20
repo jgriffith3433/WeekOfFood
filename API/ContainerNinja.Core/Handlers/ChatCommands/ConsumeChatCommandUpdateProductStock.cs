@@ -12,7 +12,7 @@ using LinqKit;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "update_stocked_products" })]
+    [ChatCommandModel(new[] { "add_stocked" })]
     public class ConsumeChatCommandUpdateStockedProducts : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateStockedProducts>
     {
         public ChatAICommandDTOUpdateStockedProducts Command { get; set; }
@@ -52,10 +52,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     {
                         throw new ChatAIException($"Could not find Product Stock by ID: {item.StockedProductId}", @"{ ""name"": ""get_stocked_product_id"" }");
                     }
-                    if (item.Units != null)
-                    {
-                        existingProductStockEntity.Units = item.Units;
-                    }
+                    existingProductStockEntity.Units = item.Units;
+                    existingProductStockEntity.UnitType = item.UnitType;
                     productStocksToUpdate.Add(existingProductStockEntity);
                 }
             }
@@ -73,6 +71,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     foreach (var searchTerm in searchTerms)
                     {
                         predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
+                        if (searchTerm[searchTerm.Length - 1] == 's')
+                        {
+                            predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm.Substring(0, searchTerm.Length - 1)));
+                        }
                     }
 
                     var existingProductStockEntities = _repository.ProductStocks.Set.AsExpandable().Where(predicate).ToList();
@@ -81,27 +83,17 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         var newProductStockEntity = _repository.ProductStocks.CreateProxy();
                         {
                             newProductStockEntity.Name = item.StockedProductName;
-                            if (item.Units != null)
-                            {
-                                newProductStockEntity.Units = item.Units;
-                            }
+                            newProductStockEntity.Units = item.Units;
+                            newProductStockEntity.UnitType = item.UnitType;
                         }
-                        var newProductEntity = _repository.Products.CreateProxy();
-                        {
-                            newProductEntity.Name = item.StockedProductName;
-                            newProductEntity.ProductStock = newProductStockEntity;
-                        };
-                        newProductStockEntity.Product = newProductEntity;
                         productStocksToAdd.Add(newProductStockEntity);
                     }
                     else if (existingProductStockEntities.Count == 1)
                     {
                         if (existingProductStockEntities[0].Name.ToLower() == item.StockedProductName.ToLower())
                         {
-                            if (item.Units != null)
-                            {
-                                existingProductStockEntities[0].Units = item.Units;
-                            }
+                            existingProductStockEntities[0].Units = item.Units;
+                            existingProductStockEntities[0].UnitType = item.UnitType;
                             productStocksToUpdate.Add(existingProductStockEntities[0]);
                         }
                         else
@@ -111,7 +103,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             var productStockObject = new JObject();
                             productStockObject["StockedProductId"] = existingProductStockEntities[0].Id;
                             productStockObject["StockedProductName"] = existingProductStockEntities[0].Name;
-                            productStockObject["WalmartId"] = existingProductStockEntities[0].Product.WalmartId;
 
                             systemMessage += JsonConvert.SerializeObject(productStockObject);
                             throw new ChatAIException(systemMessage);
@@ -135,10 +126,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                         if (exactMatch != null)
                         {
-                            if (item.Units != null)
-                            {
-                                exactMatch.Units = item.Units;
-                            }
+                            exactMatch.Units = item.Units;
+                            exactMatch.UnitType = item.UnitType;
                             productStocksToUpdate.Add(exactMatch);
                         }
                         else
@@ -150,7 +139,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                                 var productStockObject = new JObject();
                                 productStockObject["StockedProductId"] = existingProductStockEntity.Id;
                                 productStockObject["StockedProductName"] = existingProductStockEntity.Name;
-                                productStockObject["WalmartId"] = existingProductStockEntity.Product.WalmartId;
                                 multipleRecordsArray.Add(productStockObject);
                             }
 
@@ -181,10 +169,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var productStockObject = new JObject();
                 productStockObject["StockedProductId"] = productStock.Id;
                 productStockObject["StockedProductName"] = productStock.Name;
-                productStockObject["WalmartId"] = productStock.Product.WalmartId;
                 productStockArray.Add(productStockObject);
             }
             model.Response.NavigateToPage = "product-stocks";
+            model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(productStockArray);
         }
     }

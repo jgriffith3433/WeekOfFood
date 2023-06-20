@@ -1,11 +1,12 @@
 ﻿
 namespace ContainerNinja.Contracts.DTO
 {
-    public class OrderProductDTO
+    public class OrderItemDTO
     {
         public int Id { get; set; }
-        public long? WalmartId { get; set; }
         public string Name { get; set; }
-        public ProductDTO? Product { get; set; }
+        public long? WalmartId { get; set; }
+        public int Quantity { get; set; }
+        public WalmartProductDTO? Product { get; set; }
     }
 }

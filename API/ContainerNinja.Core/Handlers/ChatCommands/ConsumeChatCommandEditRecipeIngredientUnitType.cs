@@ -46,7 +46,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var systemResponse = "Could not find ingredient by ID: " + model.Command.IngredientId;
                 throw new ChatAIException(systemResponse);
             }
-            calledIngredient.UnitType = model.Command.UnitType.UnitTypeFromString();
+            calledIngredient.UnitType = model.Command.UnitType;
             _repository.CalledIngredients.Update(calledIngredient);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
@@ -60,8 +60,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["Units"] = ingredient.Units;
-                ingredientObject["UnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["IngredientUnits"] = ingredient.Units;
+                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;

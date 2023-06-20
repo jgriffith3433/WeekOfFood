@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 using ContainerNinja.Contracts.Common;
+using ContainerNinja.Contracts.Enum;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
@@ -18,8 +19,8 @@ public record ChatAICommandDTOAddRecipeIngredient : ChatAICommandArgumentsDTO
     public string IngredientName { get; set; }
     [Required]
     [Description("How many units of the ingredient")]
-    public int Units { get; set; }
+    public float Units { get; set; }
     [Required]
     [Description("Type of unit")]
-    public string UnitType { get; set; }
+    public UnitType UnitType { get; set; }
 }
