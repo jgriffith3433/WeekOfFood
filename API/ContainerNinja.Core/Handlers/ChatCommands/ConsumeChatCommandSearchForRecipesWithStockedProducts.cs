@@ -43,7 +43,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     var ingredientObject = new JObject();
                     ingredientObject["IngredientId"] = ingredient.Id;
                     ingredientObject["IngredientName"] = ingredient.Name;
-                    ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
                     ingredientObject["Units"] = ingredient.Units;
                     ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                     recipeIngredientsArray.Add(ingredientObject);
@@ -56,7 +55,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 return $"There are no recipes containing ingredients that are linked to any of the stocked products.";
             }
             model.Response.NavigateToPage = "recipes";
-            return "Recipes:\n" + JsonConvert.SerializeObject(results);
+            return JsonConvert.SerializeObject(results);
         }
     }
 }

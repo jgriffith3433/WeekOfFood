@@ -37,31 +37,27 @@
         </button>-->
       </div>
 
-      <!--<ul id="orderProducts" class="list-group mb-2 list-group-flush">
-        <li class="list-group-item" *ngFor="let OrderProduct of selectedOrder.OrderProducts; index as i" [ngClass]="{'disabled': orderProduct.product, 'list-group-item-warning': !OrderProduct.product, 'list-group-item-danger': OrderProduct.walmartError}">
+      <ul id="orderProducts" class="list-group mb-2 list-group-flush">
+        <li class="list-group-item" *ngFor="let orderProduct of selectedOrder.orderProducts; index as i" [ngClass]="{'disabled': !orderProduct.product, 'list-group-item-warning': !orderProduct.product }">
           <div class="d-flex">
             <div class="flex-fill">
-              <input id="{{ 'OrderProductName' + i }}" *ngIf="OrderProduct == selectedOrderProduct" type="text"
-                     class="form-control item-input-control" [(ngModel)]="OrderProduct.name" (keyup.enter)="updateOrderProduct(OrderProduct, true)"
-                     (blur)="updateOrderProduct(OrderProduct)" autofocus="autofocus" />
-              <div *ngIf="OrderProduct.product" class="item-name form-control form-control-plaintext">
-                <input type="text" readonly class="form-control-plaintext" value="{{ OrderProduct.name }}">
-              </div>
-              <div *ngIf="!OrderProduct.product && OrderProduct != selectedOrderProduct" (click)="editOrderProduct(OrderProduct, 'OrderProductName' + i)" class="item-name form-control item-input-control">
-                <span>{{ OrderProduct.name }}</span>
-              </div>
+              <span>{{ orderProduct.name }}</span>
+              <a href="{{ getWalmartLinkFromOrderProduct(orderProduct) }}">{{ orderProduct.walmartId }}</a>
+              <!--<div *ngIf="!orderProduct.product && orderProduct != selectedOrderProduct" (click)="editOrderProduct(orderProduct, 'orderProductName' + i)" class="item-name form-control item-input-control">
+                <span>{{ orderProduct.name }}</span>
+              </div>-->
             </div>
-            <div *ngIf="!OrderProduct.product" class="item-commands d-flex">
-              <button *ngIf="OrderProduct.id != 0" (click)="showOrderProductDetailsModal(OrderProductDetailsModalTemplate, OrderProduct)" class="my-auto btn btn-default btn-xs" role="button">
+            <div *ngIf="!orderProduct.product" class="item-commands d-flex">
+              <!--<button *ngIf="orderProduct.id != 0" (click)="showOrderProductDetailsModal(orderProductDetailsModalTemplate, orderProduct)" class="my-auto btn btn-default btn-xs" role="button">
                 <i class="bi bi-three-dots-vertical"></i>
-              </button>
+              </button>-->
             </div>
           </div>
         </li>
-        <li class="list-group-item" (click)="addOrderProduct()">
+        <!--<li class="list-group-item" (click)="addOrderProduct()">
           <button class="btn btn-default">Add Order Product...</button>
-        </li>
-      </ul>-->
+        </li>-->
+      </ul>
     </div>
   </div>
 </div>

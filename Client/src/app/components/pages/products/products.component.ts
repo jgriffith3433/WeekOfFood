@@ -50,6 +50,9 @@ export class ProductsComponent implements OnInit {
     );
   }
 
+  getWalmartLinkFromProduct(product: ProductDTO): string {
+    return "https://www.walmart.com/ip/" + product.name + "/" + product.walmartId;
+  }
 
   showNewProductModal(template: TemplateRef<any>): void {
     this.newProductModalRef = this.modalService.show(template);

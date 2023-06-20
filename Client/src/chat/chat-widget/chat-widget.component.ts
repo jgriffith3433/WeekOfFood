@@ -789,18 +789,21 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.chatMessages[i].content && this.chatMessages[i].content?.indexOf('That model is currently overloaded with other requests.') != -1) {
           overloaded = true;
           if (this.chatMessages.length >= i) {
-            this.chatMessages[i].received = false;
+            this.chatMessages[i - 1].received = false;
           }
           unsentMessages = true;
         }
         if (this.chatMessages[i].content && this.chatMessages[i].content?.indexOf("This model's maximum context length is ") != -1) {
           maxTokens = true;
           if (this.chatMessages.length >= i) {
-            this.chatMessages[i].received = false;
+            this.chatMessages[i - 1].received = false;
           }
           unsentMessages = true;
         }
       }
+    }
+    if (overloaded) {
+      this.chatMessages.pop();
     }
     if (maxTokens) {
       var lengthOfChatMessages = this.chatMessages.length;

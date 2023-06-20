@@ -74,6 +74,8 @@ namespace ContainerNinja.Core.Mapper
 
             CreateMap<Order, OrderDTO>();
 
+            CreateMap<OrderProduct, OrderProductDTO>();
+
         }
     }
 }

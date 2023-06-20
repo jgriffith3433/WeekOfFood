@@ -48,6 +48,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var recipeObject = new JObject();
                 recipeObject["RecipeId"] = recipe.Id;
                 recipeObject["RecipeName"] = recipe.Name;
+                recipeObject["Servings"] = recipe.Serves;
                 results.Add(recipeObject);
             }
             if (results.Count == 0)
@@ -55,7 +56,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 return $"No Recipes matching the search term: {model.Command.Search}";
             }
             model.Response.NavigateToPage = "recipes";
-            return "Recipes:\n" + JsonConvert.SerializeObject(results);
+            return JsonConvert.SerializeObject(results);
         }
     }
 }

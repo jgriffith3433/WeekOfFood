@@ -184,7 +184,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     From = StaticValues.ChatMessageRoles.System,
                     To = StaticValues.ChatMessageRoles.User,
                 });
-                chatResponseVM.ForceFunctionCall = "none";
+                chatResponseVM.ForceFunctionCall = "auto";
                 _repository.ChatConversations.Update(model.ChatConversation);
                 await _repository.CommitAsync();
             }
@@ -197,7 +197,7 @@ namespace ContainerNinja.Core.Handlers.Queries
                     From = StaticValues.ChatMessageRoles.System,
                     To = StaticValues.ChatMessageRoles.User,
                 });
-                chatResponseVM.ForceFunctionCall = "none";
+                chatResponseVM.ForceFunctionCall = "auto";
                 //chatResponseVM.Error = true;
             }
             _cache.Clear();

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification(new string[] { "search_for_recipes_with_stocked_products" }, "Returns a list of recipes that a user can use with a list off stocked products")]
+//[ChatCommandSpecification(new string[] { "search_for_recipes_with_stocked_products" }, "Returns a list of recipes that a user can use with a list off stocked products")]
 public record ChatAICommandDTOSearchForRecipesWithStockedProducts : ChatAICommandArgumentsDTO
 {
     [Required]

@@ -8,8 +8,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandSearchForRecipesWithStockedProductsValidator()
         {
-            var forceFunctionCallObject = new { name = "get_stocked_products" };
-            RuleFor(v => v.Command.StockedProducts).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(forceFunctionCallObject));
+            RuleFor(v => v.Command.StockedProducts).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "get_stocked_products" }));
             RuleForEach(v => v.Command.StockedProducts).ChildRules(i =>
             {
                 i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId is required");

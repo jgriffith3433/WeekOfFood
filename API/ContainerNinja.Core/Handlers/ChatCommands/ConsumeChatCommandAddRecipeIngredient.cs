@@ -31,6 +31,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandAddRecipeIngredient model, CancellationToken cancellationToken)
         {
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            {
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
+            }
             var recipe = _repository.Recipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Id == model.Command.RecipeId);
             if (recipe == null)
             {

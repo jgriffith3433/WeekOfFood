@@ -5,13 +5,14 @@ using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Common;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Contracts.Services;
+using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "link_stocked_product_to_walmart_product" })]
-    public class ConsumeChatCommandLinkStockedProductToWalmartProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOLinkStockedProductToWalmartProduct>
+    [ChatCommandModel(new [] { "link_stocked_products_to_walmart_products" })]
+    public class ConsumeChatCommandLinkStockedProductToWalmartProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOLinkStockedProductsToWalmartProducts>
     {
-        public ChatAICommandDTOLinkStockedProductToWalmartProduct Command { get; set; }
+        public ChatAICommandDTOLinkStockedProductsToWalmartProducts Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
@@ -28,25 +29,45 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandLinkStockedProductToWalmartProduct model, CancellationToken cancellationToken)
         {
-            var stockedProductEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Id == model.Command.StockedProductId);
-            if (stockedProductEntity == null)
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
             {
-                var systemResponse = "Could not find stocked product by ID: " + model.Command.StockedProductId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
             }
-            var walmartItemResult = await _walmartService.GetItem(model.Command.WalmartProductId);
-            if (walmartItemResult == null)
+            var notFoundWalmartIds = new List<long>();
+            var stockedProductsToUpdate = new List<ProductStock>();
+            foreach (var link in model.Command.Links)
             {
-                var systemResponse = "Could not find walmart product by ID: " + model.Command.WalmartProductId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""search_walmart_products"" }");
+                var stockedProductEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Id == link.StockedProductId);
+                if (stockedProductEntity == null)
+                {
+                    var systemResponse = "Could not find stocked product by ID: " + link.StockedProductId;
+                    throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
+                }
+
+                var walmartItemResult = await _walmartService.GetItem(link.WalmartProductId);
+                if (walmartItemResult == null)
+                {
+                    notFoundWalmartIds.Add(link.WalmartProductId);
+                    continue;
+                }
+                stockedProductEntity.Product.WalmartId = link.WalmartProductId;
+                stockedProductsToUpdate.Add(stockedProductEntity);
             }
-            stockedProductEntity.Product.WalmartId = model.Command.WalmartProductId;
-            _repository.ProductStocks.Update(stockedProductEntity);
-            //see UpdateProductCommand.cs
+            if (notFoundWalmartIds.Count > 0)
+            {
+                //var systemResponse = "Could not find the following walmart products by ID: " + string.Join(", ", notFoundWalmartIds);
+                //throw new ChatAIException(systemResponse, @"{ ""name"": ""search_walmart_products_for_stocked_product"" }");
+            }
+
+            foreach (var stockedProductToUpdate in stockedProductsToUpdate)
+            {
+                _repository.ProductStocks.Update(stockedProductToUpdate);
+            }
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             model.Response.NavigateToPage = "products";
-            return $"Successfully linked StockedProductId: {model.Command.StockedProductId} to WalmartProductId: {model.Command.WalmartProductId}";
+            return $"Successfully linked {model.Command.Links.Count} walmart products";
         }
     }
 }

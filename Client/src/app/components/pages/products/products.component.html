@@ -57,7 +57,9 @@
       <td>
         {{ product.walmartSize }}
       </td>
-      <td><a href="{{ product.walmartLink }}">{{ product.walmartId }}</a></td>
+      <td>
+        <a href="{{ product.walmartLink || getWalmartLinkFromProduct(product) }}">{{ product.walmartId }}</a>
+      </td>
       <td>
         <div class="item-commands d-flex">
           <button *ngIf="product.id != 0" (click)="showProductDetailsModal(productDetailsModalTemplate, product)" class="my-auto btn btn-default btn-xs" role="button">

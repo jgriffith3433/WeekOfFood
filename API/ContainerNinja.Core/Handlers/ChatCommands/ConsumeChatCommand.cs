@@ -10,10 +10,7 @@ using OpenAI.ObjectModels;
 using System.Reflection;
 using ContainerNinja.Core.Common;
 using System.Text.Json;
-using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Google.Api;
-using OpenAI.ObjectModels.ResponseModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -70,12 +67,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         var chatCommandConsumer = Activator.CreateInstance(chatCommandConsumerType);
                         if (chatCommandConsumer != null)
                         {
-                            chatCommandConsumerType.GetProperty("Command")?.SetValue(chatCommandConsumer, JsonSerializer.Deserialize(request.CurrentChatMessage.FunctionCall.Value.GetProperty("arguments").GetString(), GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType), new JsonSerializerOptions
+                            object? jsonObject = null;
+                            try
                             {
-                                PropertyNameCaseInsensitive = true,
-                                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                                AllowTrailingCommas = true,
-                            }));
+                                jsonObject = JsonSerializer.Deserialize(request.CurrentChatMessage.FunctionCall.Value.GetProperty("arguments").GetString(), GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType), new JsonSerializerOptions
+                                {
+                                    PropertyNameCaseInsensitive = true,
+                                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                                    AllowTrailingCommas = true,
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new ChatAIException(ex.Message, JsonSerializer.Serialize(new { name = chatAICommandName }));
+                            }
+
+                            chatCommandConsumerType.GetProperty("Command")?.SetValue(chatCommandConsumer, jsonObject);
+
                             chatCommandConsumerType.GetProperty("Response")?.SetValue(chatCommandConsumer, chatResponseVM);
 
                             var result = await _mediator.Send(chatCommandConsumer, cancellationToken) as string;
@@ -180,7 +188,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
                 request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
                 request.CurrentChatMessage.Received = false;
-                chatResponseVM.ForceFunctionCall = "none";
+                chatResponseVM.ForceFunctionCall = "auto";
                 //chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 //{
                 //    Content = chatCommandEntity.Error,
@@ -201,7 +209,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
                 request.CurrentChatMessage.From = StaticValues.ChatMessageRoles.Function;
                 request.CurrentChatMessage.Received = false;
-                chatResponseVM.ForceFunctionCall = "none";
+                chatResponseVM.ForceFunctionCall = "auto";
                 //chatResponseVM.ChatMessages.Add(new ChatMessageVM
                 //{
                 //    Content = chatCommandEntity.Error,

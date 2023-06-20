@@ -24,6 +24,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandTemplate model, CancellationToken cancellationToken)
         {
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            {
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
+            }
             //Command logic
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             model.Response.NavigateToPage = "template";

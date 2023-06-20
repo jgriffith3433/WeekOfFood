@@ -24,12 +24,16 @@ export class HomeComponent implements OnInit {
     this.howDoIService.send("I want to add my own recipe.");
   }
 
+  orderEverythingForRecipe(): void {
+    this.howDoIService.send("I want to order everything I need for a recipe.");
+  }
+
   logARecipe(): void {
     this.howDoIService.send("Log that I ate a meal");
   }
 
   takeStock(): void {
-    this.howDoIService.send("I'm going to take stock");
+    this.howDoIService.send("I'm going to tell what stocked products I have in my kitchen and how much I have of each one.");
   }
 
   placeAnOrder(): void {

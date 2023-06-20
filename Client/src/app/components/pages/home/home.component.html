@@ -7,26 +7,33 @@
   <div class="container-fluid">
     <h1 class="display-4">How do I...</h1>
     <div class="row">
-      <div class="lead"><span>Recipes</span></div>
+      <div class="lead">
+        <h2>Recipes</h2>
+      </div>
       <div class="row">
-        <a href="javascript:void(0)" (click)="youMakeANewRecipe()">Have the ai create its own recipe</a>
-        <a href="javascript:void(0)" (click)="makeANewRecipe()">Have the ai add your recipe</a>
+        <div class="col-4"><a href="javascript:void(0)" (click)="youMakeANewRecipe()">Have the ai create its own recipe</a></div>
+        <div class="col-4"><a href="javascript:void(0)" (click)="makeANewRecipe()">Add my own recipe</a></div>
       </div>
     </div>
+    <hr />
     <div class="row">
-      <div class="lead"><a href="javascript:void(0)" (click)="logARecipe()">Log that I ate a meal</a></div>
+      <div class="lead">
+        <h2>Logging</h2>
+      </div>
+      <div class="row">
+        <div class="col-4"><a href="javascript:void(0)" (click)="takeStock()">Take stock</a></div>
+        <div class="col-4"><a href="javascript:void(0)" (click)="logARecipe()">Log that I ate a meal</a></div>
+      </div>
     </div>
+    <hr />
     <div class="row">
-      <div class="lead"><a href="javascript:void(0)" (click)="takeStock()">Take stock</a></div>
+      <div class="lead">
+        <h2>Place an order</h2>
+      </div>
+      <div class="row">
+        <div class="col-4"><a href="javascript:void(0)" (click)="orderEverythingForRecipe()">Order everything I need for a recipe</a></div>
+      </div>
     </div>
-    <div class="row">
-      <div class="lead"><a href="javascript:void(0)" (click)="placeAnOrder()">Place an order</a></div>
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-12">
-    <p></p>
+    <hr />
   </div>
 </div>

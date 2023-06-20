@@ -34,27 +34,26 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             if (recipe == null)
             {
                 var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_recipe_id"" }");
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""search_recipes"" }");
             }
 
             var recipeObject = new JObject();
             recipeObject["RecipeId"] = recipe.Id;
             recipeObject["RecipeName"] = recipe.Name;
-            recipeObject["Serves"] = recipe.Serves;
+            recipeObject["Servings"] = recipe.Serves;
             var recipeIngredientsArray = new JArray();
             foreach (var ingredient in recipe.CalledIngredients)
             {
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
                 ingredientObject["Units"] = ingredient.Units;
                 ingredientObject["UnitType"] = ingredient.UnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
-            return "Recipe:\n" + JsonConvert.SerializeObject(recipeObject);
+            return JsonConvert.SerializeObject(recipeObject);
         }
     }
 }

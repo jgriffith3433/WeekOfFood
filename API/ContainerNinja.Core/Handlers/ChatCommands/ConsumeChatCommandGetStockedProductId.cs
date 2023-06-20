@@ -96,7 +96,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             productStockObject["StockedProductName"] = productStock.Name;
             model.Response.ForceFunctionCall = "auto";
             model.Response.NavigateToPage = "product-stocks";
-            return "StockedProduct:\n" + JsonConvert.SerializeObject(productStockObject);
+            return JsonConvert.SerializeObject(productStockObject);
         }
     }
 }

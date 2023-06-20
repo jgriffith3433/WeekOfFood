@@ -25,12 +25,17 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
         {
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            {
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
+            }
             var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
             if (recipe == null)
             {
                 var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_recipe_id"" }");
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""search_recipes"" }");
             }
 
             var existingRecipeWithName = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.NewName.ToLower());

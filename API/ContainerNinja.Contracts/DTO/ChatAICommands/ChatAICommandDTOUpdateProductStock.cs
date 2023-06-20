@@ -4,28 +4,25 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("update_product_stock", "Update inventory of food goods")]
-public record ChatAICommandDTOUpdateProductStock : ChatAICommandArgumentsDTO
+[ChatCommandSpecification("update_stocked_products", "Create records of stocked products and update existing stocked product's units when taking stock of items in the kitchen")]
+public record ChatAICommandDTOUpdateStockedProducts : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Whether or not the user gave permission to take inventory")]
     public bool? UserGavePermission { get; set; }
     [Required]
     [Description("List of products the user is taking stock of")]
-    public List<ChatAICommandDTOTakeStock_StockedProduct> StockedProducts { get; set; }
+    public List<ChatAICommandDTOUpdateStockedProducts_StockedProduct> StockedProducts { get; set; }
 }
 
-public record ChatAICommandDTOTakeStock_StockedProduct
+public record ChatAICommandDTOUpdateStockedProducts_StockedProduct
 {
-    [Description("Id of the stocked product")]
+    [Description("Id of the stocked product if it exists in the system")]
     public int? StockedProductId { get; set; }
     [Required]
     [Description("Name of the stocked product")]
     public string StockedProductName { get; set; }
     [Required]
     [Description("How many units do they have")]
-    public float? Quantity { get; set; }
-    [Required]
-    [Description("Type of unit")]
-    public string? UnitType { get; set; }
+    public float? Units { get; set; }
 }

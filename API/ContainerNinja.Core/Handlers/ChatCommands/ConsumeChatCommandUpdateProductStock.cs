@@ -12,14 +12,14 @@ using LinqKit;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "update_product_stock" })]
-    public class ConsumeChatCommandUpdateProductStock : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateProductStock>
+    [ChatCommandModel(new[] { "update_stocked_products" })]
+    public class ConsumeChatCommandUpdateStockedProducts : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateStockedProducts>
     {
-        public ChatAICommandDTOUpdateProductStock Command { get; set; }
+        public ChatAICommandDTOUpdateStockedProducts Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandUpdateProductStockHandler : IRequestHandler<ConsumeChatCommandUpdateProductStock, string>
+    public class ConsumeChatCommandUpdateProductStockHandler : IRequestHandler<ConsumeChatCommandUpdateStockedProducts, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -28,8 +28,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandUpdateProductStock model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandUpdateStockedProducts model, CancellationToken cancellationToken)
         {
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            {
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
+            }
             var productStocksToUpdate = new List<ProductStock>();
             //first go through all the Ids we have and check if they all exist
             foreach (var item in model.Command.StockedProducts)
@@ -47,13 +52,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     {
                         throw new ChatAIException($"Could not find Product Stock by ID: {item.StockedProductId}", @"{ ""name"": ""get_stocked_product_id"" }");
                     }
-                    if (item.Quantity != null)
+                    if (item.Units != null)
                     {
-                        existingProductStockEntity.Units = item.Quantity;
-                    }
-                    if (item.UnitType != null)
-                    {
-                        existingProductStockEntity.Product.UnitType = item.UnitType.UnitTypeFromString();
+                        existingProductStockEntity.Units = item.Units;
                     }
                     productStocksToUpdate.Add(existingProductStockEntity);
                 }
@@ -80,19 +81,15 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         var newProductStockEntity = _repository.ProductStocks.CreateProxy();
                         {
                             newProductStockEntity.Name = item.StockedProductName;
-                            if (item.Quantity != null)
+                            if (item.Units != null)
                             {
-                                newProductStockEntity.Units = item.Quantity;
+                                newProductStockEntity.Units = item.Units;
                             }
                         }
                         var newProductEntity = _repository.Products.CreateProxy();
                         {
                             newProductEntity.Name = item.StockedProductName;
                             newProductEntity.ProductStock = newProductStockEntity;
-                            if (item.UnitType != null)
-                            {
-                                newProductEntity.UnitType = item.UnitType.UnitTypeFromString();
-                            }
                         };
                         newProductStockEntity.Product = newProductEntity;
                         productStocksToAdd.Add(newProductStockEntity);
@@ -101,13 +98,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     {
                         if (existingProductStockEntities[0].Name.ToLower() == item.StockedProductName.ToLower())
                         {
-                            if (item.Quantity != null)
+                            if (item.Units != null)
                             {
-                                existingProductStockEntities[0].Units = item.Quantity;
-                            }
-                            if (item.UnitType != null)
-                            {
-                                existingProductStockEntities[0].Product.UnitType = item.UnitType.UnitTypeFromString();
+                                existingProductStockEntities[0].Units = item.Units;
                             }
                             productStocksToUpdate.Add(existingProductStockEntities[0]);
                         }
@@ -142,13 +135,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
                         if (exactMatch != null)
                         {
-                            if (item.Quantity != null)
+                            if (item.Units != null)
                             {
-                                exactMatch.Units = item.Quantity;
-                            }
-                            if (item.UnitType != null)
-                            {
-                                exactMatch.Product.UnitType = item.UnitType.UnitTypeFromString();
+                                exactMatch.Units = item.Units;
                             }
                             productStocksToUpdate.Add(exactMatch);
                         }
@@ -196,7 +185,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 productStockArray.Add(productStockObject);
             }
             model.Response.NavigateToPage = "product-stocks";
-            return "Updated stock:\n" + JsonConvert.SerializeObject(productStockArray);
+            return JsonConvert.SerializeObject(productStockArray);
         }
     }
 }

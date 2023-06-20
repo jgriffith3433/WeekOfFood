@@ -29,6 +29,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateRecipe model, CancellationToken cancellationToken)
         {
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            {
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
+            }
             var recipeEntity = _repository.Recipes.CreateProxy();
             recipeEntity.Name = model.Command.RecipeName;
             _repository.Recipes.Add(recipeEntity);
@@ -80,7 +85,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;

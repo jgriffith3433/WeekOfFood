@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace ContainerNinja.Core.Validators.ChatCommands
 {
-    public class ConsumeChatCommandSearchWalmartProductsValidator : AbstractValidator<ConsumeChatCommandSearchWalmartProducts>
+    public class ConsumeChatCommandSearchStockedProductValidator : AbstractValidator<ConsumeChatCommandSearchStockedProducts>
     {
-        public ConsumeChatCommandSearchWalmartProductsValidator()
+        public ConsumeChatCommandSearchStockedProductValidator()
         {
             RuleFor(v => v.Command.Search).NotEmpty().WithMessage("Search is required");
         }

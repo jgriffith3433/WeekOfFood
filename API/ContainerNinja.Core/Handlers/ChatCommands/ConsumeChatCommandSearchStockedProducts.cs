@@ -10,23 +10,23 @@ using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "get_stocked_products" })]
-    public class ConsumeChatCommandGetStockedProducts : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOGetStockedProducts>
+    [ChatCommandModel(new[] { "search_stocked_products" })]
+    public class ConsumeChatCommandSearchStockedProducts : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOSearchStockedProducts>
     {
-        public ChatAICommandDTOGetStockedProducts Command { get; set; }
+        public ChatAICommandDTOSearchStockedProducts Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandGetProductStockHandler : IRequestHandler<ConsumeChatCommandGetStockedProducts, string>
+    public class ConsumeChatCommandSearchProductStockHandler : IRequestHandler<ConsumeChatCommandSearchStockedProducts, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandGetProductStockHandler(IUnitOfWork repository)
+        public ConsumeChatCommandSearchProductStockHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandGetStockedProducts model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandSearchStockedProducts model, CancellationToken cancellationToken)
         {
             var predicate = PredicateBuilder.New<ProductStock>();
             if (string.IsNullOrEmpty(model.Command.Search))
@@ -55,7 +55,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 return $"No Product Stock matching the search term: {model.Command.Search}";
             }
             model.Response.NavigateToPage = "product-stocks";
-            return "Product Stock:\n" + JsonConvert.SerializeObject(results);
+            model.Response.ForceFunctionCall = "none";
+            return JsonConvert.SerializeObject(results);
         }
     }
 }

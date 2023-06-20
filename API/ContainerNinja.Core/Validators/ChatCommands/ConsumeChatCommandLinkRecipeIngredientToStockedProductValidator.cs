@@ -8,9 +8,9 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandLinkRecipeIngredientToStockedProductValidator()
         {
-            RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("Ask user if you can run the command");
+            //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
 
-            var invalidRecipeIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "get_recipe_id" });
+            var invalidRecipeIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_recipes" });
             RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage(invalidRecipeIdMessage);
             RuleFor(v => v.Command.RecipeId).NotEqual(1).WithMessage(invalidRecipeIdMessage);
             RuleFor(v => v.Command.RecipeId).NotEqual(12).WithMessage(invalidRecipeIdMessage);

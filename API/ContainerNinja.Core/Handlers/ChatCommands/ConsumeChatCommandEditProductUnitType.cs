@@ -27,6 +27,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditProductUnitType model, CancellationToken cancellationToken)
         {
+            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            {
+                model.Response.ForceFunctionCall = "none";
+                return "Ask for permission";
+            }
             var product = _repository.Products.Set.FirstOrDefault(p => p.Id == model.Command.ProductId);
             if (product == null)
             {

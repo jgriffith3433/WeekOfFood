@@ -152,7 +152,7 @@ namespace ContainerNinja.Core.Services
             var chatCompletionCreateRequest = new ChatCompletionCreateRequest
             {
                 Messages = GetChatPrompt(),
-                Model = Models.ChatGpt3_5Turbo0613,
+                Model = "gpt-3.5-turbo-16k-0613",//Models.ChatGpt3_5Turbo0613,
                 Functions = _functionSpecifications,
                 FunctionCall = "auto",
                 Temperature = 0.8f,
@@ -200,7 +200,7 @@ namespace ContainerNinja.Core.Services
 ChatMessage.FromSystem(
 @"You are a kitchen assistant. You can call functions that dont have the UserGavePermission field any time.
 You can NOT call functions that have the UserGavePermission field if you have not asked permission to.
-The user gives permission by responding ""yes"", ""go ahead"", ""sure"" or anything else affirmative then you are allowed to set the UserGavePermission field to true for that one function call ONLY and then you must set it back to false until they give permission again.
+The user gives permission then you are allowed to set the UserGavePermission field to true for that one function call ONLY and then you must set it back to false until they give permission again.
 The flow goes like this:
 1) The user tells you something.
 2) You gather information by asking the user or by calling a function.
@@ -208,6 +208,12 @@ The flow goes like this:
 4) If the function requires permission with the UserGavePermission field you must ask the user first.
 5) If the user gives permission go ahead and call the function, otherwise ask the user.
 6) Once you successfully call the function consolidate the information from the the function and tell the user what action that was performed.
+
+When placing an order, you are trying to add stocked products to the order.
+Recipes have ingredients that are linked to stocked products so you are able to order everything a user needs to make a recipe.
+
+When taking stock, the user is telling you what they have in their kitchen and you need to update the stocked products in the system to reflect that.
+
 ", StaticValues.ChatMessageRoles.System),
 /*
 ChatMessage.FromUser(@"I ate a sandwich for lunch.", StaticValues.ChatMessageRoles.User),

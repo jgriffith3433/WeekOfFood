@@ -4,9 +4,10 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification(new string[] { "get_stocked_products" }, "Get a list of stocked products")]
-public record ChatAICommandDTOGetStockedProducts : ChatAICommandArgumentsDTO
+[ChatCommandSpecification(new string[] { "search_stocked_products" }, "Search for stocked products by name")]
+public record ChatAICommandDTOSearchStockedProducts : ChatAICommandArgumentsDTO
 {
+    [Required]
     [Description("Name to search for")]
     public string Search { get; set; }
 }

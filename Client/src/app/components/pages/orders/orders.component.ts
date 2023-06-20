@@ -2,6 +2,7 @@ import { Component, TemplateRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { BsModalService, BsModalRef } from 'ngx-bootstrap/modal';
 import { OrderDTO } from '../../../models/OrderDTO';
+import { OrderProductDTO } from '../../../models/OrderProductDTO';
 import { UnitTypeDTO } from '../../../models/UnitTypeDTO';
 import { OrdersService } from '../../../providers/orders.service';
 
@@ -169,16 +170,9 @@ export class OrdersComponent implements OnInit {
   //  }
   //}
 
-  //getWalmartLinkFromProductDetailsEditor(): string {
-  //  if (this.OrderProductDetailsEditor.walmartSearchItems) {
-  //    for (var walmartSearchItem of this.OrderProductDetailsEditor.walmartSearchItems) {
-  //      if (walmartSearchItem.itemId == this.OrderProductDetailsEditor.walmartId) {
-  //        return "https://www.walmart.com/ip/" + walmartSearchItem.name + "/" + walmartSearchItem.itemId;
-  //      }
-  //    }
-  //  }
-  //  return "#";
-  //}
+  getWalmartLinkFromOrderProduct(orderProduct: OrderProductDTO): string {
+    return "https://www.walmart.com/ip/" + orderProduct.name + "/" + orderProduct.walmartId;
+  }
 
   //searchOrderProductName(): void {
   //  this.ordersService.searchOrderProductName(this.OrderProductDetailsEditor.id, this.OrderProductDetailsEditor.search).subscribe(
