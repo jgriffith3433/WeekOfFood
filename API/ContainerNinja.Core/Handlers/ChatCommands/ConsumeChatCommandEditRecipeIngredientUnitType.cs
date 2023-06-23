@@ -28,11 +28,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredientUnitType model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
             if (recipe == null)
@@ -46,7 +41,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var systemResponse = "Could not find ingredient by ID: " + model.Command.IngredientId;
                 throw new ChatAIException(systemResponse);
             }
-            calledIngredient.UnitType = model.Command.UnitType;
+            calledIngredient.UnitType = model.Command.KitchenUnitType;
             _repository.CalledIngredients.Update(calledIngredient);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 

@@ -4,14 +4,11 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("add_items_to_order", "Add stocked products to order")]
+[ChatCommandSpecification("add_kitchen_products_to_order", "Add kitch products to order")]
 public record ChatAICommandDTOAddStockedProductsToOrder : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to create a new order")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
-    [Description("ID of the order to add stocked products to")]
+    [Description("Id of the order to add stocked products to")]
     public int OrderId { get; set; }
     [Required]
     [Description("Stocked Products to order")]
@@ -21,9 +18,9 @@ public record ChatAICommandDTOAddStockedProductsToOrder : ChatAICommandArguments
 public record ChatAICommandDTOAddStockedProductsToOrder_StockedProduct
 {
     [Required]
-    [Description("Id of the stocked product")]
-    public int StockedProductId { get; set; }
+    [Description("Id of the kitchen product")]
+    public int KitchenProductId { get; set; }
     [Required]
     [Description("How many should be ordered. Convert from the stocked product unit type to the walmart size to get this number.")]
-    public int Quantity { get; set; }
+    public int OrderQuantity { get; set; }
 }

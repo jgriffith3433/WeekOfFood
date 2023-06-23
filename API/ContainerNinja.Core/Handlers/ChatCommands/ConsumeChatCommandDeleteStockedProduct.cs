@@ -7,14 +7,14 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "delete_stocked_product" })]
-    public class ConsumeChatCommandDeleteStockedProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTODeleteStockedProduct>
+    [ChatCommandModel(new[] { "delete_stocked_products" })]
+    public class ConsumeChatCommandDeleteStockedProducts : IRequest<string>, IChatCommandConsumer<ChatAICommandDTODeleteStockedProducts>
     {
-        public ChatAICommandDTODeleteStockedProduct Command { get; set; }
+        public ChatAICommandDTODeleteStockedProducts Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandDeleteStockedProductHandler : IRequestHandler<ConsumeChatCommandDeleteStockedProduct, string>
+    public class ConsumeChatCommandDeleteStockedProductHandler : IRequestHandler<ConsumeChatCommandDeleteStockedProducts, string>
     {
         private readonly IUnitOfWork _repository;
 
@@ -23,35 +23,33 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandDeleteStockedProduct model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandDeleteStockedProducts model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
+            foreach (var productToDelete in model.Command.StockedProductsToDelete)
             {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
-            var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Id == model.Command.StockedProductId);
-            if (productStockEntity == null)
-            {
-                var systemResponse = "Could not find stocked product by ID: " + model.Command.StockedProductId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
-            }
-            if (productStockEntity != null)
-            {
-                var calledIngredients = _repository.CalledIngredients.Set.Where(ci => ci.ProductStock != null && ci.ProductStock == productStockEntity);
-                foreach(var calledIngredient in calledIngredients)
+                var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Id == productToDelete.StockedProductId);
+                if (productStockEntity == null)
                 {
-                    calledIngredient.ProductStock = null;
-                    _repository.CalledIngredients.Update(calledIngredient);
+                    var systemResponse = "Could not find stocked product by ID: " + productToDelete.StockedProductId;
+                    throw new ChatAIException(systemResponse, @"{ ""name"": ""search_stocked_products"" }");
                 }
-                var cookedRecipeCalledIngredients = _repository.CookedRecipeCalledIngredients.Set.Where(ci => ci.ProductStock != null && ci.ProductStock == productStockEntity);
-                foreach (var cookedRecipeCalledIngredient in cookedRecipeCalledIngredients)
+                if (productStockEntity != null)
                 {
-                    cookedRecipeCalledIngredient.ProductStock = null;
-                    _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
-                }
+                    var calledIngredients = _repository.CalledIngredients.Set.Where(ci => ci.ProductStock != null && ci.ProductStock == productStockEntity);
+                    foreach (var calledIngredient in calledIngredients)
+                    {
+                        calledIngredient.ProductStock = null;
+                        _repository.CalledIngredients.Update(calledIngredient);
+                    }
+                    var cookedRecipeCalledIngredients = _repository.CookedRecipeCalledIngredients.Set.Where(ci => ci.ProductStock != null && ci.ProductStock == productStockEntity);
+                    foreach (var cookedRecipeCalledIngredient in cookedRecipeCalledIngredients)
+                    {
+                        cookedRecipeCalledIngredient.ProductStock = null;
+                        _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
+                    }
 
-                _repository.ProductStocks.Delete(productStockEntity.Id);
+                    _repository.ProductStocks.Delete(productStockEntity.Id);
+                }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             model.Response.NavigateToPage = "product-stocks";

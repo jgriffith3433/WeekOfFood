@@ -21,6 +21,7 @@ import { GetChatResponseVm } from '../models/GetChatResponseVm';
 import { AuthService } from '../../app/providers/auth.service';
 import { ChatInputComponent } from '../chat-input/chat-input.component';
 import { HowDoIService } from '../providers/how-do-I.service';
+import { ChatToggledService } from '../providers/chat-toggled.service';
 
 //read online that maybe you want to use this instead?
 //import { Blob } from 'buffer';
@@ -42,7 +43,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   public _visible = false;
   public _refreshing = false;
   public _botNavigating = false;
-  greeting: string;
+  public _chatStyle = 'floating';
+  greeting: string = 'Kitchy';
   _previousScrollPosition = 0;
   _chatConversationId: number = -1;
   _forceFunctionCall: string | undefined = undefined;
@@ -149,6 +151,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     private picoService: PicoService,
     private authService: AuthService,
     private howDoIService: HowDoIService,
+    private chatToggleService: ChatToggledService,
     @Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string
   ) {
     this.http = http;
@@ -170,6 +173,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       }
       if (event instanceof NavigationEnd) {
+        this.greeting = 'Kitchy';
         if (this._refreshing) {
           this._refreshing = false;
           //window.scrollTo({ top: this._previousScrollPosition, behavior: 'instant' });
@@ -214,6 +218,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
 
   @Input() public set visible(visible) {
     this._visible = visible
+    this.chatToggleService.chatToggledListener.next(this._visible);
+    if (this._visible) {
+      setTimeout(() => {
+        this.scrollToBottom()
+        //this.focusMessage()
+      }, 0)
+    }
+  }
+
+  public get chatStyle(): string {
+    return this._chatStyle;
+  }
+
+  @Input() public set chatStyle(chatStyle: string) {
+    this._chatStyle = chatStyle;
+    this.chatToggleService.chatStyleListener.next(this._chatStyle);
     if (this._visible) {
       setTimeout(() => {
         this.scrollToBottom()
@@ -705,6 +725,19 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     this.toggleChat();
   }
 
+  public userToggleFloatingChat() {
+    this.chatStyle = this.chatStyle == 'floating' ? 'docked' : 'floating';
+  }
+
+  public userToggleMinimizedChat() {
+    if (this.chatStyle == 'minimized') {
+      this.visible = false;
+    }
+    else {
+      this.chatStyle = 'minimized';
+    }
+  }
+
   private toggleChat() {
     if (!this.tokenService.IsAuthenticated) {
       this.router.navigate(['login']);
@@ -896,7 +929,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     if (response.createNewChat) {
       if (response.error) {
-        this.greeting = 'Something went wrong, creating new chat instance';
         setTimeout(() => {
           this._chatConversationId = -1;
           this._forceFunctionCall = undefined;

@@ -13,9 +13,9 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleFor(v => v.Command.StockedProducts).NotEmpty().WithMessage("Products field is required");
             RuleForEach(v => v.Command.StockedProducts).ChildRules(i =>
             {
-                i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId field is required");
+                i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage("StockedProductId field is required");
                 //var invalidQuantityMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_recipes" });
-                i.RuleFor(x => x.Quantity).NotEmpty().WithMessage("Quantity field is required");
+                i.RuleFor(x => x.OrderQuantity).NotEmpty().WithMessage("Quantity field is required");
             });
         }
     }

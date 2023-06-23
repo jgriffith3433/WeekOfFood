@@ -28,11 +28,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditCookedRecipeIngredientUnitType model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(r => r.Id == model.Command.LoggedRecipeId);
 
             if (cookedRecipe == null)
@@ -50,7 +45,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
                 else
                 {
-                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType;
+                    cookedRecipeCalledIngredient.UnitType = model.Command.KitchenUnitType;
                     _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
                 }
             }

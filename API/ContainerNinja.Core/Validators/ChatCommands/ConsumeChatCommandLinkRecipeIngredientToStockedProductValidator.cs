@@ -18,7 +18,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleFor(v => v.Command.RecipeId).NotEqual(1234).WithMessage(invalidRecipeIdMessage);
             RuleFor(v => v.Command.RecipeId).NotEqual(12345).WithMessage(invalidRecipeIdMessage);
 
-            var invalidStockedProductIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "get_stocked_product_id" });
+            var invalidStockedProductIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_stocked_products" });
             RuleFor(v => v.Command.StockedProductId).NotEmpty().WithMessage(invalidStockedProductIdMessage);
             RuleFor(v => v.Command.StockedProductId).NotEqual(1).WithMessage(invalidStockedProductIdMessage);
             RuleFor(v => v.Command.StockedProductId).NotEqual(12).WithMessage(invalidStockedProductIdMessage);

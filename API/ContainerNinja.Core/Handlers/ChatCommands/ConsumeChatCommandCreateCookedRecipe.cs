@@ -12,10 +12,10 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "create_logged_recipe" })]
-    public class ConsumeChatCommandCreateCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateCookedRecipe>
+    [ChatCommandModel(new[] { "create_new_logged_recipe" })]
+    public class ConsumeChatCommandCreateCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateLoggedRecipe>
     {
-        public ChatAICommandDTOCreateCookedRecipe Command { get; set; }
+        public ChatAICommandDTOCreateLoggedRecipe Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
@@ -30,17 +30,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateCookedRecipe model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
             if (recipe == null)
             {
                 var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
-                throw new ChatAIException(systemResponse);
+                throw new ChatAIException(systemResponse, JsonConvert.SerializeObject(new { name = "search_recipes" }));
             }
             var cookedRecipe = _repository.CookedRecipes.CreateProxy();
             {

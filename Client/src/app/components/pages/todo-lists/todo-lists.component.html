@@ -1,6 +1,6 @@
-<a [routerLink]="['/todo/add']" class="float bg-success">
+<!--<a [routerLink]="['/todo/add']" class="float bg-success">
   <i class="fa fa-plus my-float"></i>
-</a>
+</a>-->
 
 <p *ngIf="!lists"><em>Loading...</em></p>
 
@@ -175,9 +175,9 @@
   </div>
   <div class="modal-footer clearfix">
     <div class="float-end">
-      <a [routerLink]="['/todo/add']" class="float bg-success">
+      <!--<a [routerLink]="['/todo/add']" class="float bg-success">
         <i class="fa fa-plus my-float"></i>
-      </a>
+      </a>-->
       <button class="btn btn-default" (click)="newListCancelled()">Cancel</button>
       <button class="btn btn-primary" (click)="addList()">Create</button>
     </div>

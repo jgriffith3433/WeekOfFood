@@ -8,9 +8,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOLinkStockedProductsToWalmartProducts : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to create a new to do list")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
     [Description("List of links to make")]
     public List<ChatAICommandDTOLinkStockedProductsToWalmartProducts_Link> Links { get; set; }
 }

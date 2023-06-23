@@ -9,9 +9,9 @@ using ContainerNinja.Core.Exceptions;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "create_walmart_product" })]
-    public class ConsumeChatCommandCreateWalmartProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateProduct>
+    public class ConsumeChatCommandCreateWalmartProduct : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateWalmartProduct>
     {
-        public ChatAICommandDTOCreateProduct Command { get; set; }
+        public ChatAICommandDTOCreateWalmartProduct Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
@@ -26,11 +26,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateWalmartProduct model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var existingProductWithName = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Name.ToLower() == model.Command.ProductName.ToLower());
 
             if (existingProductWithName != null)

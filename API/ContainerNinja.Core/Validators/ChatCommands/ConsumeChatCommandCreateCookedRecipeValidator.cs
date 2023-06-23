@@ -1,5 +1,6 @@
 ﻿using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Validators.ChatCommands
 {
@@ -8,8 +9,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         public ConsumeChatCommandCreateCookedRecipeValidator()
         {
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
-            RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage("RecipeId field is required");
-            RuleFor(v => v.Command.When).NotEmpty().WithMessage("When field is required");
+            RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_recipes" }));
         }
     }
 }

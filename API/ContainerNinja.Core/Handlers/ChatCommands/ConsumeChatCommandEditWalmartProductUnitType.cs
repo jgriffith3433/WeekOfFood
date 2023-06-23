@@ -27,11 +27,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditWalmartProductUnitType model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var walmartProduct = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Id == model.Command.ProductId);
             if (walmartProduct == null)
             {
@@ -40,7 +35,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             else
             {
-                walmartProduct.UnitType = model.Command.UnitType;
+                walmartProduct.UnitType = model.Command.KitchenUnitType;
                 _repository.WalmartProducts.Update(walmartProduct);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

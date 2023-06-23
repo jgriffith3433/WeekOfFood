@@ -23,62 +23,58 @@
 </nav>-->
 
 <header>
-  <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-    <div class="container">
-      <a class="navbar-brand" [routerLink]="['/']">WOF</a>
-      <button class="navbar-toggler"
-              type="button"
-              data-toggle="collapse"
-              data-target=".navbar-collapse"
-              aria-label="Toggle navigation"
-              [attr.aria-expanded]="isExpanded"
-              (click)="toggle()">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end"
-           [ngClass]="{ show: isExpanded }">
-        <ul class="navbar-nav flex-grow">
-          <li class="nav-item" [routerLinkActive]="['link-active']" [routerLinkActiveOptions]="{ exact: true }">
-            <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/portfolio']">Portfolio</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/todo']">Todo</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/product-stocks']">Stocked Products</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/products']">Products</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/orders']">Orders</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/completed-orders']">Completed Orders</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/recipes']">Recipes</a>
-          </li>
-          <li class="nav-item" [routerLinkActive]="['link-active']">
-            <a class="nav-link text-dark" [routerLink]="['/logged-recipes']">Logged Recipes</a>
-          </li>
-          <!--<li class="nav-item" [routerLinkActive]="['link-active']">
-    <a class="nav-link text-dark" [routerLink]="['/called-ingredients']">Called Ingredients</a>
-  </li>-->
-          <li class="nav-item">
-            <a class="nav-link text-dark" href="/api" target="_blank">API</a>
-          </li>
-          <!--<li class="nav-item" *ngIf="!isAuthentiacated">
-    <a class="nav-link text-dark" [routerLink]="['login']">Login</a>
-  </li>
-  <li class="nav-item" *ngIf="isAuthentiacated">
-    <a class="nav-link text-dark" href="javascript:void(0)" (click)="logout()">Logout</a>
-  </li>-->
-        </ul>
-      </div>
+  <nav [class.navbar-expand-md]="!chatObscuringView" [class.navbar-toggleable-md]="!chatObscuringView"
+       [class.navbar-expand-xs]="chatObscuringView" [class.navbar-toggleable]="chatObscuringView"
+       class="navbar navbar-light bg-white border-bottom box-shadow mb-3">
+    <a class="navbar-brand" [routerLink]="['/']">WOF</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-label="Toggle navigation" [attr.aria-expanded]="isExpanded" (click)="toggle()">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div [class.d-md-inline-flex]="!chatObscuringView"
+         [class.d-xs-inline-flex]="chatObscuringView"
+         class="navbar-collapse collapse justify-content-end"
+         [ngClass]="{ show: isExpanded }">
+      <ul class="navbar-nav flex-grow flex-wrap">
+        <li class="nav-item" [routerLinkActive]="['link-active']" [routerLinkActiveOptions]="{ exact: true }">
+          <a class="nav-link text-dark" [routerLink]="['/']">Home</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/portfolio']">Portfolio</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/todo']">Todo</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/product-stocks']">Stocked Products</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/products']">Products</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/orders']">Orders</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/completed-orders']">Completed Orders</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/recipes']">Recipes</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/logged-recipes']">Logged Recipes</a>
+        </li>
+        <!--<li class="nav-item" [routerLinkActive]="['link-active']">
+          <a class="nav-link text-dark" [routerLink]="['/called-ingredients']">Called Ingredients</a>
+        </li>-->
+        <li class="nav-item">
+          <a class="nav-link text-dark" href="/api" target="_blank">API</a>
+        </li>
+        <!--<li class="nav-item" *ngIf="!isAuthentiacated">
+          <a class="nav-link text-dark" [routerLink]="['login']">Login</a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthentiacated">
+          <a class="nav-link text-dark" href="javascript:void(0)" (click)="logout()">Logout</a>
+        </li>-->
+      </ul>
     </div>
   </nav>
 </header>

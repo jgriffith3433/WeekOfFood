@@ -11,48 +11,46 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "add_logged_recipe_ingredient" })]
-    public class ConsumeChatCommandAddCookedRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddCookedRecipeIngredient>
+    [ChatCommandModel(new[] { "update_logged_recipe" })]
+    public class ConsumeChatCommandUpdateLoggedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateLoggedRecipe>
     {
-        public ChatAICommandDTOAddCookedRecipeIngredient Command { get; set; }
+        public ChatAICommandDTOUpdateLoggedRecipe Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandAddCookedRecipeIngredientHandler : IRequestHandler<ConsumeChatCommandAddCookedRecipeIngredient, string>
+    public class ConsumeChatCommandUpdateLoggedRecipeHandler : IRequestHandler<ConsumeChatCommandUpdateLoggedRecipe, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandAddCookedRecipeIngredientHandler(IUnitOfWork repository)
+        public ConsumeChatCommandUpdateLoggedRecipeHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandAddCookedRecipeIngredient model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandUpdateLoggedRecipe model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var cookedRecipe = _repository.CookedRecipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Id == model.Command.LoggedRecipeId);
             if (cookedRecipe == null)
             {
                 var systemResponse = "Could not find logged recipe by ID: " + model.Command.LoggedRecipeId;
                 throw new ChatAIException(systemResponse, @"{ ""name"": ""get_logged_recipe_id"" }");
             }
-            else
+
+            foreach(var updateLoggedRecipeIngredient in model.Command.Ingredients)
             {
                 var cookedRecipeCalledIngredient = _repository.CookedRecipeCalledIngredients.CreateProxy();
                 {
-                    cookedRecipeCalledIngredient.Name = model.Command.IngredientName;
+                    cookedRecipeCalledIngredient.Name = updateLoggedRecipeIngredient.IngredientName;
                     //cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
-                    cookedRecipeCalledIngredient.Units = model.Command.Units;
-                    cookedRecipeCalledIngredient.UnitType = model.Command.UnitType;
+                    cookedRecipeCalledIngredient.Units = updateLoggedRecipeIngredient.Units;
+                    cookedRecipeCalledIngredient.UnitType = updateLoggedRecipeIngredient.KitchenUnitType;
                 };
                 cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
-                _repository.CookedRecipes.Update(cookedRecipe);
             }
+            
+            _repository.CookedRecipes.Update(cookedRecipe);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            await _repository.CommitAsync();
 
             var cookedRecipeObject = new JObject();
             cookedRecipeObject["LoogedRecipeId"] = cookedRecipe.Id;
@@ -73,7 +71,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "logged-recipes";
-            return $"Added logged ingredient: {model.Command.IngredientName}\n" + JsonConvert.SerializeObject(cookedRecipeObject);
+            return JsonConvert.SerializeObject(cookedRecipeObject);
         }
     }
 }

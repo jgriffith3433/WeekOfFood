@@ -12,7 +12,7 @@ using ContainerNinja.Contracts.Walmart;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "get_stocked_product_id" })]
+    //[ChatCommandModel(new[] { "search_stocked_products" })]
     public class ConsumeChatCommandGetStockedProductId : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOGetStockedProductId>
     {
         public ChatAICommandDTOGetStockedProductId Command { get; set; }
@@ -100,7 +100,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             productStockObject["StockedProductName"] = productStock.Name;
             model.Response.ForceFunctionCall = "auto";
             model.Response.NavigateToPage = "product-stocks";
-            return JsonConvert.SerializeObject(productStockObject);
+            return JsonConvert.SerializeObject(productStockObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

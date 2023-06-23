@@ -17,7 +17,7 @@ export class HomeComponent implements OnInit {
   }
 
   youMakeANewRecipe(): void {
-    this.howDoIService.send("I want you to make a recipe for me.");
+    this.howDoIService.send("I want you to make a recipe for me with no ingredients. Ask me for the name of the recipe and how many servings it makes then update the recipe with ingredients that you know. I don't want to provide the ingredients.");
   }
 
   makeANewRecipe(): void {
@@ -33,11 +33,11 @@ export class HomeComponent implements OnInit {
   }
 
   logARecipe(): void {
-    this.howDoIService.send("Log that I ate a meal");
+    this.howDoIService.send("I just ate a meal, can I tell you what I ate so you can update the system?");
   }
 
   takeStock(): void {
-    this.howDoIService.send("I'm going to tell what stocked products I have in my kitchen and how much I have of each one.");
+    this.howDoIService.send("I want to manage my kitchen inventory, can I tell you what kitchen products I have in my kitchen so you can update the system?");
   }
 
   placeAnOrder(): void {

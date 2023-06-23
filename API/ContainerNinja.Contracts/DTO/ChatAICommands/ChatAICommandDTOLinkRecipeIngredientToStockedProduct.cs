@@ -8,9 +8,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOLinkRecipeIngredientToStockedProduct : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to create a new to do list")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
     [Description("ID of the recipe")]
     public int RecipeId { get; set; }
     [Required]
@@ -18,5 +15,5 @@ public record ChatAICommandDTOLinkRecipeIngredientToStockedProduct : ChatAIComma
     public int IngredientId { get; set; }
     [Required]
     [Description("ID of the stocked product")]
-    public long? StockedProductId { get; set; }
+    public long StockedProductId { get; set; }
 }

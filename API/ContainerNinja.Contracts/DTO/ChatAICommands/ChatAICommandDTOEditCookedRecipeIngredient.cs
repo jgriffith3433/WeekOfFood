@@ -8,9 +8,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOEditCookedRecipeIngredient : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to substitute an ingredient in the logged recipe")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
     [Description("Name of the logged recipe")]
     public int LoggedRecipeId { get; set; }
     [Required]

@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "add_items_to_order" })]
+    [ChatCommandModel("add_items_to_order")]
     public class ConsumeChatCommandAddStockedProductsToOrder : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOAddStockedProductsToOrder>
     {
         public ChatAICommandDTOAddStockedProductsToOrder Command { get; set; }
@@ -27,11 +27,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandAddStockedProductsToOrder model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var orderEntity = _repository.Orders.Set.FirstOrDefault(o => o.Id == model.Command.OrderId);
             if (orderEntity == null)
             {
@@ -41,47 +36,47 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             var notLinkedToWalmartProducts = new List<int>();
             var noUnitConversionToWalmartProducts = new List<int>();
-            foreach (var stockedProductToOrder in model.Command.StockedProducts)
-            {
-                var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == stockedProductToOrder.StockedProductId);
-                if (productStockEntity == null)
-                {
-                    var systemResponse = "Could not find stocked product by ID: " + stockedProductToOrder.StockedProductId;
-                    throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
-                }
+            //foreach (var stockedProductToOrder in model.Command.StockedProducts)
+            //{
+            //    var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == stockedProductToOrder.KitchenProductId);
+            //    if (productStockEntity == null)
+            //    {
+            //        var systemResponse = "Could not find stocked product by ID: " + stockedProductToOrder.KitchenProductId;
+            //        throw new ChatAIException(systemResponse, @"{ ""name"": ""search_stocked_products"" }");
+            //    }
 
-                if (productStockEntity.WalmartProduct == null)
-                {
-                    notLinkedToWalmartProducts.Add(stockedProductToOrder.StockedProductId);
-                    var systemResponse = $"Stocked Product ({stockedProductToOrder.StockedProductId}) is not linked to a walmart product yet";
-                }
+            //    if (productStockEntity.WalmartProduct == null)
+            //    {
+            //        notLinkedToWalmartProducts.Add(stockedProductToOrder.KitchenProductId);
+            //        var systemResponse = $"Stocked Product ({stockedProductToOrder.KitchenProductId}) is not linked to a walmart product yet";
+            //    }
 
-                if (productStockEntity.WalmartProduct.WalmartId.HasValue == false)
-                {
-                    notLinkedToWalmartProducts.Add(stockedProductToOrder.StockedProductId);
-                    var systemResponse = $"Stocked Product ({stockedProductToOrder.StockedProductId}) is not linked to a walmart product yet";
-                }
-            }
+            //    if (productStockEntity.WalmartProduct.WalmartId.HasValue == false)
+            //    {
+            //        notLinkedToWalmartProducts.Add(stockedProductToOrder.KitchenProductId);
+            //        var systemResponse = $"Stocked Product ({stockedProductToOrder.KitchenProductId}) is not linked to a walmart product yet";
+            //    }
+            //}
             if (notLinkedToWalmartProducts.Count > 0)
             {
                 var systemResponse = "The following stocked products are not linked to walmart products: " + string.Join(", ", notLinkedToWalmartProducts);
                 throw new ChatAIException(systemResponse, @"{ ""name"": ""link_stocked_products_to_walmart_products"" }");
             }
 
-            foreach (var stockedProductToOrder in model.Command.StockedProducts)
-            {
-                var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == stockedProductToOrder.StockedProductId);
+            //foreach (var stockedProductToOrder in model.Command.StockedProducts)
+            //{
+            //    var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == stockedProductToOrder.KitchenProductId);
 
-                var orderItemEntity = _repository.OrderItems.CreateProxy();
-                {
-                    orderItemEntity.Product = productStockEntity.WalmartProduct;
-                    orderItemEntity.WalmartId = productStockEntity.WalmartProduct.WalmartId;
-                    orderItemEntity.Name = productStockEntity.Name;
-                    orderItemEntity.Quantity = stockedProductToOrder.Quantity;
-                }
-                _repository.OrderItems.Add(orderItemEntity);
-                orderEntity.OrderItems.Add(orderItemEntity);
-            }
+            //    var orderItemEntity = _repository.OrderItems.CreateProxy();
+            //    {
+            //        orderItemEntity.Product = productStockEntity.WalmartProduct;
+            //        orderItemEntity.WalmartId = productStockEntity.WalmartProduct.WalmartId;
+            //        orderItemEntity.Name = productStockEntity.Name;
+            //        orderItemEntity.Quantity = stockedProductToOrder.OrderQuantity;
+            //    }
+            //    _repository.OrderItems.Add(orderItemEntity);
+            //    orderEntity.OrderItems.Add(orderItemEntity);
+            //}
             _repository.Orders.Update(orderEntity);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
@@ -100,7 +95,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             orderObject["OrderItems"] = orderProductsArray;
             model.Response.NavigateToPage = "orders";
-            return JsonConvert.SerializeObject(orderObject);
+            return JsonConvert.SerializeObject(orderObject, new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
         }
     }
 }

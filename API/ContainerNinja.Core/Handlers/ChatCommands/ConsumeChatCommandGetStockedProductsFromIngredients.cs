@@ -39,13 +39,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var stockedProductLinkObject = new JObject();
                 stockedProductLinkObject["IngredientId"] = ingredientEntity.Id;
                 stockedProductLinkObject["StockedProductId"] = ingredientEntity.ProductStock?.Id;
-                stockedProductLinkObject["StockedProductUnits"] = ingredientEntity.ProductStock?.Units;
-                stockedProductLinkObject["StockedProductUnitType"] = ingredientEntity.UnitType.ToString();
+                stockedProductLinkObject["StockedProductKitchenUnits"] = ingredientEntity.ProductStock?.Units;
+                stockedProductLinkObject["StockedProductKitchenUnitType"] = ingredientEntity.UnitType.ToString();
                 stockedProductsArray.Add(stockedProductLinkObject);
             }
 
             model.Response.NavigateToPage = "recipes";
-            return JsonConvert.SerializeObject(stockedProductsArray);
+            return JsonConvert.SerializeObject(stockedProductsArray, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

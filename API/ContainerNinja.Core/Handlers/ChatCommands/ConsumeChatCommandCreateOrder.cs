@@ -26,11 +26,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateOrder model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var orderEntity = _repository.Orders.CreateProxy();
             _repository.Orders.Add(orderEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
@@ -41,7 +36,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             var orderItemsArray = new JArray();
             orderObject["OrderItems"] = orderItemsArray;
             model.Response.NavigateToPage = "orders";
-            return JsonConvert.SerializeObject(orderObject);
+            return JsonConvert.SerializeObject(orderObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

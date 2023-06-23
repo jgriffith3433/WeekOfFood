@@ -8,7 +8,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandSearchRecipesValidator()
         {
-            RuleFor(v => v.Command.Search).NotEmpty().WithMessage("Search field is required");
+            //RuleFor(v => v.Command.Search).NotEmpty().WithMessage("Search field is required");
         }
     }
 }

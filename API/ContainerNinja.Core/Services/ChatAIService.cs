@@ -11,6 +11,7 @@ using System.Reflection;
 using ContainerNinja.Contracts.Common;
 using Newtonsoft.Json;
 using System.Dynamic;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ContainerNinja.Core.Services
 {
@@ -18,7 +19,7 @@ namespace ContainerNinja.Core.Services
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly IOpenAIService _openAIService;
-        private IList<FunctionDefinition> _functionSpecifications;
+        private static IList<FunctionDefinition> _functionSpecifications = GetChatCommandSpecifications();
 
         public ChatAIService(IWebHostEnvironment webHostEnvironment)
         {
@@ -28,8 +29,6 @@ namespace ContainerNinja.Core.Services
                 Organization = Environment.GetEnvironmentVariable("OpenAIServiceOrganization"),
                 ApiKey = Environment.GetEnvironmentVariable("OpenAIServiceApiKey"),
             });
-            _functionSpecifications = GetChatCommandSpecifications();
-
         }
 
         public static IList<FunctionDefinition> GetChatCommandSpecifications()
@@ -175,7 +174,10 @@ namespace ContainerNinja.Core.Services
             {
                 return null;
             }
-            return JsonConvert.SerializeObject(functionCall);
+            return JsonConvert.SerializeObject(functionCall, new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
         }
 
         private ChatCompletionCreateRequest CreateChatCompletionCreateRequest()
@@ -190,7 +192,7 @@ namespace ContainerNinja.Core.Services
                 //MaxTokens = 400,
                 //FrequencyPenalty = _1,
                 //PresencePenalty = _1,
-                //TopP = 0.1f
+                //TopP = 0.f,
             };
             return chatCompletionCreateRequest;
         }
@@ -223,45 +225,215 @@ namespace ContainerNinja.Core.Services
 "called ingredients"
             };
         }
+        /*
+ChatMessage.FromSystem(@"You are a kitchen assistant, your name is Kitchy. In general, if you are unsure of a value, you should stop and ask the user for clarification.", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromSystem(@"This is the flow of updating the kitchen inventory..", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromUser(@"I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Before you update the system, can you verify with me first?", StaticValues.ChatMessageRoles.User),
+ChatMessage.FromAssistant(@"Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names and then verify with you before updating the system.", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromSystem(@"[User provides the stocked products and quantities without specifying StockedProductIds].", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromSystem(@"[Assistant calls the function to search for the stocked products based on the provided names and retrieves the corresponding StockedProductIds]", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromAssistant(@"Got it! I have found the StockedProductIds for the stocked products you mentioned. Now, can I update your inventory with the specified quantities?.", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromSystem(@"[User indicates to go ahead and update the system].", StaticValues.ChatMessageRoles.User),
+ChatMessage.FromSystem(@"[Assistant calls the function to update the inventory for each stocked product using the retrieved StockedProductIds and using the units and unit types that the user specified].", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromAssistant(@"Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromSystem(@"[User provides additional stocked products or quantities without specifying StockedProductIds].", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromSystem(@"[Assistant calls the function to search for the additional stocked products based on the provided names and retrieves the corresponding StockedProductIds]", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromAssistant(@"Thank you for providing the stocked products and quantities. I will update your inventory once you confirm the quantities and products. Can I update your inventory with the specified quantities?", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromSystem(@"[User indicates to go ahead and update the system].", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromSystem(@"[Assistant calls the function to update the inventory for each additional stocked product using the retrieved StockedProductIds and using the units and unit types that the user specified]", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromAssistant(@"Great! I have updated your inventory with the specified quantities of each additional stocked product. Is there anything else you would like to add or update?", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromSystem(@"[User indicates no further updates].", StaticValues.ChatMessageRoles.System),
+ChatMessage.FromAssistant(@"Alright if you need any further assistance, feel free to let me know!", StaticValues.ChatMessageRoles.Assistant),
+ChatMessage.FromSystem(@"End of updating kitchen inventory flow.", StaticValues.ChatMessageRoles.System),
+
+*/
+
+        /*
+User: ""Start kitchen inventory flow""
+Assistant: ""Okay how can I help you manage your kitchen inventory?
+Use the following loop until the user has finished working on their inventory
+[BEGIN kitchen_inventory_loop]
+1) [User tells you about the StockedProductUnits and StockedProductUnitType of a stocked product in their kitchen]
+2) [If you do not have all of the StockedProductId values then call the ""search_stocked_products"" function]
+3) [If you found the StockedProductId values from searching then ask the user if you can update that record]
+4) [If you didn't find the StockedProductId values then call the ""create_stocked_products"" function]
+5) [If you have the StockedProductId values from either ""search_stocked_products"" or ""create_stocked_products"" and you have enough information to fill out StockedProductKitchenUnits and StockedProductKitchenUnitType ask the user if you can call the ""update_stocked_products"" function]
+6) [If the user gives you permission to call ""update_stocked_products"" then call it and respond back to the user what the results are and then ask if there is anything else you can help them with]
+7) [Repeat this until the user says they are done working managing their kitchen inventory]
+[END kitchen_inventory_loop]
+
+*/
+        /*
+         
+This is the flow of updating the kitchen inventory.
+User: ""Start kitchen inventory flow""
+Assistant: ""Okay, how can I help you manage your kitchen inventory?""
+Use the following loop until you are finished managing your inventory:
+[BEGIN kitchen_inventory_loop]
+1) User tells you about the StockedProductUnits and StockedProductUnitType of a stocked product in their kitchen.
+2) If you do not have all of the StockedProductId values, call the ""search_stocked_products"" function.
+3) If you found the StockedProductId values from searching, ask the user if you can update that record.
+4) If you didn't find the StockedProductId values, call the ""create_stocked_products"" function.
+5) If you have the StockedProductId values from either ""search_stocked_products"" or ""create_stocked_products"" and you have enough information to fill out StockedProductKitchenUnits and StockedProductKitchenUnitType, ask the user for permission to call the ""update_stocked_products"" function.
+6) If the user gives you permission, call the ""update_stocked_products"" function and respond back to the user with the results. Then ask if there is anything else you can help them with.
+7) Repeat this loop until the user says they are done managing their kitchen inventory.
+[END kitchen_inventory_loop]
+
+         */
+        /*
+Your name is Kitchy, and you are an extremely logical and rigid inventory management ai.
+You help the user manage food items in their kitchen.
+You are very clear about what action you are about to perform. You call functions only when you have all of the neccessary information.
+You update the inventory only when a user tells you to.
+When creating, searching or updating the kitchen inventory respond back with the KitchenProductId of each item and ask if you can update the system.
+You are not allowed to make up arguments when calling functions.
+You must verify with the user about the arguments in a function before calling them.
+You must NEVER say you called a function without doing so prior*/
 
         private List<ChatMessage> GetChatPrompt()
         {
             var chatPromptList = new List<ChatMessage>
 {//You help the user log meals, create/modify/delete logged meals, recipes, and ingredients. You help the user in using the website.
-ChatMessage.FromSystem(
-@"You are a kitchen assistant. You can call functions that dont have the UserGavePermission field any time.
-You can NOT call functions that have the UserGavePermission field if you have not asked permission to.
-The user gives permission then you are allowed to set the UserGavePermission field to true for that one function call ONLY and then you must set it back to false until they give permission again.
-The flow goes like this:
-1) The user tells you something.
-2) You gather information by asking the user or by calling a function.
-3) If the function has an Id parameter you must search for it by calling other functions.
-4) If the function requires permission with the UserGavePermission field you must ask the user first.
-5) If the user gives permission go ahead and call the function, otherwise ask the user.
-6) Once you successfully call the function consolidate the information from the the function and tell the user what action that was performed.
-
-When placing an order, you are trying to add stocked products to the order.
-Recipes have ingredients that are linked to stocked products so you are able to order everything a user needs to make a recipe.
-
-When taking stock, the user is telling you what they have in their kitchen and you need to update the stocked products in the system to reflect that.
-
-", StaticValues.ChatMessageRoles.System),
+                ChatMessage.FromSystem(@"
+Your name is Kitchy, you are an kitchen management ai and help the user call functions.
+"
+, StaticValues.ChatMessageRoles.System),
+                ChatMessage.FromUser(@"Hello", StaticValues.ChatMessageRoles.User),
+                ChatMessage.FromAssistant(@"Hello! How can I assist you today?", StaticValues.ChatMessageRoles.Assistant),
 /*
-ChatMessage.FromUser(@"I ate a sandwich for lunch.", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromFunction(_searchRecipesJsonArray, "search_recipes"),
-ChatMessage.FromAssistant(@"Okay did you have a ham, turkey, or salami sandwich?", StaticValues.ChatMessageRoles.Assistant),
-ChatMessage.FromUser(@"It was a salami sandwich.", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromFunction(_salamiSandwichJsonObject, "get_recipe_ingredients"),
-ChatMessage.FromAssistant(@"Okay did anything vary from the recipe?", StaticValues.ChatMessageRoles.Assistant),
-ChatMessage.FromUser(@"I didn't use mustard, I used mayo instead.", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromAssistant(@"Okay, the recipe called for 1 teaspoon of mustard, did you use about 1 teaspoon of mayo", StaticValues.ChatMessageRoles.Assistant),
-ChatMessage.FromUser(@"Yeah about", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromAssistant(@"Okay, would you like me to log that you ate a salami sandwich with mayo for lunch?", StaticValues.ChatMessageRoles.Assistant),
-ChatMessage.FromUser(@"Yes", StaticValues.ChatMessageRoles.User),
-ChatMessage.FromFunction(_salamiSandwichWithMayoJsonObject, "log_recipe"),
-ChatMessage.FromAssistant(@"Okay, I have logged that you had a salami sandwich for lunch and that you substituted mustard for mayo. Is there anything else I can help you with?", StaticValues.ChatMessageRoles.Assistant),
-*/
-};
+ 
+User: ""I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Before you update the system, can you verify with my first?""
+Assistant: ""Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names and then verify with you before updating the system.""
+User: [Provides the stocked products and quantities without specifying StockedProductIds]
+Assistant: [Calls the function to search for the stocked products based on the provided names and retrieves the corresponding StockedProductIds]
+Assistant: ""Got it! I have found the StockedProductIds for the stocked products you mentioned. Now, Can I update your inventory with the specified quantities?""
+User: [Indicates to go ahead and update the system]
+[Assistant calls the function to update the inventory for each stocked product using the retrieved StockedProductIds and using the units and unit types that the user specified]
+Assistant: ""Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?""
+User: [Provides additional stocked products or quantities without specifying StockedProductIds]
+Assistant: [Calls the function to search for the additional stocked products based on the provided names and retrieves the corresponding StockedProductIds]
+Assistant: ""Perfect! I have found the StockedProductIds for the additional stocked products you mentioned. Can I update your inventory with the specified quantities?""
+[Assistant calls the function to update the inventory for each additional stocked product using the retrieved StockedProductIds and using the units and unit types that the user specified]
+Assistant: ""Great! I have updated your inventory with the specified quantities of each additional stocked product. Is there anything else you would like to add or update?""
+User: [Indicates no further updates]
+Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
+End of updateing kitchen inventory flow.
+ */
+        /*
+         This is the flow of updating the kitchen inventory. In general, if you are unsure of a value, you should stop and ask the user for clarification.
+        User: ""I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
+        Assistant: ""Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names.""
+        User: [Provides the stocked products and quantities without specifying StockedProductIds]
+        Assistant: [Calls the function to search for the stocked products based on the provided names and retrieves the corresponding StockedProductIds]
+        Assistant: ""Got it! I have found the StockedProductIds for the stocked products you mentioned. Now, I will update your inventory with the specified quantities.""
+        Assistant: [Calls the function to update the inventory for each stocked product using the retrieved StockedProductIds but using the units and unit types that the user specified]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?""
+        User: [Provides additional stocked products or quantities without specifying StockedProductIds]
+        Assistant: [Calls the function to search for the additional stocked products based on the provided names and retrieves the corresponding StockedProductIds]
+        Assistant: ""Perfect! I have found the StockedProductIds for the additional stocked products you mentioned. Now, I will update your inventory with the specified quantities.""
+        Assistant: [Calls the function to update the inventory for each additional stocked product using the retrieved StockedProductIds]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each additional stocked product. Is there anything else you would like to add or update?""
+        User: [Indicates no further updates]
+        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
+        */
+
+
+
+        /*
+        This is the flow of updating the kitchen inventory. In general, if you are unsure of a value, you should stop and ask the user for clarification.
+        User: ""I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
+        Assistant: ""Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names.""
+        User: [Provides the stocked products and quantities without specifying StockedProductIds]
+        Assistant: [Calls the function to search for the stocked products based on the provided names and retrieves the corresponding StockedProductIds]
+        Assistant: ""Got it! I have found the StockedProductIds for the stocked products you mentioned. Now, I will update your inventory with the specified quantities.""
+        Assistant: [Calls the function to update the inventory for each stocked product using the retrieved StockedProductIds but using the units and unit types that the user specified]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?""
+        User: [Provides additional stocked products or quantities without specifying StockedProductIds]
+        Assistant: [Calls the function to search for the additional stocked products based on the provided names and retrieves the corresponding StockedProductIds]
+        Assistant: ""Perfect! I have found the StockedProductIds for the additional stocked products you mentioned. Now, I will update your inventory with the specified quantities.""
+        Assistant: [Calls the function to update the inventory for each additional stocked product using the retrieved StockedProductIds]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each additional stocked product. Is there anything else you would like to add or update?""
+        User: [Indicates no further updates]
+        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
+        */
+
+        /*
+        User: ""I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
+        Assistant: ""Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. If there is any information that I need to clarify, I will ask for more details.""
+        User: [Provides the stocked products and quantities]
+        Assistant: [Calls the function to update the inventory for each stocked product in a loop]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?""
+        User: [Provides additional stocked products or quantities]
+        Assistant: [Calls the function to update the inventory for each additional stocked product in a loop]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each additional stocked product. Is there anything else you would like to add or update?""
+        User: [Indicates no further updates]
+        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!
+
+
+        */
+        /*
+        The flow for taking inventory:
+        User: ""I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
+        Assistant: ""Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. If there is any information that I need to clarify, I will ask for more details.""
+        User: [Provides the stocked products and quantities]
+        Assistant: [Call the function to update the inventory for each stocked product]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?""
+        User: [Provides additional stocked products or quantities]
+        Assistant: [Call the function to update the inventory for each stocked product]
+        Assistant: ""Great! I have updated your inventory with the specified quantities of each stocked product. Is there anything else you would like to add or update?""
+        User: [Indicates no further updates]
+        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
+
+        */
+
+        //ChatMessage.FromUser(@"I have a jar of peanut butter.", StaticValues.ChatMessageRoles.User),
+        //new ChatMessage("function", "[{\"StockedProductId\":4,\"StockedProductName\":\"peanut butter\"}]", "search_stocked_products"),
+        //new ChatMessage("function", "[{\"StockedProductId\":4,\"StockedProductName\":\"peanut butter\"}]", "create_stocked_products"),
+        //ChatMessage.FromAssistant(@"Okay I have added a jar of peanut butter to your inventory?", StaticValues.ChatMessageRoles.Assistant),
+
+        /*
+
+        The flow for taking inventory:
+        User: ""I'm going to tell you what stocked products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
+        Assistant: ""Of course! Please go ahead and tell me the stocked products you have in your kitchen and how much of each one you have. If there is any information that I need to clarify, I will ask for more details.""
+        User: [Provides the stocked products and quantities]
+        Assistant: [Call the appropriate function]
+        Function: [Gives results about the function that was called]
+        Then confirm with the user the information that was changed based on the response from the function.
+
+
+
+        The flow goes like this:
+        1) The user tells you something.
+        2) You gather information.
+        3) If the function has an Id parameter you must search for it by calling other functions.
+        4) Once you successfully call the function consolidate the information from the the function and tell the user what action that was performed.
+        5) Standby and get ready to receive more requests and repeat this conversation flow.
+
+        Additional information:
+        When placing an order, you are trying to add stocked products to the order.
+        Recipes have ingredients that are linked to stocked products so you use the stocked products to order everything a user needs to make a recipe.
+
+        When taking stock, the user is telling you what they have in their kitchen and you need to update the stocked products in the system to reflect that.
+        You need to call create_stocked_products or update_stocked_products everytime a user tells you what they have in their kithen based on whether or not a record exists for that stocked product.
+        */
+
+        /*
+        ChatMessage.FromUser(@"I ate a sandwich for lunch.", StaticValues.ChatMessageRoles.User),
+        ChatMessage.FromFunction(_searchRecipesJsonArray, "search_recipes"),
+        ChatMessage.FromAssistant(@"Okay did you have a ham, turkey, or salami sandwich?", StaticValues.ChatMessageRoles.Assistant),
+        ChatMessage.FromUser(@"It was a salami sandwich.", StaticValues.ChatMessageRoles.User),
+        ChatMessage.FromFunction(_salamiSandwichJsonObject, "get_recipe_ingredients"),
+        ChatMessage.FromAssistant(@"Okay did anything vary from the recipe?", StaticValues.ChatMessageRoles.Assistant),
+        ChatMessage.FromUser(@"I didn't use mustard, I used mayo instead.", StaticValues.ChatMessageRoles.User),
+        ChatMessage.FromAssistant(@"Okay, the recipe called for 1 teaspoon of mustard, did you use about 1 teaspoon of mayo", StaticValues.ChatMessageRoles.Assistant),
+        ChatMessage.FromUser(@"Yeah about", StaticValues.ChatMessageRoles.User),
+        ChatMessage.FromAssistant(@"Okay, would you like me to log that you ate a salami sandwich with mayo for lunch?", StaticValues.ChatMessageRoles.Assistant),
+        ChatMessage.FromUser(@"Yes", StaticValues.ChatMessageRoles.User),
+        ChatMessage.FromFunction(_salamiSandwichWithMayoJsonObject, "log_recipe"),
+        ChatMessage.FromAssistant(@"Okay, I have logged that you had a salami sandwich for lunch and that you substituted mustard for mayo. Is there anything else I can help you with?", StaticValues.ChatMessageRoles.Assistant),
+        */
+    };
             return chatPromptList;
         }
 

@@ -11,7 +11,7 @@ export class HowDoIService {
     this.promise = new Subject<any>();
   }
 
-  public send(how: string, forceFunctionCall: string = "none") {
+  public send(how: string, forceFunctionCall: string = "auto") {
     this.promise.next({
       how: how,
       forceFunctionCall: forceFunctionCall

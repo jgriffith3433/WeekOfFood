@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 if (stockedProductEntity == null)
                 {
                     var systemResponse = "Could not find stocked product by ID: " + id;
-                    throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
+                    throw new ChatAIException(systemResponse, @"{ ""name"": ""search_stocked_products"" }");
                 }
                 var walmartProductsArray = new JArray();
                 var walmartSearchResults = await _walmartService.Search(stockedProductEntity.Name);
@@ -61,7 +61,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             model.Response.ForceFunctionCall = "none";
             model.Response.NavigateToPage = "products";
-            return JsonConvert.SerializeObject(productStockWalmartProducts);
+            return JsonConvert.SerializeObject(productStockWalmartProducts, new JsonSerializerSettings()
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
         }
     }
 }

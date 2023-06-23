@@ -5,32 +5,32 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("create_recipe", "Create a new recipe")]
-public record ChatAICommandDTOCreateRecipe : ChatAICommandArgumentsDTO
+[ChatCommandSpecification("update_recipe", "Update an existing recipe")]
+public record ChatAICommandDTOUpdateRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to create a new recipe")]
-    public bool? UserGavePermission { get; set; }
+    [Description("Id of the recipe")]
+    public int RecipeId { get; set; }
     [Required]
     [Description("Name of the recipe")]
     public string RecipeName { get; set; }
     [Required]
     [Description("How many servings")]
-    public int? Serves { get; set; }
+    public int Serves { get; set; }
     [Required]
     [Description("List of ingredients")]
-    public List<ChatAICommandDTOCreateRecipeIngredient>? Ingredients { get; set; }
+    public List<ChatAICommandDTOAddRecipeIngredients_Ingredient>? Ingredients { get; set; }
 }
 
-public record ChatAICommandDTOCreateRecipeIngredient
+public record ChatAICommandDTOAddRecipeIngredients_Ingredient
 {
     [Required]
     [Description("Name of the ingredient")]
     public string IngredientName { get; set; }
     [Required]
     [Description("How many units does the recipe call for")]
-    public float? Units { get; set; }
+    public float Units { get; set; }
     [Required]
-    [Description("Type of unit")]
-    public UnitType UnitType { get; set; }
+    [Description("Units type for the kitchen item")]
+    public UnitType KitchenUnitType { get; set; }
 }

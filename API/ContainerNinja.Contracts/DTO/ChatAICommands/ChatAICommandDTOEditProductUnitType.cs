@@ -9,12 +9,9 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOEditProductUnitType : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to change the product's unit type")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
     [Description("Id of the product to change the unit type of")]
     public int ProductId { get; set; }
     [Required]
     [Description("New unit type")]
-    public UnitType UnitType { get; set; }
+    public UnitType KitchenUnitType { get; set; }
 }

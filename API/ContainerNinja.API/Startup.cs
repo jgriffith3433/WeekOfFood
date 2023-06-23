@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using ContainerNinja.API.Filters;
 using ContainerNinja.Core.Common;
 using MediatR;
+using Newtonsoft.Json;
 
 namespace ContainerNinja
 {
@@ -48,6 +49,11 @@ namespace ContainerNinja
                 options.Filters.Add<AddHandlerHostHeaderResponseFilter>();
                 options.Filters.Add<ApiExceptionFilterAttribute>();
             });
+
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            };
 
             services.AddSwaggerWithVersioning();
         }

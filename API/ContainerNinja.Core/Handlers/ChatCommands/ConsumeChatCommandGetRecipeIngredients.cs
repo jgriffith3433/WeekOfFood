@@ -53,7 +53,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
-            return JsonConvert.SerializeObject(recipeObject);
+            return JsonConvert.SerializeObject(recipeObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

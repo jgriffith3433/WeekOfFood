@@ -28,11 +28,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandLinkRecipeIngredientToStockedProduct model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
             var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
             if (recipeEntity == null)
             {
@@ -51,7 +46,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             if (stockedProductEntity == null)
             {
                 var systemResponse = "Could not find stocked product by ID: " + model.Command.StockedProductId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_stocked_product_id"" }");
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""search_stocked_products"" }");
             }
 
             ingredientEntity.ProductStock = stockedProductEntity;

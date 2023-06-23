@@ -105,6 +105,10 @@ namespace ContainerNinja.Contracts.Enum
         [Display(Name = "Count")]
         [EnumMember(Value = "Count")]
         Count = 23,
+        
+        [Display(Name = "Pint")]
+        [EnumMember(Value = "Pint")]
+        Pint = 24,
     }
 
     public static class UnitTypeExtensionMethods
@@ -184,6 +188,9 @@ namespace ContainerNinja.Contracts.Enum
                 case "count":
                 case "counts":
                     return UnitType.Count;
+                case "pint":
+                case "pints":
+                    return UnitType.Pint;
                 default:
                     return UnitType.None;
             }

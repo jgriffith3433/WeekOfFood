@@ -9,9 +9,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTOEditCookedRecipeIngredientUnitType : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to change the unit type for the logged recipe's ingredient")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
     [Description("Id of the logged recipe")]
     public int LoggedRecipeId { get; set; }
     [Required]
@@ -19,5 +16,5 @@ public record ChatAICommandDTOEditCookedRecipeIngredientUnitType : ChatAICommand
     public int LoggedIngredientId { get; set; }
     [Required]
     [Description("New unit type")]
-    public UnitType UnitType { get; set; }
+    public UnitType KitchenUnitType { get; set; }
 }

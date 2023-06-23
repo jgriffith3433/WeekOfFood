@@ -59,7 +59,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 results.Add(loggedRecipeObject);
             }
             model.Response.NavigateToPage = "logged-recipes";
-            return JsonConvert.SerializeObject(results);
+            return JsonConvert.SerializeObject(results, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

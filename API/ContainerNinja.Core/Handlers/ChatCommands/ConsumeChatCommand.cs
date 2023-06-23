@@ -48,7 +48,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             var chatCommandEntity = _repository.ChatCommands.CreateProxy();
             {
-                chatCommandEntity.RawChatAICommand = JsonConvert.SerializeObject(request.CurrentChatMessage);
+                chatCommandEntity.RawChatAICommand = JsonConvert.SerializeObject(request.CurrentChatMessage, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 chatCommandEntity.CurrentUrl = request.CurrentUrl;
                 chatCommandEntity.CommandName = functionCallObject.Name;
                 chatCommandEntity.ChatConversationId = request.ChatConversation.Id;
@@ -115,13 +118,16 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 chatCommandEntity.ChangedData = chatResponseVM.Dirty;
                 chatCommandEntity.UnknownCommand = chatResponseVM.UnknownCommand;
                 chatCommandEntity.NavigateToPage = chatResponseVM.NavigateToPage;
-                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
             catch (ApiValidationException ex)
             {
-                var errors = new JsonObject();
+                var errors = "";
 
                 foreach (var error in ex.Errors)
                 {
@@ -139,12 +145,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     }
                     if (!string.IsNullOrEmpty(validationMessage.Trim()))
                     {
-                        errors.Add(error.Key, validationMessage.Trim());
+                        errors += "\n" + validationMessage.Trim();
                     }
                 }
 
                 chatCommandEntity.Error = FlattenException(ex) + errors;
-                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = errors });
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { Response = errors });
                 request.CurrentChatMessage.FunctionCall = null;
                 request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
@@ -158,14 +164,17 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
             catch (ChatAIException ex)
             {
                 chatCommandEntity.Error = FlattenException(ex);
-                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = ex.Message });
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { Response = ex.Message });
                 request.CurrentChatMessage.FunctionCall = null;
                 request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
@@ -179,7 +188,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(request.ChatMessages, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
@@ -187,7 +199,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 _repository.ChangeTracker.Clear();
                 chatCommandEntity.Error = FlattenException(ex);
-                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = chatCommandEntity.Error });
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { Response = chatCommandEntity.Error });
                 request.CurrentChatMessage.FunctionCall = null;
                 request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
@@ -201,14 +213,17 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }
             catch (Exception ex)
             {
                 chatCommandEntity.Error = FlattenException(ex);
-                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { message = chatCommandEntity.Error });
+                request.CurrentChatMessage.Content = JsonConvert.SerializeObject(new { Response = chatCommandEntity.Error });
                 request.CurrentChatMessage.FunctionCall = null;
                 request.CurrentChatMessage.Name = functionCallObject.Name;
                 request.CurrentChatMessage.To = StaticValues.ChatMessageRoles.Assistant;
@@ -222,7 +237,10 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 //    To = StaticValues.ChatMessageRoles.Assistant,
                 //    Name = chatAICommandName,
                 //});
-                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages);
+                request.ChatConversation.Content = JsonConvert.SerializeObject(chatResponseVM.ChatMessages, new JsonSerializerSettings()
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                });
                 _repository.ChatCommands.Update(chatCommandEntity);
                 await _repository.CommitAsync();
             }

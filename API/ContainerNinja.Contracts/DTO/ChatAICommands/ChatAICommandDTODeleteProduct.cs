@@ -4,12 +4,16 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("delete_stocked_product", "Deletes a stocked product")]
-public record ChatAICommandDTODeleteStockedProduct : ChatAICommandArgumentsDTO
+[ChatCommandSpecification("delete_stocked_products", "Deletes a list of stocked products")]
+public record ChatAICommandDTODeleteStockedProducts : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to delete the product")]
-    public bool? UserGavePermission { get; set; }
+    [Description("List of the stocked product to delete")]
+    public List<ChatAICommandDTODeleteStockedProduct_Product> StockedProductsToDelete { get; set; }
+}
+
+public record ChatAICommandDTODeleteStockedProduct_Product
+{
     [Required]
     [Description("Id of the stocked product")]
     public int StockedProductId { get; set; }

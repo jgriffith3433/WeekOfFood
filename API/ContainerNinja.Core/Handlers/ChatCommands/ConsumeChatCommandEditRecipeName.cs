@@ -4,6 +4,8 @@ using ContainerNinja.Contracts.DTO.ChatAICommands;
 using ContainerNinja.Contracts.ViewModels;
 using ContainerNinja.Core.Exceptions;
 using ContainerNinja.Core.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -25,14 +27,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandEditRecipeName model, CancellationToken cancellationToken)
         {
-            if (model.Command.UserGavePermission == null || model.Command.UserGavePermission == false)
-            {
-                model.Response.ForceFunctionCall = "none";
-                return "Ask for permission";
-            }
-            var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
+            var recipeEntity = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
-            if (recipe == null)
+            if (recipeEntity == null)
             {
                 var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse, @"{ ""name"": ""search_recipes"" }");
@@ -45,12 +42,25 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 throw new ChatAIException(systemResponse);
             }
 
-            recipe.Name = model.Command.NewName;
-            _repository.Recipes.Update(recipe);
+            recipeEntity.Name = model.Command.NewName;
+            _repository.Recipes.Update(recipeEntity);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            var recipeObject = new JObject();
+            recipeObject["RecipeId"] = recipeEntity.Id;
+            recipeObject["RecipeName"] = recipeEntity.Name;
+            var recipeIngredientsArray = new JArray();
+            foreach (var ingredient in recipeEntity.CalledIngredients)
+            {
+                var ingredientObject = new JObject();
+                ingredientObject["IngredientId"] = ingredient.Id;
+                ingredientObject["IngredientName"] = ingredient.Name;
+                recipeIngredientsArray.Add(ingredientObject);
+            }
+            recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
-            return "Success";
+            model.Response.ForceFunctionCall = "none";
+            return JsonConvert.SerializeObject(recipeObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("get_stocked_product_id", "Gets the ID for a stocked product by name")]
+//[ChatCommandSpecification("search_stocked_products", "Gets the ID for a stocked product by name")]
 public record ChatAICommandDTOGetStockedProductId : ChatAICommandArgumentsDTO
 {
     [Required]

@@ -55,7 +55,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 return $"There are no recipes containing ingredients that are linked to any of the stocked products.";
             }
             model.Response.NavigateToPage = "recipes";
-            return JsonConvert.SerializeObject(results);
+            return JsonConvert.SerializeObject(results, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

@@ -8,9 +8,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 public record ChatAICommandDTODeleteCookedRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Whether or not the user gave permission to delete the recipe log")]
-    public bool? UserGavePermission { get; set; }
-    [Required]
     [Description("Id of the recipe log")]
     public int LoggedRecipeId { get; set; }
 }
