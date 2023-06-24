@@ -40,9 +40,9 @@ namespace ContainerNinja.Core.Handlers.Queries
                 {
                     CookedRecipes = _mapper.Map<List<CookedRecipeDTO>>(entities),
 
-                    UnitTypes = Enum.GetValues(typeof(UnitType))
-                    .Cast<UnitType>()
-                    .Select(p => new UnitTypeDTO { Value = (int)p, Name = p.ToString() })
+                    KitchenUnitTypes = Enum.GetValues(typeof(KitchenUnitType))
+                    .Cast<KitchenUnitType>()
+                    .Select(p => new KitchenUnitTypeDTO { Value = (int)p, Name = p.ToString() })
                     .ToList(),
 
                     RecipesOptions = _repository.Recipes.GetAll().Select(r => new RecipesOptionDTO { Value = r.Id, Name = r.Name }).ToList(),

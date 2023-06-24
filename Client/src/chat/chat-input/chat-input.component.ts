@@ -7,9 +7,9 @@ import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild, 
     <canvas id="recordingVisualizer" class="visualizer" height="50" #recordingVisualizer></canvas>
     <canvas id="recordingFrequenciesVisualizer" class="visualizer" height="50" #recordingFrequenciesVisualizer></canvas>
     <canvas id="speechToTextVisualizer" class="visualizer" height="50" #speechToTextVisualizer></canvas>
-    <button type="submit" class="chat-input-submit" (click)="onSubmit()">
+    <!--<button type="submit" class="chat-input-submit" (click)="onSubmit()">
       {{buttonText}}
-    </button>
+    </button>-->
   `,
   encapsulation: ViewEncapsulation.None,
   styleUrls: ['./chat-input.component.css'],

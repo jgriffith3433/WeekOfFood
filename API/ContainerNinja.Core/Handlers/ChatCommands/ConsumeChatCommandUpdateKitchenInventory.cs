@@ -19,71 +19,68 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandUpdateProductStockHandler : IRequestHandler<ConsumeChatCommandUpdateKitchenInventory, string>
+    public class ConsumeChatCommandUpdateKitchenProductHandler : IRequestHandler<ConsumeChatCommandUpdateKitchenInventory, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandUpdateProductStockHandler(IUnitOfWork repository)
+        public ConsumeChatCommandUpdateKitchenProductHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
         public async Task<string> Handle(ConsumeChatCommandUpdateKitchenInventory model, CancellationToken cancellationToken)
         {
-            var productStocksToUpdate = new List<ProductStock>();
+            var kitchenProductsToUpdate = new List<KitchenProduct>();
             //first go through all the Ids we have and check if they all exist
-            foreach (var item in model.Command.StockedProducts)
+            foreach (var item in model.Command.KitchenProducts)
             {
-                if (item.StockedProductId.HasValue)
+                if (item.KitchenProductId.HasValue)
                 {
-                    var existingProductStockEntity = _repository.ProductStocks.Set.FirstOrDefault(ps => ps.Id == item.StockedProductId);
-                    if (existingProductStockEntity == null)
+                    var existingKitchenProductEntity = _repository.KitchenProducts.Set.FirstOrDefault(ps => ps.Id == item.KitchenProductId);
+                    if (existingKitchenProductEntity == null)
                     {
-                        throw new ChatAIException($"Could not find stocked product by ID: {item.StockedProductId}", @"{ ""name"": ""search_stocked_products"" }");
+                        throw new ChatAIException($"Could not find kitchen product by ID: {item.KitchenProductId}", @"{ ""name"": ""search_kitchen_products"" }");
                     }
-                    existingProductStockEntity.Units = item.Units;
-                    existingProductStockEntity.UnitType = item.KitchenUnitType;
-                    productStocksToUpdate.Add(existingProductStockEntity);
+                    existingKitchenProductEntity.Amount = item.Quantity;
+                    existingKitchenProductEntity.KitchenUnitType = item.KitchenUnitType;
+                    kitchenProductsToUpdate.Add(existingKitchenProductEntity);
                 }
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             await _repository.CommitAsync();
 
-            foreach (var existingProductStock in productStocksToUpdate)
+            foreach (var existingKitchenProduct in kitchenProductsToUpdate)
             {
-                _repository.ProductStocks.Update(existingProductStock);
+                _repository.KitchenProducts.Update(existingKitchenProduct);
             }
 
             var updatedObject = new JObject
             {
                 { "Flow", "User is updating their kitchen inventory" }
             };
-            if (productStocksToUpdate.Count > 0)
+            if (kitchenProductsToUpdate.Count > 0)
             {
                 var updatedRecordsObject = new JObject
                 {
-                    { "Message", $"{productStocksToUpdate.Count} records have been updated in the database" }
+                    { "Message", $"{kitchenProductsToUpdate.Count} records have been updated in the database" }
                 };
                 var updatedArray = new JArray();
-                foreach (var existingProductStock in productStocksToUpdate)
+                foreach (var existingKitchenProduct in kitchenProductsToUpdate)
                 {
-                    var productStockObject = new JObject();
-                    productStockObject["KitchenProductId"] = existingProductStock.Id;
-                    productStockObject["KitchenProductName"] = existingProductStock.Name;
-                    productStockObject["KitchenProductKitchenUnits"] = existingProductStock.Units;
-                    productStockObject["KitchenProductKitchenUnitType"] = existingProductStock.UnitType.ToString();
-                    updatedArray.Add(productStockObject);
+                    var kitchenProductObject = new JObject();
+                    kitchenProductObject["KitchenProductId"] = existingKitchenProduct.Id;
+                    kitchenProductObject["ProductName"] = existingKitchenProduct.Name;
+                    kitchenProductObject["Quantity"] = existingKitchenProduct.Amount;
+                    kitchenProductObject["KitchenUnitType"] = existingKitchenProduct.KitchenUnitType.ToString();
+                    updatedArray.Add(kitchenProductObject);
                 }
                 updatedRecordsObject.Add("Results", updatedArray);
                 updatedObject.Add("Updated", updatedRecordsObject);
             }
 
-            model.Response.NavigateToPage = "product-stocks";
+            model.Response.NavigateToPage = "kitchen-products";
             model.Response.ForceFunctionCall = "none";
-            return JsonConvert.SerializeObject(updatedObject, new JsonSerializerSettings()
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
+            return JsonConvert.SerializeObject(updatedObject);
         }
     }
 }

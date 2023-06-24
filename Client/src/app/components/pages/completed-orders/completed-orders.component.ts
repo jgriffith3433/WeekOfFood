@@ -26,7 +26,7 @@ import { CompletedOrdersService } from '../../../providers/completed-orders.serv
 export class CompletedOrdersComponent implements OnInit {
   debug = false;
   completedOrders: CompletedOrderDTO[];
-  unitTypes: UnitTypeDTO[];
+  kitchenUnitTypes: UnitTypeDTO[];
   selectedCompletedOrder: CompletedOrderDTO | undefined;
   selectedCompletedOrderProduct: CompletedOrderProductDTO | undefined;
   newCompletedOrderEditor: any = {};

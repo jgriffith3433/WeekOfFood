@@ -5,32 +5,31 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("update_recipe", "Update an existing recipe")]
+[ChatCommandSpecification("update_recipe", "Update an existing recipe using a RecipeId and a list of KitchenProducts")]
 public record ChatAICommandDTOUpdateRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Id of the recipe")]
     public int RecipeId { get; set; }
+    [Description("List of step by step instructions")]
+    public List<string> Instructions { get; set; }
     [Required]
-    [Description("Name of the recipe")]
-    public string RecipeName { get; set; }
-    [Required]
-    [Description("How many servings")]
-    public int Serves { get; set; }
-    [Required]
-    [Description("List of ingredients")]
-    public List<ChatAICommandDTOAddRecipeIngredients_Ingredient>? Ingredients { get; set; }
+    [Description("List of kitchen products")]
+    public List<ChatAICommandDTOUpdateRecipe_KitchenProduct>? KitchenProducts { get; set; }
 }
 
-public record ChatAICommandDTOAddRecipeIngredients_Ingredient
+public record ChatAICommandDTOUpdateRecipe_KitchenProduct
 {
     [Required]
-    [Description("Name of the ingredient")]
-    public string IngredientName { get; set; }
+    [Description("Id of the kitchen product")]
+    public int KitchenProductId { get; set; }
     [Required]
-    [Description("How many units does the recipe call for")]
-    public float Units { get; set; }
+    [Description("How many units does the recipe call for as a number")]
+    public float? Quantity { get; set; }
     [Required]
-    [Description("Units type for the kitchen item")]
-    public UnitType KitchenUnitType { get; set; }
+    [Description("How many units does the recipe call for as a string")]
+    public string? AmountAsAString { get; set; }
+    [Required]
+    [Description("Kitchen unit type for the kitchen product")]
+    public KitchenUnitType KitchenUnitType { get; set; }
 }

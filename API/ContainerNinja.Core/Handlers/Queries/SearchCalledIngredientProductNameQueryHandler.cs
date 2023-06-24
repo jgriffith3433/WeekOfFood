@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ContainerNinja.Core.Handlers.Queries
 {
-    public class SearchCalledIngredientProductStockNameQuery : IRequest<CalledIngredientDetailsDTO>
+    public class SearchCalledIngredientProductNameQuery : IRequest<CalledIngredientDetailsDTO>
     {
         public int Id { get; init; }
         public string Search { get; init; }
     }
 
-    public class SearchCalledIngredientProductNameQueryHandler : IRequestHandler<SearchCalledIngredientProductStockNameQuery, CalledIngredientDetailsDTO>
+    public class SearchCalledIngredientProductNameQueryHandler : IRequestHandler<SearchCalledIngredientProductNameQuery, CalledIngredientDetailsDTO>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
@@ -28,7 +28,7 @@ namespace ContainerNinja.Core.Handlers.Queries
             _cache = cache;
         }
 
-        public async Task<CalledIngredientDetailsDTO> Handle(SearchCalledIngredientProductStockNameQuery request, CancellationToken cancellationToken)
+        public async Task<CalledIngredientDetailsDTO> Handle(SearchCalledIngredientProductNameQuery request, CancellationToken cancellationToken)
         {
             var calledIngredientDTO = _cache.GetItem<CalledIngredientDTO>($"called_ingredient_{request.Id}");
             if (calledIngredientDTO == null)
@@ -46,9 +46,9 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             var calledIngredientDetailsDTO = _mapper.Map<CalledIngredientDetailsDTO>(calledIngredientDTO);
 
-            var query = from ps in _repository.ProductStocks.Set where EF.Functions.Like(ps.Name, string.Format("%{0}%", request.Search)) select ps;
+            var query = from ps in _repository.KitchenProducts.Set where EF.Functions.Like(ps.Name, string.Format("%{0}%", request.Search)) select ps;
 
-            calledIngredientDetailsDTO.ProductStockSearchItems = _mapper.Map<List<ProductStockDTO>>(query.ToList());
+            calledIngredientDetailsDTO.KitchenProductSearchItems = _mapper.Map<List<KitchenProductDTO>>(query.ToList());
 
             return calledIngredientDetailsDTO;
         }

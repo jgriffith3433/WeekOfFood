@@ -15,8 +15,8 @@ namespace ContainerNinja.Contracts.Data.Entities
         public float Size { get; set; }
         public float Price { get; set; }
         public bool Verified { get; set; }
-        public UnitType UnitType { get; set; }
+        public KitchenUnitType KitchenUnitType { get; set; }
         public virtual IList<CompletedOrderWalmartProduct> CompletedOrderProducts { get; private set; } = new List<CompletedOrderWalmartProduct>();
-        public virtual IList<ProductStock>? ProductStocks { get; set; } = new List<ProductStock>();
+        public virtual IList<KitchenProduct>? KitchenProducts { get; set; } = new List<KitchenProduct>();
     }
 }

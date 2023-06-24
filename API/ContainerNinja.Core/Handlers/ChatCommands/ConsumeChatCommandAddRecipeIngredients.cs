@@ -37,30 +37,24 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var systemResponse = "Could not find recipe by ID: " + model.Command.RecipeId;
                 throw new ChatAIException(systemResponse);
             }
-            recipeEntity.Name = model.Command.RecipeName;
-            recipeEntity.Serves = model.Command.Serves;
 
-            foreach (var addRecipeIngredient in model.Command.Ingredients)
+            foreach (var addRecipeIngredient in model.Command.KitchenProducts)
             {
-                var calledIngredientEntity = _repository.CalledIngredients.CreateProxy();
+                var kitchenProductEntity = _repository.KitchenProducts.Set.FirstOrDefault(r => r.Id == addRecipeIngredient.KitchenProductId);
+                if (kitchenProductEntity == null)
                 {
-                    calledIngredientEntity.Name = addRecipeIngredient.IngredientName;
-                    calledIngredientEntity.Units = addRecipeIngredient.Units;
-                    calledIngredientEntity.UnitType = addRecipeIngredient.KitchenUnitType;
-                };
-                recipeEntity.CalledIngredients.Add(calledIngredientEntity);
-                var productStockEntity = _repository.ProductStocks.Set.FirstOrDefault(p => p.Name.ToLower() == addRecipeIngredient.IngredientName.ToLower());
-
-                if (productStockEntity == null)
-                {
-                    productStockEntity = _repository.ProductStocks.CreateProxy();
-                    {
-                        productStockEntity.Name = addRecipeIngredient.IngredientName;
-                    };
-                    _repository.ProductStocks.Add(productStockEntity);
+                    var systemResponse = "Could not find kitchen product by ID: " + addRecipeIngredient.KitchenProductId;
+                    throw new ChatAIException(systemResponse);
                 }
 
-                calledIngredientEntity.ProductStock = productStockEntity;
+                var calledIngredientEntity = _repository.CalledIngredients.CreateProxy();
+                {
+                    calledIngredientEntity.Name = kitchenProductEntity.Name;
+                    calledIngredientEntity.Amount = addRecipeIngredient.Quantity;
+                    calledIngredientEntity.KitchenUnitType = addRecipeIngredient.KitchenUnitType;
+                    calledIngredientEntity.KitchenProduct = kitchenProductEntity;
+                };
+                recipeEntity.CalledIngredients.Add(calledIngredientEntity);
             }
             _repository.Recipes.Update(recipeEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
@@ -79,9 +73,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["StockedProductId"] = ingredient.ProductStock?.Id;
-                ingredientObject["IngredientUnits"] = ingredient.Units;
-                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["KitchenProductId"] = ingredient.KitchenProduct?.Id;
+                ingredientObject["IngredientAmount"] = ingredient.Amount;
+                ingredientObject["IngredientKitchenUnitType"] = ingredient.KitchenUnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;

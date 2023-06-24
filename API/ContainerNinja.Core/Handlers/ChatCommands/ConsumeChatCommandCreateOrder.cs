@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "create_order" })]
+    [ChatCommandModel(new [] { "create_new_order" })]
     public class ConsumeChatCommandCreateOrder : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateOrder>
     {
         public ChatAICommandDTOCreateOrder Command { get; set; }

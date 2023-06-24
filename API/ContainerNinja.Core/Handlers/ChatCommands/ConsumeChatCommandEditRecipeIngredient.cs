@@ -41,7 +41,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 throw new ChatAIException(systemResponse);
             }
             calledIngredient.Name = model.Command.NewIngredientName;
-            calledIngredient.ProductStock = null;
+            calledIngredient.KitchenProduct = null;
             _repository.CalledIngredients.Update(calledIngredient);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
@@ -55,8 +55,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["IngredientUnits"] = ingredient.Units;
-                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["IngredientAmount"] = ingredient.Amount;
+                ingredientObject["IngredientKitchenUnitType"] = ingredient.KitchenUnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;

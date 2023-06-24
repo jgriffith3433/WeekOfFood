@@ -1,13 +1,20 @@
 ﻿using System.Text.Json.Nodes;
-using Namotion.Reflection;
-using NJsonSchema.Generation;
-using NJsonSchema;
 using System.Text.Json;
+using Newtonsoft.Json.Schema;
+using System.Security.Principal;
+using Newtonsoft.Json.Schema.Generation;
+using Newtonsoft.Json;
+using System.Dynamic;
+using Newtonsoft.Json.Linq;
+using ContainerNinja.Contracts.Enum;
 
 namespace ContainerNinja.Contracts.Common
 {
     public class ChatCommandSpecification : Attribute
     {
+        protected JSchema? m_SchemaObject = null;
+        protected IList<ValidationError> m_ValidationErrors = null;
+
         public ChatCommandSpecification(string name, string? description)
         {
             Names = new string[]
@@ -23,32 +30,55 @@ namespace ContainerNinja.Contracts.Common
             Description = description;
         }
 
+        public bool IsValidAgainstSchema(JObject jsonObject, Type type)
+        {
+            EnsureSchemaCreated(type);
+            return jsonObject.IsValid(m_SchemaObject, out m_ValidationErrors);
+        }
+
+        public IList<ValidationError> GetValidationErrors()
+        {
+            return m_ValidationErrors;
+        }
+
+        protected void EnsureSchemaCreated(Type type)
+        {
+            if (m_SchemaObject == null)
+            {
+                var generator = new JSchemaGenerator
+                {
+                    SchemaReferenceHandling = SchemaReferenceHandling.None,
+                    DefaultRequired = Required.Default
+                };
+                generator.GenerationProviders.Add(new StringEnumKitchenUnitTypeGenerationProvider());
+                m_SchemaObject = generator.Generate(type);
+                m_SchemaObject.AllowAdditionalItems = false;
+                m_SchemaObject.AllowAdditionalProperties = false;
+            }
+        }
+
         public dynamic? GetFunctionParametersFromType(Type type)
         {
-            var settings = new JsonSchemaGeneratorSettings
+            EnsureSchemaCreated(type);
+            var schemaObject = JsonConvert.DeserializeObject<ExpandoObject>(m_SchemaObject.ToString());
+
+            if (schemaObject.Any(s => s.Key == "properties") == false)
             {
-                DefaultEnumHandling = EnumHandling.String,
-                FlattenInheritanceHierarchy = true,
-                UseXmlDocumentation = false,
-                ResolveExternalXmlDocumentation = false,
-                SchemaNameGenerator = new SchemaNameGenerator(),
-                GenerateExamples = false,
-                GenerateAbstractSchemas = false,
-                AllowReferencesWithProperties = false,
-                AlwaysAllowAdditionalObjectProperties = false,
-            };
-            var jsonString = JsonSchema.FromType(type, settings).ToJson();
-            var jsonObject = JsonSerializer.Deserialize<JsonObject>(jsonString, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-                AllowTrailingCommas = true,
-            });
-            if (jsonObject["properties"] == null)
-            {
-                jsonObject.Add("properties", new JsonObject());
+                schemaObject.TryAdd("properties", new JObject());
             }
-            return jsonObject;
+            return schemaObject;
+
+            //var jsonObject = JsonSerializer.Deserialize<JsonObject>(jsonString, new JsonSerializerOptions
+            //{
+            //    PropertyNameCaseInsensitive = true,
+            //    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            //    AllowTrailingCommas = true,
+            //});
+            //if (jsonObject["properties"] == null)
+            //{
+            //    jsonObject.Add("properties", new JsonObject());
+            //}
+            //return jsonObject;
             //return JsonSerializer.Serialize(jsonObject, new JsonSerializerOptions
             //{
             //    PropertyNameCaseInsensitive = true,
@@ -59,27 +89,6 @@ namespace ContainerNinja.Contracts.Common
 
         public string[] Names { get; set; }
         public string? Description { get; set; }
-    }
-
-    public class SchemaNameGenerator : ISchemaNameGenerator
-    {
-        /// <summary>Generates the name of the JSON Schema.</summary>
-        /// <param name="type">The type.</param>
-        /// <returns>The new name.</returns>
-        public virtual string Generate(Type type)
-        {
-            return null;
-        }
-
-        private static string GetName(CachedType cType)
-        {
-            return null;
-        }
-
-        private static string GetNullableDisplayName(CachedType type, string actual)
-        {
-            return null;
-        }
     }
 }
 

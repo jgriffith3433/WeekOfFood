@@ -8,23 +8,23 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 [ChatCommandSpecification("update_kitchen_inventory", "Update existing kitchen products when taking stock of items in the kitchen")]
 public record ChatAICommandDTOUpdateKitchenInventory : ChatAICommandArgumentsDTO
 {
-    [Required]
-    [Description("Id of the kitchen inventory to update")]
-    public int KitchenInventoryId { get; set; }
+    //[Required]
+    //[Description("Id of the kitchen inventory to update")]
+    //public int KitchenInventoryId { get; set; }
 
     [Required]
-    [Description("List of products the user is taking stock of")]
-    public List<ChatAICommandDTOUpdateKitchenInventory_StockedProduct> StockedProducts { get; set; }
+    [Description("List of kitchen products the user is taking stock of")]
+    public List<ChatAICommandDTOUpdateKitchenInventory_KitchenProduct> KitchenProducts { get; set; }
 }
 
-public record ChatAICommandDTOUpdateKitchenInventory_StockedProduct
+public record ChatAICommandDTOUpdateKitchenInventory_KitchenProduct
 {
-    [Description("Id of the stocked product if it exists in the system")]
-    public int? StockedProductId { get; set; }
+    [Description("Id of the kitchen product if it exists in the system")]
+    public int? KitchenProductId { get; set; }
     [Required]
-    [Description("How many units do they have in stock")]
-    public float Units { get; set; }
+    [Description("How many units do they have in stock as a number")]
+    public float Quantity { get; set; }
     [Required]
-    [Description("Units type for the stocked item")]
-    public UnitType KitchenUnitType { get; set; }
+    [Description("Kitchen unit type for the kitchen product")]
+    public KitchenUnitType KitchenUnitType { get; set; }
 }

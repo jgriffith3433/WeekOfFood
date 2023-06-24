@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
 [ChatCommandSpecification("edit_recipe_ingredient_unit_type", "Changes the unit type for the recipe's ingredient")]
-public record ChatAICommandDTOEditRecipeIngredientUnitType : ChatAICommandArgumentsDTO
+public record ChatAICommandDTOEditRecipeIngredientKitchenUnitType : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Id of the recipe")]
@@ -16,5 +16,5 @@ public record ChatAICommandDTOEditRecipeIngredientUnitType : ChatAICommandArgume
     public int IngredientId { get; set; }
     [Required]
     [Description("New unit type")]
-    public UnitType KitchenUnitType { get; set; }
+    public KitchenUnitType KitchenUnitType { get; set; }
 }

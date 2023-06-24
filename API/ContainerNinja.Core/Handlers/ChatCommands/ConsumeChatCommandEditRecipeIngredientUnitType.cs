@@ -11,22 +11,22 @@ using Newtonsoft.Json.Linq;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "edit_recipe_ingredient_unit_type" })]
-    public class ConsumeChatCommandEditRecipeIngredientUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeIngredientUnitType>
+    public class ConsumeChatCommandEditRecipeIngredientKitchenUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeIngredientKitchenUnitType>
     {
-        public ChatAICommandDTOEditRecipeIngredientUnitType Command { get; set; }
+        public ChatAICommandDTOEditRecipeIngredientKitchenUnitType Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditRecipeIngredientUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditRecipeIngredientUnitType, string>
+    public class ConsumeChatCommandEditRecipeIngredientKitchenUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditRecipeIngredientKitchenUnitType, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandEditRecipeIngredientUnitTypeHandler(IUnitOfWork repository)
+        public ConsumeChatCommandEditRecipeIngredientKitchenUnitTypeHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredientUnitType model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditRecipeIngredientKitchenUnitType model, CancellationToken cancellationToken)
         {
             var recipe = _repository.Recipes.Set.FirstOrDefault(r => r.Id == model.Command.RecipeId);
 
@@ -41,7 +41,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var systemResponse = "Could not find ingredient by ID: " + model.Command.IngredientId;
                 throw new ChatAIException(systemResponse);
             }
-            calledIngredient.UnitType = model.Command.KitchenUnitType;
+            calledIngredient.KitchenUnitType = model.Command.KitchenUnitType;
             _repository.CalledIngredients.Update(calledIngredient);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
 
@@ -55,8 +55,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["IngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["IngredientUnits"] = ingredient.Units;
-                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["IngredientAmount"] = ingredient.Amount;
+                ingredientObject["IngredientKitchenUnitType"] = ingredient.KitchenUnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;

@@ -83,7 +83,7 @@ namespace ContainerNinja.Migrations.Migrations
                     Size = table.Column<float>(type: "real", nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
                     Verified = table.Column<bool>(type: "bit", nullable: false),
-                    UnitType = table.Column<int>(type: "int", nullable: false),
+                    KitchenUnitType = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -214,13 +214,13 @@ namespace ContainerNinja.Migrations.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductStocks",
+                name: "KitchenProducts",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Units = table.Column<float>(type: "real", nullable: true),
+                    Amount = table.Column<float>(type: "real", nullable: true),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -229,9 +229,9 @@ namespace ContainerNinja.Migrations.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductStocks", x => x.Id);
+                    table.PrimaryKey("PK_KitchenProducts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProductStocks_Products_ProductId",
+                        name: "FK_KitchenProducts_Products_ProductId",
                         column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Id",
@@ -268,10 +268,10 @@ namespace ContainerNinja.Migrations.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Units = table.Column<float>(type: "real", nullable: true),
+                    Amount = table.Column<float>(type: "real", nullable: true),
                     Verified = table.Column<bool>(type: "bit", nullable: false),
-                    UnitType = table.Column<int>(type: "int", nullable: false),
-                    ProductStockId = table.Column<int>(type: "int", nullable: true),
+                    KitchenUnitType = table.Column<int>(type: "int", nullable: false),
+                    KitchenProductId = table.Column<int>(type: "int", nullable: true),
                     RecipeId = table.Column<int>(type: "int", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -282,9 +282,9 @@ namespace ContainerNinja.Migrations.Migrations
                 {
                     table.PrimaryKey("PK_CalledIngredient", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_CalledIngredient_ProductStocks_ProductStockId",
-                        column: x => x.ProductStockId,
-                        principalTable: "ProductStocks",
+                        name: "FK_CalledIngredient_KitchenProducts_KitchenProductId",
+                        column: x => x.KitchenProductId,
+                        principalTable: "KitchenProducts",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_CalledIngredient_Recipes_RecipeId",
@@ -302,10 +302,10 @@ namespace ContainerNinja.Migrations.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CookedRecipeId = table.Column<int>(type: "int", nullable: false),
                     CalledIngredientId = table.Column<int>(type: "int", nullable: true),
-                    ProductStockId = table.Column<int>(type: "int", nullable: true),
+                    KitchenProductId = table.Column<int>(type: "int", nullable: true),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UnitType = table.Column<int>(type: "int", nullable: false),
-                    Units = table.Column<float>(type: "real", nullable: true),
+                    KitchenUnitType = table.Column<int>(type: "int", nullable: false),
+                    Amount = table.Column<float>(type: "real", nullable: true),
                     Created = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ModifiedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -326,16 +326,16 @@ namespace ContainerNinja.Migrations.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CookedRecipeCalledIngredients_ProductStocks_ProductStockId",
-                        column: x => x.ProductStockId,
-                        principalTable: "ProductStocks",
+                        name: "FK_CookedRecipeCalledIngredients_KitchenProducts_KitchenProductId",
+                        column: x => x.KitchenProductId,
+                        principalTable: "KitchenProducts",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_CalledIngredient_ProductStockId",
+                name: "IX_CalledIngredient_KitchenProductId",
                 table: "CalledIngredient",
-                column: "ProductStockId");
+                column: "KitchenProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CalledIngredient_RecipeId",
@@ -368,9 +368,9 @@ namespace ContainerNinja.Migrations.Migrations
                 column: "CookedRecipeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CookedRecipeCalledIngredients_ProductStockId",
+                name: "IX_CookedRecipeCalledIngredients_KitchenProductId",
                 table: "CookedRecipeCalledIngredients",
-                column: "ProductStockId");
+                column: "KitchenProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CookedRecipes_RecipeId",
@@ -378,8 +378,8 @@ namespace ContainerNinja.Migrations.Migrations
                 column: "RecipeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductStocks_ProductId",
-                table: "ProductStocks",
+                name: "IX_KitchenProducts_ProductId",
+                table: "KitchenProducts",
                 column: "ProductId",
                 unique: true);
         }
@@ -418,7 +418,7 @@ namespace ContainerNinja.Migrations.Migrations
                 name: "CookedRecipes");
 
             migrationBuilder.DropTable(
-                name: "ProductStocks");
+                name: "KitchenProducts");
 
             migrationBuilder.DropTable(
                 name: "Recipes");

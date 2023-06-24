@@ -19,7 +19,7 @@ import { WalmartProductsService } from '../../../providers/walmart-products.serv
 export class ProductsComponent implements OnInit {
   debug: boolean = false;
   walmartProducts?: WalmartProductDTO[];
-  unitTypes?: UnitTypeDTO[];
+  kitchenUnitTypes?: UnitTypeDTO[];
   selectedProductName?: WalmartProductDTO;
   selectedProductSize?: WalmartProductDTO;
   selectedProductUnitType?: WalmartProductDTO;
@@ -44,7 +44,7 @@ export class ProductsComponent implements OnInit {
     this.walmartProductsService.getAll().subscribe(
       result => {
         this.walmartProducts = result.walmartProducts;
-        this.unitTypes = result.unitTypes;
+        this.kitchenUnitTypes = result.kitchenUnitTypes;
       },
       error => console.error(error)
     );
@@ -64,11 +64,11 @@ export class ProductsComponent implements OnInit {
     this.newProductEditor = {};
   }
 
-  getUnitTypeNameFromUnitTypeValue(unitTypeValue: number | undefined): string {
-    if (this.unitTypes) {
-      for (var unitType of this.unitTypes) {
-        if (unitType.value == unitTypeValue) {
-          return unitType.name || "Unknown";
+  getUnitTypeNameFromUnitTypeValue(kitchenUnitTypeValue: number | undefined): string {
+    if (this.kitchenUnitTypes) {
+      for (var kitchenUnitType of this.kitchenUnitTypes) {
+        if (kitchenUnitType.value == kitchenUnitTypeValue) {
+          return kitchenUnitType.name || "Unknown";
         }
       }
     }

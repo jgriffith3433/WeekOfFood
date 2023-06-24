@@ -6,7 +6,7 @@ using ContainerNinja.Contracts.Enum;
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
 [ChatCommandSpecification("edit_logged_recipe_ingredient_unit_type", "Changes the unit type for the logged recipe's ingredient")]
-public record ChatAICommandDTOEditCookedRecipeIngredientUnitType : ChatAICommandArgumentsDTO
+public record ChatAICommandDTOEditCookedRecipeIngredientKitchenUnitType : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Id of the logged recipe")]
@@ -16,5 +16,5 @@ public record ChatAICommandDTOEditCookedRecipeIngredientUnitType : ChatAICommand
     public int LoggedIngredientId { get; set; }
     [Required]
     [Description("New unit type")]
-    public UnitType KitchenUnitType { get; set; }
+    public KitchenUnitType KitchenUnitType { get; set; }
 }

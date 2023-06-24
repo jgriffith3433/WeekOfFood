@@ -15,7 +15,7 @@ namespace ContainerNinja.Contracts.Data
         IWalmartProductRepository WalmartProducts { get; }
         ICompletedOrderRepository CompletedOrders { get; }
         ICompletedOrderProductRepository CompletedOrderProducts { get; }
-        IProductStockRepository ProductStocks { get; }
+        IKitchenProductRepository KitchenProducts { get; }
         ICalledIngredientRepository CalledIngredients { get; }
         IRecipeRepository Recipes { get; }
         ICookedRecipeRepository CookedRecipes { get; }

@@ -53,16 +53,16 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProductStockId")
+                    b.Property<int?>("KitchenProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UnitType")
+                    b.Property<int>("KitchenUnitType")
                         .HasColumnType("int");
 
-                    b.Property<float?>("Units")
+                    b.Property<float?>("Amount")
                         .HasColumnType("real");
 
                     b.Property<bool>("Verified")
@@ -70,7 +70,7 @@ namespace ContainerNinja.Migrations.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProductStockId");
+                    b.HasIndex("KitchenProductId");
 
                     b.HasIndex("RecipeId");
 
@@ -310,13 +310,13 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ProductStockId")
+                    b.Property<int?>("KitchenProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UnitType")
+                    b.Property<int>("KitchenUnitType")
                         .HasColumnType("int");
 
-                    b.Property<float?>("Units")
+                    b.Property<float?>("Amount")
                         .HasColumnType("real");
 
                     b.HasKey("Id");
@@ -325,7 +325,7 @@ namespace ContainerNinja.Migrations.Migrations
 
                     b.HasIndex("CookedRecipeId");
 
-                    b.HasIndex("ProductStockId");
+                    b.HasIndex("KitchenProductId");
 
                     b.ToTable("CookedRecipeCalledIngredients");
                 });
@@ -475,7 +475,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<float>("Size")
                         .HasColumnType("real");
 
-                    b.Property<int>("UnitType")
+                    b.Property<int>("KitchenUnitType")
                         .HasColumnType("int");
 
                     b.Property<bool>("Verified")
@@ -501,7 +501,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ProductStock", b =>
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.KitchenProduct", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -529,7 +529,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<float?>("Units")
+                    b.Property<float?>("Amount")
                         .HasColumnType("real");
 
                     b.HasKey("Id");
@@ -537,7 +537,7 @@ namespace ContainerNinja.Migrations.Migrations
                     b.HasIndex("ProductId")
                         .IsUnique();
 
-                    b.ToTable("ProductStocks");
+                    b.ToTable("KitchenProducts");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Recipe", b =>
@@ -688,9 +688,9 @@ namespace ContainerNinja.Migrations.Migrations
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.CalledIngredient", b =>
                 {
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductStock")
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.KitchenProduct", "KitchenProduct")
                         .WithMany()
-                        .HasForeignKey("ProductStockId");
+                        .HasForeignKey("KitchenProductId");
 
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Recipe", "Recipe")
                         .WithMany("CalledIngredients")
@@ -698,7 +698,7 @@ namespace ContainerNinja.Migrations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ProductStock");
+                    b.Navigation("KitchenProduct");
 
                     b.Navigation("Recipe");
                 });
@@ -752,15 +752,15 @@ namespace ContainerNinja.Migrations.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductStock")
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.KitchenProduct", "KitchenProduct")
                         .WithMany()
-                        .HasForeignKey("ProductStockId");
+                        .HasForeignKey("KitchenProductId");
 
                     b.Navigation("CalledIngredient");
 
                     b.Navigation("CookedRecipe");
 
-                    b.Navigation("ProductStock");
+                    b.Navigation("KitchenProduct");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderProduct", b =>
@@ -776,11 +776,11 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.ProductStock", b =>
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.KitchenProduct", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Product", "Product")
-                        .WithOne("ProductStock")
-                        .HasForeignKey("ContainerNinja.Contracts.Data.Entities.ProductStock", "ProductId")
+                        .WithOne("KitchenProduct")
+                        .HasForeignKey("ContainerNinja.Contracts.Data.Entities.KitchenProduct", "ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -827,7 +827,7 @@ namespace ContainerNinja.Migrations.Migrations
                 {
                     b.Navigation("CompletedOrderProducts");
 
-                    b.Navigation("ProductStock");
+                    b.Navigation("KitchenProduct");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Recipe", b =>

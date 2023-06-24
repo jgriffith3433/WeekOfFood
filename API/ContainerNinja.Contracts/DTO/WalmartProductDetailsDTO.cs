@@ -14,6 +14,6 @@ namespace ContainerNinja.Contracts.DTO
         public float Size { get; set; }
         public float Price { get; set; }
         public bool Verified { get; set; }
-        public int UnitType { get; set; }
+        public int KitchenUnitType { get; set; }
     }
 }

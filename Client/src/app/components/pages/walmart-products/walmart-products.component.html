@@ -45,12 +45,12 @@
       </td>
       <td>
         <div class="form-group">
-          <select *ngIf="walmartProduct == selectedProductUnitType" style="height: 120px;" id="{{ 'productUnitType' + i }}" class="form-control item-input-control" [(ngModel)]="walmartProduct.unitType" (change)="updateProductUnitType(walmartProduct)">
-            <option [ngValue]="unitType.value" *ngFor="let unitType of unitTypes">{{ unitType.name }}</option>
+          <select *ngIf="walmartProduct == selectedProductUnitType" style="height: 120px;" id="{{ 'productUnitType' + i }}" class="form-control item-input-control" [(ngModel)]="walmartProduct.kitchenUnitType" (change)="updateProductUnitType(walmartProduct)">
+            <option [ngValue]="kitchenUnitType.value" *ngFor="let kitchenUnitType of kitchenUnitTypes">{{ kitchenUnitType.name }}</option>
           </select>
         </div>
         <div *ngIf="walmartProduct != selectedProductUnitType" (click)="editWalmartProductUnitType(walmartProduct, 'productUnitType' + i)" class="item-name form-control item-input-control">
-          <span>{{ getUnitTypeNameFromUnitTypeValue(walmartProduct.unitType) }}</span>
+          <span>{{ getUnitTypeNameFromUnitTypeValue(walmartProduct.kitchenUnitType) }}</span>
         </div>
       </td>
       <td>{{ walmartProduct.price }}</td>

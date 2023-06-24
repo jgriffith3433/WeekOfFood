@@ -10,7 +10,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         {
             "home",
             "todo",
-            "product stocks",
+            "kitchen products",
             "products",
             "completed orders",
             "recipes",

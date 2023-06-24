@@ -64,8 +64,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["LoggedIngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["IngredientUnits"] = ingredient.Units;
-                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["IngredientAmount"] = ingredient.Amount;
+                ingredientObject["IngredientKitchenUnitType"] = ingredient.KitchenUnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;

@@ -90,7 +90,7 @@
   }
 
   .floating-chat .chat-box-header {
-    padding: 10px;
+    padding: 10px 10px 10px 10px;
     color: #fff;
     background: #1976d2;
   }
@@ -107,7 +107,7 @@
 
   .floating-chat .chat-box-footer {
     color: #fff;
-    height: 150px;
+    height: auto;
   }
 
   .floating-chat .system-greeting {
@@ -271,7 +271,7 @@
 
   .floating-chat .chat-box {
     left: 0px;
-    padding-top: 50px;
+    padding-top: 80px;
     height: 90vh;
     bottom: 0;
     width: 100vw;
@@ -286,6 +286,10 @@
     left: auto;
   }
 
+  .floating-chat .chat-box-header {
+    padding: 10px 10px 10px 10px;
+  }
+
   .floating-chat .chat-button {
     display: block;
   }
@@ -298,6 +302,8 @@
     height: 80vh;
     width: 40vw;
     border-radius: 10px;
+    padding-top: 80px;
+    padding-bottom: 0px;
   }
 }
 

@@ -27,9 +27,9 @@ public record ChatAICommandDTOUpdateLoggedRecipe_Ingredient
     [Description("Name of the ingredient")]
     public string IngredientName { get; set; }
     [Required]
-    [Description("How many units of the ingredient")]
-    public float Units { get; set; }
+    [Description("How many units of the ingredient as a number")]
+    public float Quantity { get; set; }
     [Required]
-    [Description("Units type for the kitchen item")]
-    public UnitType KitchenUnitType { get; set; }
+    [Description("Kitchen unit type for the kitchen product")]
+    public KitchenUnitType KitchenUnitType { get; set; }
 }

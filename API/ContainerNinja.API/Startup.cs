@@ -11,6 +11,10 @@ using ContainerNinja.API.Filters;
 using ContainerNinja.Core.Common;
 using MediatR;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Schema;
+using System;
+using ContainerNinja.Contracts.Enum;
+using System.Collections.Generic;
 
 namespace ContainerNinja
 {
@@ -50,11 +54,6 @@ namespace ContainerNinja
                 options.Filters.Add<ApiExceptionFilterAttribute>();
             });
 
-            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            };
-
             services.AddSwaggerWithVersioning();
         }
 
@@ -64,6 +63,16 @@ namespace ContainerNinja
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            License.RegisterLicense(Environment.GetEnvironmentVariable("JsonNETSchemaLicense"));
+            JsonConvert.DefaultSettings = () => new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Converters = new List<JsonConverter>
+                {
+                    new KitchenUnitTypeStringEnumConverter()
+                }
+            };
 
             app.UseCors(builder =>
             {

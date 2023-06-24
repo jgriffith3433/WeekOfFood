@@ -4,7 +4,9 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("create_order", "Creates a new order")]
+[ChatCommandSpecification("create_new_order", "Creates a new order")]
 public record ChatAICommandDTOCreateOrder : ChatAICommandArgumentsDTO
 {
+    //[Description("When did they get create the new order")]
+    //public DateTime? When { get; set; }
 }

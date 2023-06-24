@@ -15,7 +15,7 @@ namespace ContainerNinja.Core.Handlers.Commands
     {
         public string? Name { get; init; }
         public int CookedRecipeId { get; init; }
-        public int? ProductStockId { get; init; }
+        public int? KitchenProductId { get; init; }
     }
 
     public class CreateCookedRecipeCalledIngredientCommandHandler : IRequestHandler<CreateCookedRecipeCalledIngredientCommand, int>
@@ -48,16 +48,16 @@ namespace ContainerNinja.Core.Handlers.Commands
                 cookedRecipeCalledIngredientEntity.CookedRecipe = cookedRecipeEntity;
             };
 
-            if (request.ProductStockId.HasValue)
+            if (request.KitchenProductId.HasValue)
             {
-                var productStock = _repository.ProductStocks.Get(request.ProductStockId.Value);
+                var kitchenProduct = _repository.KitchenProducts.Get(request.KitchenProductId.Value);
 
-                if (productStock == null)
+                if (kitchenProduct == null)
                 {
-                    throw new NotFoundException($"No ProductStock found for the Id {request.ProductStockId}");
+                    throw new NotFoundException($"No KitchenProduct found for the Id {request.KitchenProductId}");
                 }
 
-                cookedRecipeCalledIngredientEntity.ProductStock = productStock;
+                cookedRecipeCalledIngredientEntity.KitchenProduct = kitchenProduct;
             }
 
             cookedRecipeEntity.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredientEntity);

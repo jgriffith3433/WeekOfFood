@@ -11,6 +11,6 @@ export class WalmartProductDTO {
   size?: number = undefined;
   price?: number = undefined;
   verified?: boolean = undefined;
-  unitType?: number = undefined;
-  productStockId?: number | undefined = undefined;
+  kitchenUnitType?: number = undefined;
+  kitchenProductId?: number | undefined = undefined;
 }

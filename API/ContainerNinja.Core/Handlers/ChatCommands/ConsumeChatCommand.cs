@@ -16,6 +16,9 @@ using System.Dynamic;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json;
+using ContainerNinja.Contracts.Common;
+using Newtonsoft.Json.Linq;
+using OpenAI.ObjectModels.ResponseModels;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
@@ -79,7 +82,22 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                             object? functionCallArgumentsObject = null;
                             try
                             {
-                                functionCallArgumentsObject = JsonConvert.DeserializeObject(functionCallObject.Arguments, GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType));
+                                var chatCommandModelType = GetChatAICommandModelTypeFromConsumerType(chatCommandConsumerType);
+                                var jObjectToCheckSchemaValidation = JsonConvert.DeserializeObject<JObject>(functionCallObject.Arguments);
+                                var ccs = chatCommandModelType.GetCustomAttribute<ChatCommandSpecification>();
+                                if (ccs == null)
+                                {
+                                    throw new NotImplementedException(typeof(ChatCommandSpecification).Name + " not found on type " + chatCommandModelType.Name);
+                                }
+                                if (ccs.IsValidAgainstSchema(jObjectToCheckSchemaValidation, chatCommandModelType) == false)
+                                {
+                                    throw new ApiValidationException(ccs.GetValidationErrors().Select(v => new FluentValidation.Results.ValidationFailure(v.Path, v.Message, v.Value)));
+                                }
+                                functionCallArgumentsObject = JsonConvert.DeserializeObject(functionCallObject.Arguments, chatCommandModelType);
+                            }
+                            catch(ApiValidationException ex)
+                            {
+                                throw ex;
                             }
                             catch (Exception ex)
                             {

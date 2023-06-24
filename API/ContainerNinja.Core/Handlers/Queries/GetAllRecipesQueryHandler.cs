@@ -38,9 +38,9 @@ namespace ContainerNinja.Core.Handlers.Queries
                 var result = new GetAllRecipesVM
                 {
                     Recipes = _mapper.Map<List<RecipeDTO>>(entities),
-                    UnitTypes = Enum.GetValues(typeof(UnitType))
-                    .Cast<UnitType>()
-                    .Select(p => new UnitTypeDTO { Value = (int)p, Name = p.ToString() })
+                    KitchenUnitTypes = Enum.GetValues(typeof(KitchenUnitType))
+                    .Cast<KitchenUnitType>()
+                    .Select(p => new KitchenUnitTypeDTO { Value = (int)p, Name = p.ToString() })
                     .ToList(),
                 };
 

@@ -46,11 +46,11 @@ namespace ContainerNinja.Core.Handlers.Queries
 
             var calledIngredientDetailsDTO = _mapper.Map<CalledIngredientDetailsDTO>(calledIngredientDTO);
 
-            var query = from ps in _repository.ProductStocks.Set
+            var query = from ps in _repository.KitchenProducts.Set
                         where EF.Functions.Like(ps.Name, string.Format("%{0}%", calledIngredientDTO.Name))
                         select ps;
 
-            calledIngredientDetailsDTO.ProductStockSearchItems = _mapper.Map<List<ProductStockDTO>>(query.ToList());
+            calledIngredientDetailsDTO.KitchenProductSearchItems = _mapper.Map<List<KitchenProductDTO>>(query.ToList());
 
             return calledIngredientDetailsDTO;
         }

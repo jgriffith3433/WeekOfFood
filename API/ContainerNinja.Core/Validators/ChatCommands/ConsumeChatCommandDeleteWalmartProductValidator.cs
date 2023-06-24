@@ -3,15 +3,15 @@ using FluentValidation;
 
 namespace ContainerNinja.Core.Validators.ChatCommands
 {
-    public class ConsumeChatCommandDeleteStockedProductsValidator : AbstractValidator<ConsumeChatCommandDeleteStockedProducts>
+    public class ConsumeChatCommandDeleteKitchenProductsValidator : AbstractValidator<ConsumeChatCommandDeleteKitchenProducts>
     {
-        public ConsumeChatCommandDeleteStockedProductsValidator()
+        public ConsumeChatCommandDeleteKitchenProductsValidator()
         {
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
-            RuleFor(v => v.Command.StockedProductsToDelete).NotEmpty().WithMessage("StockedProductsToDelete field is required");
-            RuleForEach(v => v.Command.StockedProductsToDelete).ChildRules(i =>
+            RuleFor(v => v.Command.KitchenProductsToDelete).NotEmpty().WithMessage("KitchenProductsToDelete field is required");
+            RuleForEach(v => v.Command.KitchenProductsToDelete).ChildRules(i =>
             {
-                i.RuleFor(x => x.StockedProductId).NotEmpty().WithMessage("StockedProductId field is required");
+                i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage("KitchenProductId field is required");
             });
         }
     }

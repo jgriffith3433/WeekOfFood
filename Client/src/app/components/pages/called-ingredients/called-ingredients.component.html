@@ -10,7 +10,7 @@
       <th>Id</th>
       <th>Name</th>
       <th>Product Id</th>
-      <th>Units</th>
+      <th>Amount</th>
       <th>Unit Type</th>
     </tr>
   </thead>
@@ -18,9 +18,9 @@
     <tr *ngFor="let calledIngredient of calledIngredients">
       <td>{{ calledIngredient.id }}</td>
       <td>{{ calledIngredient.name }}</td>
-      <td>{{ calledIngredient.productStock?.id }}</td>
-      <td>{{ calledIngredient.units }}</td>
-      <td>{{ calledIngredient.unitType }}</td>
+      <td>{{ calledIngredient.kitchenProduct?.id }}</td>
+      <td>{{ calledIngredient.amount }}</td>
+      <td>{{ calledIngredient.kitchenUnitType }}</td>
     </tr>
   </tbody>
 </table>

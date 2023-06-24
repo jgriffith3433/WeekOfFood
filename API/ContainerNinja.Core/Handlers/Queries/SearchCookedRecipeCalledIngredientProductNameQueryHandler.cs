@@ -45,9 +45,9 @@ namespace ContainerNinja.Core.Handlers.Queries
             }
 
             var cookedRecipeCalledIngredientDetailsDTO = _mapper.Map<CookedRecipeCalledIngredientDetailsDTO>(cookedRecipeCalledIngredientDTO);
-            var query = from ps in _repository.ProductStocks.Set where EF.Functions.Like(ps.Name, string.Format("%{0}%", request.Search)) select ps;
+            var query = from ps in _repository.KitchenProducts.Set where EF.Functions.Like(ps.Name, string.Format("%{0}%", request.Search)) select ps;
 
-            cookedRecipeCalledIngredientDetailsDTO.ProductStockSearchItems = _mapper.Map<List<ProductStockDTO>>(query.ToList());
+            cookedRecipeCalledIngredientDetailsDTO.KitchenProductSearchItems = _mapper.Map<List<KitchenProductDTO>>(query.ToList());
 
             return cookedRecipeCalledIngredientDetailsDTO;
         }

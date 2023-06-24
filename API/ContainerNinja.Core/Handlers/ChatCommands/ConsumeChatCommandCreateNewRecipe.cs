@@ -37,15 +37,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             var recipeObject = new JObject();
             recipeObject["RecipeId"] = recipeEntity.Id;
-            var recipeIngredientsArray = new JArray();
-            foreach (var ingredient in recipeEntity.CalledIngredients)
-            {
-                var ingredientObject = new JObject();
-                ingredientObject["IngredientId"] = ingredient.Id;
-                ingredientObject["IngredientName"] = ingredient.Name;
-                recipeIngredientsArray.Add(ingredientObject);
-            }
-            recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
             model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(recipeObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });

@@ -11,22 +11,22 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "edit_logged_recipe_ingredient_unit_type" })]
-    public class ConsumeChatCommandEditCookedRecipeIngredientUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditCookedRecipeIngredientUnitType>
+    public class ConsumeChatCommandEditCookedRecipeIngredientKitchenUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditCookedRecipeIngredientKitchenUnitType>
     {
-        public ChatAICommandDTOEditCookedRecipeIngredientUnitType Command { get; set; }
+        public ChatAICommandDTOEditCookedRecipeIngredientKitchenUnitType Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditCookedRecipeIngredientUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditCookedRecipeIngredientUnitType, string>
+    public class ConsumeChatCommandEditCookedRecipeIngredientKitchenUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditCookedRecipeIngredientKitchenUnitType, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandEditCookedRecipeIngredientUnitTypeHandler(IUnitOfWork repository)
+        public ConsumeChatCommandEditCookedRecipeIngredientKitchenUnitTypeHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandEditCookedRecipeIngredientUnitType model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditCookedRecipeIngredientKitchenUnitType model, CancellationToken cancellationToken)
         {
             var cookedRecipe = _repository.CookedRecipes.Set.FirstOrDefault(r => r.Id == model.Command.LoggedRecipeId);
 
@@ -45,7 +45,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
                 else
                 {
-                    cookedRecipeCalledIngredient.UnitType = model.Command.KitchenUnitType;
+                    cookedRecipeCalledIngredient.KitchenUnitType = model.Command.KitchenUnitType;
                     _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredient);
                 }
             }

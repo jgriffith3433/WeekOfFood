@@ -9,7 +9,7 @@ import { TodoListComponent } from './components/pages/todo-list/todo-list.compon
 import { LoginComponent } from './components/pages/login/login.component';
 import { ProductsComponent } from './components/pages/walmart-products/walmart-products.component';
 import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
-import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
+import { KitchenProductsComponent } from './components/pages/kitchen-products/kitchen-products.component';
 import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';
 import { RecipesComponent } from './components/pages/recipes/recipes.component';
 import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
@@ -49,8 +49,8 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'product-stocks'/*, canActivate: [AuthGuard]*/, children: [
-      { path: '', component: ProductStocksComponent },
+    path: 'kitchen-products'/*, canActivate: [AuthGuard]*/, children: [
+      { path: '', component: KitchenProductsComponent },
     ]
   },
   {

@@ -38,8 +38,8 @@ export class CookedRecipesService {
     return this.http.get(`${this.baseUri}/CookedRecipes/GetCookedRecipeCalledIngredientDetails/${id}`).pipe((map(x => <CookedRecipeCalledIngredientDetailsDTO>x)));
   }
 
-  searchProductStockName(id: number | undefined, search: string | null | undefined): Observable<CookedRecipeCalledIngredientDetailsDTO> {
-    let url = this.baseUri + "/CookedRecipes/SearchProductStockName?";
+  searchKitchenProductName(id: number | undefined, search: string | null | undefined): Observable<CookedRecipeCalledIngredientDetailsDTO> {
+    let url = this.baseUri + "/CookedRecipes/SearchKitchenProductName?";
     if (id === null)
       throw new Error("The parameter 'id' cannot be null.");
     else if (id !== undefined)

@@ -12,21 +12,21 @@ using ContainerNinja.Contracts.Data.Entities;
 
 namespace ContainerNinja.Core.Handlers.Commands
 {
-    public record UpdateProductUnitTypeCommand : IRequest<WalmartProductDTO>
+    public record UpdateProductKitchenUnitTypeCommand : IRequest<WalmartProductDTO>
     {
         public int Id { get; init; }
 
-        public int UnitType { get; init; }
+        public int KitchenUnitType { get; init; }
     }
 
-    public class UpdateProductUnitTypeCommandHandler : IRequestHandler<UpdateProductUnitTypeCommand, WalmartProductDTO>
+    public class UpdateProductKitchenUnitTypeCommandHandler : IRequestHandler<UpdateProductKitchenUnitTypeCommand, WalmartProductDTO>
     {
         private readonly IUnitOfWork _repository;
         private readonly IMapper _mapper;
         private readonly ICachingService _cache;
-        private readonly ILogger<UpdateProductUnitTypeCommandHandler> _logger;
+        private readonly ILogger<UpdateProductKitchenUnitTypeCommandHandler> _logger;
 
-        public UpdateProductUnitTypeCommandHandler(ILogger<UpdateProductUnitTypeCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
+        public UpdateProductKitchenUnitTypeCommandHandler(ILogger<UpdateProductKitchenUnitTypeCommandHandler> logger, IUnitOfWork repository, IMapper mapper, ICachingService cache)
         {
             _repository = repository;
             _mapper = mapper;
@@ -34,7 +34,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             _logger = logger;
         }
 
-        async Task<WalmartProductDTO> IRequestHandler<UpdateProductUnitTypeCommand, WalmartProductDTO>.Handle(UpdateProductUnitTypeCommand request, CancellationToken cancellationToken)
+        async Task<WalmartProductDTO> IRequestHandler<UpdateProductKitchenUnitTypeCommand, WalmartProductDTO>.Handle(UpdateProductKitchenUnitTypeCommand request, CancellationToken cancellationToken)
         {
             var productEntity = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Id == request.Id);
 
@@ -43,12 +43,12 @@ namespace ContainerNinja.Core.Handlers.Commands
                 throw new NotFoundException($"No Product found for the Id {request.Id}");
             }
 
-            productEntity.UnitType = (UnitType)request.UnitType;
+            productEntity.KitchenUnitType = (KitchenUnitType)request.KitchenUnitType;
             _repository.WalmartProducts.Update(productEntity);
             await _repository.CommitAsync();
 
-            var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStocks);
-            _cache.SetItem($"product_stock_{request.Id}", productStockDTO);
+            var kitchenProductDTO = _mapper.Map<KitchenProductDTO>(productEntity.KitchenProducts);
+            _cache.SetItem($"product_stock_{request.Id}", kitchenProductDTO);
             _cache.RemoveItem("product_stocks");
 
             var walmartProductDTO = _mapper.Map<WalmartProductDTO>(productEntity);

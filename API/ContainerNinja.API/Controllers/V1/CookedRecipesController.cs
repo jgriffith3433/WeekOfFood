@@ -68,8 +68,8 @@ namespace ContainerNinja.Controllers.V1
             });
         }
 
-        [HttpGet("SearchProductStockName")]
-        public async Task<ActionResult<CookedRecipeCalledIngredientDetailsDTO>> SearchProductStockName([FromQuery] SearchCookedRecipeCalledIngredientProductNameQuery query)
+        [HttpGet("SearchProductName")]
+        public async Task<ActionResult<CookedRecipeCalledIngredientDetailsDTO>> SearchProductName([FromQuery] SearchCookedRecipeCalledIngredientProductNameQuery query)
         {
             return await _mediator.Send(query);
         }

@@ -101,10 +101,10 @@ namespace ContainerNinja.Controllers.V1
         }
 
         [MapToApiVersion("1.0")]
-        [HttpGet("SearchProductStockName")]
+        [HttpGet("SearchProductName")]
         [ProducesResponseType(typeof(CalledIngredientDetailsDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<CalledIngredientDetailsDTO>> SearchProductStockName([FromQuery] SearchCalledIngredientProductStockNameQuery query)
+        public async Task<ActionResult<CalledIngredientDetailsDTO>> SearchProductName([FromQuery] SearchCalledIngredientProductNameQuery query)
         {
             return await _mediator.Send(query);
         }

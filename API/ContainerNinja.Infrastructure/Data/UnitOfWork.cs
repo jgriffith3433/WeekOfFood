@@ -29,7 +29,7 @@ namespace ContainerNinja.Core.Data
         public IWalmartProductRepository WalmartProducts => new WalmartProductRepository(_context);
         public ICompletedOrderRepository CompletedOrders => new CompletedOrderRepository(_context);
         public ICompletedOrderProductRepository CompletedOrderProducts => new CompletedOrderProductRepository(_context);
-        public IProductStockRepository ProductStocks => new ProductStockRepository(_context);
+        public IKitchenProductRepository KitchenProducts => new KitchenProductRepository(_context);
         public ICalledIngredientRepository CalledIngredients => new CalledIngredientRepository(_context);
         public IRecipeRepository Recipes => new RecipeRepository(_context);
         public ICookedRecipeRepository CookedRecipes => new CookedRecipeRepository(_context);

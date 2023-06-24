@@ -17,7 +17,7 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public string? Name { get; init; }
 
-        public float? Units { get; init; }
+        public float? Amount { get; init; }
     }
 
     public class UpdateCalledIngredientCommandHandler : IRequestHandler<UpdateCalledIngredientCommand, CalledIngredientDTO>
@@ -45,7 +45,7 @@ namespace ContainerNinja.Core.Handlers.Commands
             }
 
             calledIngredientEntity.Name = request.Name;
-            calledIngredientEntity.Units = request.Units;
+            calledIngredientEntity.Amount = request.Amount;
             _repository.CalledIngredients.Update(calledIngredientEntity);
             await _repository.CommitAsync();
 

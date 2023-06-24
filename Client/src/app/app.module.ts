@@ -19,7 +19,7 @@ import { HttpErrorInterceptor } from './http-error.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ProductsComponent } from './components/pages/walmart-products/walmart-products.component';
 import { CompletedOrdersComponent } from './components/pages/completed-orders/completed-orders.component';
-import { ProductStocksComponent } from './components/pages/product-stocks/product-stocks.component';
+import { KitchenProductsComponent } from './components/pages/kitchen-products/kitchen-products.component';
 import { CalledIngredientsComponent } from './components/pages/called-ingredients/called-ingredients.component';
 import { RecipesComponent } from './components/pages/recipes/recipes.component';
 import { CookedRecipesComponent } from './components/pages/cooked-recipes/cooked-recipes.component';
@@ -38,7 +38,7 @@ import { OrdersComponent } from './components/pages/orders/orders.component';
     TodoListComponent,
     ProductsComponent,
     CompletedOrdersComponent,
-    ProductStocksComponent,
+    KitchenProductsComponent,
     CalledIngredientsComponent,
     RecipesComponent,
     CookedRecipesComponent,

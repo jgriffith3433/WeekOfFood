@@ -17,9 +17,9 @@ namespace ContainerNinja.Core.Handlers.Commands
 
         public string? Name { get; init; }
 
-        public float? Units { get; init; }
+        public float? Amount { get; init; }
 
-        public int? ProductStockId { get; init; }
+        public int? KitchenProductId { get; init; }
     }
 
     public class UpdateCookedRecipeCalledIngredientCommandHandler : IRequestHandler<UpdateCookedRecipeCalledIngredientCommand, CookedRecipeCalledIngredientDTO>
@@ -47,17 +47,17 @@ namespace ContainerNinja.Core.Handlers.Commands
             }
 
             cookedRecipeCalledIngredientEntity.Name = request.Name;
-            cookedRecipeCalledIngredientEntity.Units = request.Units;
+            cookedRecipeCalledIngredientEntity.Amount = request.Amount;
 
-            if (request.ProductStockId.HasValue)
+            if (request.KitchenProductId.HasValue)
             {
-                var productStock = _repository.ProductStocks.Get(request.ProductStockId.Value);
+                var kitchenProduct = _repository.KitchenProducts.Get(request.KitchenProductId.Value);
 
-                if (productStock == null)
+                if (kitchenProduct == null)
                 {
-                    throw new NotFoundException($"No ProductStock found for the Id {request.ProductStockId}");
+                    throw new NotFoundException($"No KitchenProduct found for the Id {request.KitchenProductId}");
                 }
-                cookedRecipeCalledIngredientEntity.ProductStock = productStock;
+                cookedRecipeCalledIngredientEntity.KitchenProduct = kitchenProduct;
             }
             _repository.CookedRecipeCalledIngredients.Update(cookedRecipeCalledIngredientEntity);
             await _repository.CommitAsync();

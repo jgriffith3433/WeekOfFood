@@ -2,8 +2,8 @@ import { UnitTypeDTO } from "./UnitTypeDTO";
 
 export class UpdateCookedRecipeCalledIngredientDetailsCommand {
   id?: number = undefined;
-  unitType?: UnitTypeDTO = undefined;
-  productStockId?: number = undefined;
+  kitchenUnitType?: UnitTypeDTO = undefined;
+  kitchenProductId?: number = undefined;
   name?: string = undefined;
-  units?: number = undefined;
+  amount?: number = undefined;
 }

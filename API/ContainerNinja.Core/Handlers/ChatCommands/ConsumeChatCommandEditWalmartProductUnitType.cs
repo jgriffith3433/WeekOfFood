@@ -10,22 +10,22 @@ using OpenAI.ObjectModels;
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
     [ChatCommandModel(new [] { "edit_product_unit_type" })]
-    public class ConsumeChatCommandEditWalmartProductUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditProductUnitType>
+    public class ConsumeChatCommandEditWalmartProductKitchenUnitType : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditProductKitchenUnitType>
     {
-        public ChatAICommandDTOEditProductUnitType Command { get; set; }
+        public ChatAICommandDTOEditProductKitchenUnitType Command { get; set; }
         public ChatResponseVM Response { get; set; }
     }
 
-    public class ConsumeChatCommandEditProductUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditWalmartProductUnitType, string>
+    public class ConsumeChatCommandEditProductKitchenUnitTypeHandler : IRequestHandler<ConsumeChatCommandEditWalmartProductKitchenUnitType, string>
     {
         private readonly IUnitOfWork _repository;
 
-        public ConsumeChatCommandEditProductUnitTypeHandler(IUnitOfWork repository)
+        public ConsumeChatCommandEditProductKitchenUnitTypeHandler(IUnitOfWork repository)
         {
             _repository = repository;
         }
 
-        public async Task<string> Handle(ConsumeChatCommandEditWalmartProductUnitType model, CancellationToken cancellationToken)
+        public async Task<string> Handle(ConsumeChatCommandEditWalmartProductKitchenUnitType model, CancellationToken cancellationToken)
         {
             var walmartProduct = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Id == model.Command.ProductId);
             if (walmartProduct == null)
@@ -35,7 +35,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             else
             {
-                walmartProduct.UnitType = model.Command.KitchenUnitType;
+                walmartProduct.KitchenUnitType = model.Command.KitchenUnitType;
                 _repository.WalmartProducts.Update(walmartProduct);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

@@ -6,13 +6,13 @@ namespace ContainerNinja.Contracts.Data.Entities
     {
         public string Name { get; set; }
 
-        public float? Units { get; set; }
+        public float? Amount { get; set; }
 
         public bool Verified { get; set; }
 
-        public UnitType UnitType { get; set; }
+        public KitchenUnitType KitchenUnitType { get; set; }
 
-        public virtual ProductStock? ProductStock { get; set; } = null!;
+        public virtual KitchenProduct? KitchenProduct { get; set; } = null!;
 
         public virtual Recipe Recipe { get; set; }
 

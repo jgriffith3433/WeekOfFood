@@ -18,10 +18,10 @@ namespace ContainerNinja.Core.Mapper
                 .ForMember(d => d.Priority, opt => opt.MapFrom(s => (int)s.Priority));
 
             CreateMap<WalmartProduct, WalmartProductDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType));
+                .ForMember(d => d.KitchenUnitType, opt => opt.MapFrom(s => (int)s.KitchenUnitType));
 
             CreateMap<WalmartProduct, WalmartProductDetailsDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType));
+                .ForMember(d => d.KitchenUnitType, opt => opt.MapFrom(s => (int)s.KitchenUnitType));
 
             CreateMap<WalmartProductDTO, WalmartProductDetailsDTO>();
             CreateMap<WalmartProductDetailsDTO, WalmartProductDTO>();
@@ -30,23 +30,23 @@ namespace ContainerNinja.Core.Mapper
 
             CreateMap<CompletedOrderWalmartProduct, CompletedOrderProductDTO>();
 
-            CreateMap<ProductStock, ProductStockDTO>()
+            CreateMap<KitchenProduct, KitchenProductDTO>()
                 .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.WalmartProduct.Id));
 
-            CreateMap<ProductStock, ProductStockDetailsDTO>()
+            CreateMap<KitchenProduct, KitchenProductDetailsDTO>()
                 .ForMember(d => d.ProductId, opt => opt.MapFrom(s => (int)s.WalmartProduct.Id));
 
-            CreateMap<ProductStockDTO, ProductStockDetailsDTO>();
-            CreateMap<ProductStockDetailsDTO, ProductStockDTO>();
+            CreateMap<KitchenProductDTO, KitchenProductDetailsDTO>();
+            CreateMap<KitchenProductDetailsDTO, KitchenProductDTO>();
 
             CreateMap<Recipe, RecipeDTO>();
 
             CreateMap<CalledIngredient, CalledIngredientDetailsDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
-                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => s.ProductStock != null ? s.ProductStock.Id : -1));
+                .ForMember(d => d.KitchenUnitType, opt => opt.MapFrom(s => (int)s.KitchenUnitType))
+                .ForMember(d => d.KitchenProductId, opt => opt.MapFrom(mapExpression: s => s.KitchenProduct != null ? s.KitchenProduct.Id : -1));
 
             CreateMap<CalledIngredient, CalledIngredientDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType));
+                .ForMember(d => d.KitchenUnitType, opt => opt.MapFrom(s => (int)s.KitchenUnitType));
 
             CreateMap<CalledIngredientDTO, CalledIngredientDetailsDTO>();
             CreateMap<CalledIngredientDetailsDTO, CalledIngredientDTO>();
@@ -55,14 +55,14 @@ namespace ContainerNinja.Core.Mapper
                 .ForMember(d => d.RecipeId, opt => opt.MapFrom(mapExpression: s => s.Recipe != null ? s.Recipe.Id : -1));
 
             CreateMap<CookedRecipeCalledIngredient, CookedRecipeCalledIngredientDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
+                .ForMember(d => d.KitchenUnitType, opt => opt.MapFrom(s => (int)s.KitchenUnitType))
                 .ForMember(d => d.CookedRecipeId, opt => opt.MapFrom(s => s.CookedRecipe.Id))
-                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => (int?)(s.ProductStock != null ? s.ProductStock.Id : null)));
+                .ForMember(d => d.KitchenProductId, opt => opt.MapFrom(mapExpression: s => (int?)(s.KitchenProduct != null ? s.KitchenProduct.Id : null)));
 
             CreateMap<CookedRecipeCalledIngredient, CookedRecipeCalledIngredientDetailsDTO>()
-                .ForMember(d => d.UnitType, opt => opt.MapFrom(s => (int)s.UnitType))
+                .ForMember(d => d.KitchenUnitType, opt => opt.MapFrom(s => (int)s.KitchenUnitType))
                 .ForMember(d => d.CookedRecipeId, opt => opt.MapFrom(s => s.CookedRecipe.Id))
-                .ForMember(d => d.ProductStockId, opt => opt.MapFrom(mapExpression: s => (int?)(s.ProductStock != null ? s.ProductStock.Id : null)));
+                .ForMember(d => d.KitchenProductId, opt => opt.MapFrom(mapExpression: s => (int?)(s.KitchenProduct != null ? s.KitchenProduct.Id : null)));
 
             CreateMap<CookedRecipeCalledIngredientDTO, CookedRecipeCalledIngredientDetailsDTO>();
             CreateMap<CookedRecipeCalledIngredientDetailsDTO, CookedRecipeCalledIngredientDTO>();

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("edit_recipe_name", "Change a recipe's name")]
+[ChatCommandSpecification("edit_recipe_name_and_servings", "Change a recipe's name and servings")]
 public record ChatAICommandDTOEditRecipeName : ChatAICommandArgumentsDTO
 {
     [Required]
@@ -13,4 +13,7 @@ public record ChatAICommandDTOEditRecipeName : ChatAICommandArgumentsDTO
     [Required]
     [Description("New name")]
     public string NewName { get; set; }
+    [Required]
+    [Description("Servings")]
+    public int Servings { get; set; }
 }

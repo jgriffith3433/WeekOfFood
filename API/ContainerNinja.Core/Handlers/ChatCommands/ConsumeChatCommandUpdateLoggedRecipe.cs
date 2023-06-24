@@ -42,8 +42,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     cookedRecipeCalledIngredient.Name = updateLoggedRecipeIngredient.IngredientName;
                     //cookedRecipeCalledIngredient.CookedRecipe = cookedRecipe;
-                    cookedRecipeCalledIngredient.Units = updateLoggedRecipeIngredient.Units;
-                    cookedRecipeCalledIngredient.UnitType = updateLoggedRecipeIngredient.KitchenUnitType;
+                    cookedRecipeCalledIngredient.Amount = updateLoggedRecipeIngredient.Quantity;
+                    cookedRecipeCalledIngredient.KitchenUnitType = updateLoggedRecipeIngredient.KitchenUnitType;
                 };
                 cookedRecipe.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
             }
@@ -65,8 +65,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var ingredientObject = new JObject();
                 ingredientObject["LoggedIngredientId"] = ingredient.Id;
                 ingredientObject["IngredientName"] = ingredient.Name;
-                ingredientObject["IngredientUnits"] = ingredient.Units;
-                ingredientObject["IngredientUnitType"] = ingredient.UnitType.ToString();
+                ingredientObject["IngredientAmount"] = ingredient.Amount;
+                ingredientObject["IngredientKitchenUnitType"] = ingredient.KitchenUnitType.ToString();
                 recipeIngredientsArray.Add(ingredientObject);
             }
             cookedRecipeObject["Ingredients"] = recipeIngredientsArray;

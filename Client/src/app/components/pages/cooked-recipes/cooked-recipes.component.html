@@ -38,7 +38,7 @@
       </div>
 
       <ul id="cooked-recipe-called-ingredients" class="list-group mb-2 list-group-flush">
-        <li class="list-group-item" *ngFor="let cookedRecipeCalledIngredient of selectedCookedRecipe.cookedRecipeCalledIngredients; index as i" [ngClass]="{'list-group-item-danger': !cookedRecipeCalledIngredient.unitType || !cookedRecipeCalledIngredient.units }">
+        <li class="list-group-item" *ngFor="let cookedRecipeCalledIngredient of selectedCookedRecipe.cookedRecipeCalledIngredients; index as i" [ngClass]="{'list-group-item-danger': !cookedRecipeCalledIngredient.kitchenUnitType || !cookedRecipeCalledIngredient.amount }">
           <div class="d-flex">
             <input id="{{ 'cookedRecipeCalledIngredientName' + i }}" *ngIf="cookedRecipeCalledIngredient == selectedCookedRecipeCalledIngredient" type="text"
                    class="form-control item-input-control" [(ngModel)]="cookedRecipeCalledIngredient.name" (keyup.enter)="updateCookedRecipeCalledIngredient(cookedRecipeCalledIngredient, true)"
@@ -49,10 +49,10 @@
             </div>
 
             <!--<div class="flex-fill">
-              <div *ngIf="cookedRecipeCalledIngredient.productStock" class="item-name form-control form-control-plaintext">
-                <input type="text" readonly class="form-control-plaintext" value="{{ cookedRecipeCalledIngredient.name + ' ( ' + cookedRecipeCalledIngredient.productStock.name + ' )'}}">
+              <div *ngIf="cookedRecipeCalledIngredient.kitchenProduct" class="item-name form-control form-control-plaintext">
+                <input type="text" readonly class="form-control-plaintext" value="{{ cookedRecipeCalledIngredient.name + ' ( ' + cookedRecipeCalledIngredient.kitchenProduct.name + ' )'}}">
               </div>
-              <div *ngIf="!cookedRecipeCalledIngredient.productStock" class="item-name form-control">
+              <div *ngIf="!cookedRecipeCalledIngredient.kitchenProduct" class="item-name form-control">
                 <input id="{{ 'cookedRecipeCalledIngredientName' + i }}" *ngIf="cookedRecipeCalledIngredient == selectedCookedRecipeCalledIngredient" type="text"
                        class="form-control item-input-control" [(ngModel)]="cookedRecipeCalledIngredient.name" (keyup.enter)="updateCookedRecipeCalledIngredient(cookedRecipeCalledIngredient, true)"
                        (blur)="updateCookedRecipeCalledIngredient(cookedRecipeCalledIngredient)" autofocus="autofocus" />
@@ -156,27 +156,27 @@
   <div class="modal-body">
     <div class="form">
       <div class="form-group">
-        <label for="unitType">Unit Type</label>
-        <select class="form-control" [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.unitType">
-          <option [ngValue]="unitType.value" *ngFor="let unitType of unitTypes">{{ unitType.name }}</option>
+        <label for="kitchenUnitType">Unit Type</label>
+        <select class="form-control" [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.kitchenUnitType">
+          <option [ngValue]="kitchenUnitType.value" *ngFor="let kitchenUnitType of kitchenUnitTypes">{{ kitchenUnitType.name }}</option>
         </select>
       </div>
       <div class="form-group">
-        <div *ngIf="!cookedRecipeCalledIngredientDetailsEditor.calledIngredient && !cookedRecipeCalledIngredientDetailsEditor.productStock">
+        <div *ngIf="!cookedRecipeCalledIngredientDetailsEditor.calledIngredient && !cookedRecipeCalledIngredientDetailsEditor.kitchenProduct">
           <label for="search">Search by Name</label>
           <input type="text" class="form-control" id="search" placeholder="Name..." [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.search"
                  [ngClass]="{ 'is-invalid': cookedRecipeCalledIngredientDetailsEditor.error }" (keyup.enter)="searchIngredientName()" />
           <div class="float-end">
             <button class="btn btn-primary" (click)="searchIngredientName()">Search</button>
           </div>
-          <select class="form-control" [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.productStockId">
-            <option [ngValue]="productStockSearchItem.id" *ngFor="let productStockSearchItem of cookedRecipeCalledIngredientDetailsEditor.productStockSearchItems">{{ productStockSearchItem.name }}</option>
+          <select class="form-control" [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.kitchenProductId">
+            <option [ngValue]="kitchenProductSearchItem.id" *ngFor="let kitchenProductSearchItem of cookedRecipeCalledIngredientDetailsEditor.kitchenProductSearchItems">{{ kitchenProductSearchItem.name }}</option>
           </select>
         </div>
       </div>
       <div class="form-group">
-        <label for="units">Units</label>
-        <input id="units" class="form-control" rows="3" [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.units" />
+        <label for="amount">Amount</label>
+        <input id="amount" class="form-control" rows="3" [(ngModel)]="cookedRecipeCalledIngredientDetailsEditor.amount" />
       </div>
     </div>
     <div *ngIf="debug">

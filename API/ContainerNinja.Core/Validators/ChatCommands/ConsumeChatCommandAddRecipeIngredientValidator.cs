@@ -1,5 +1,7 @@
-﻿using ContainerNinja.Core.Handlers.ChatCommands;
+﻿using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;
+using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Validators.ChatCommands
 {
@@ -9,14 +11,12 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         {
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
             RuleFor(v => v.Command.RecipeId).NotEmpty().WithMessage("RecipeId field is required");
-            RuleFor(v => v.Command.Ingredients).NotEmpty().WithMessage("Ingredients field is required");
-            RuleFor(v => v.Command.RecipeName).NotEmpty().WithMessage("RecipeName field is required");
-            RuleFor(v => v.Command.Serves).NotEmpty().WithMessage("Serves field is required");
-            RuleForEach(v => v.Command.Ingredients).ChildRules(i =>
+            RuleFor(v => v.Command.KitchenProducts).NotEmpty().WithMessage("KitchenProducts field is required");
+            RuleForEach(v => v.Command.KitchenProducts).ChildRules(i =>
             {
-                i.RuleFor(x => x.IngredientName).NotEmpty().WithMessage("IngredientName field is required");
-                i.RuleFor(x => x.Units).NotEmpty().WithMessage("Units field is required");
-                i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage("KitchenUnitType field is required");
+                i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_kitchen_products" }));
+                i.RuleFor(x => x.Quantity.HasValue || !string.IsNullOrEmpty(x.AmountAsAString)).NotEmpty().WithMessage("Must provide either Quantity or AmountAsAString");
+                i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage($"KitchenUnitType field is required. The available values are: {string.Join(", ", Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()))}");
             });
         }
     }

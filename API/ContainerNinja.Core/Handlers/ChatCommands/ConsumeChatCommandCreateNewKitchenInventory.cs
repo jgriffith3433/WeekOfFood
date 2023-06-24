@@ -29,16 +29,17 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateNewKitchenInventory model, CancellationToken cancellationToken)
         {
-            var recipeEntity = _repository.Recipes.CreateProxy();
-            _repository.Recipes.Add(recipeEntity);
+            //var recipeEntity = _repository.Recipes.CreateProxy();
+            //_repository.Recipes.Add(recipeEntity);
 
-            model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            await _repository.CommitAsync();
+            //model.Response.Dirty = _repository.ChangeTracker.HasChanges();
+            //await _repository.CommitAsync();
 
             var kitchenInventoryObject = new JObject();
-            kitchenInventoryObject["KitchenInventoryId"] = recipeEntity.Id;
-            model.Response.NavigateToPage = "recipes";
-            model.Response.ForceFunctionCall = "none";
+            //kitchenInventoryObject["KitchenInventoryId"] = recipeEntity.Id;
+            //kitchenInventoryObject["KitchenInventoryId"] = 1;
+            model.Response.NavigateToPage = "kitchen-products";
+            //model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(kitchenInventoryObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }

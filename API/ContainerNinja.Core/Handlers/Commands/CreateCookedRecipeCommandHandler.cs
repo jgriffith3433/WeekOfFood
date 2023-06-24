@@ -51,9 +51,9 @@ namespace ContainerNinja.Core.Handlers.Commands
                     cookedRecipeCalledIngredient.CookedRecipe = cookedRecipeEntity;
                     cookedRecipeCalledIngredient.CalledIngredient = calledIngredient;
                     cookedRecipeCalledIngredient.Name = calledIngredient.Name;
-                    cookedRecipeCalledIngredient.UnitType = calledIngredient.UnitType;
-                    cookedRecipeCalledIngredient.Units = calledIngredient.Units;
-                    cookedRecipeCalledIngredient.ProductStock = calledIngredient.ProductStock;
+                    cookedRecipeCalledIngredient.KitchenUnitType = calledIngredient.KitchenUnitType;
+                    cookedRecipeCalledIngredient.Amount = calledIngredient.Amount;
+                    cookedRecipeCalledIngredient.KitchenProduct = calledIngredient.KitchenProduct;
                 };
                 cookedRecipeEntity.CookedRecipeCalledIngredients.Add(cookedRecipeCalledIngredient);
             }

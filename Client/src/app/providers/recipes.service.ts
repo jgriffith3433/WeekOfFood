@@ -51,8 +51,8 @@ export class RecipesService {
     return this.http.get(`${this.baseUri}/Recipes/GetCalledIngredientDetails/${id}`).pipe((map(x => <CalledIngredientDetailsDTO>x)));
   }
 
-  searchProductStockName(id: number | undefined, search: string | null | undefined): Observable<CalledIngredientDetailsDTO> {
-    let url = this.baseUri + "/Recipes/SearchProductStockName?";
+  searchKitchenProductName(id: number | undefined, search: string | null | undefined): Observable<CalledIngredientDetailsDTO> {
+    let url = this.baseUri + "/Recipes/SearchKitchenProductName?";
     if (id === null)
       throw new Error("The parameter 'id' cannot be null.");
     else if (id !== undefined)

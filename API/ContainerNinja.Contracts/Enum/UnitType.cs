@@ -1,199 +1,318 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema.Generation;
+using Newtonsoft.Json.Schema;
+using Newtonsoft.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Runtime.Serialization;
 using System.Xml.Linq;
+using ContainerNinja.Contracts.DTO;
+using ContainerNinja.Contracts.Common;
 
 namespace ContainerNinja.Contracts.Enum
 {
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum UnitType
+    [JsonConverter(typeof(KitchenUnitTypeStringEnumConverter))]
+    public enum KitchenUnitType
     {
         [Display(Name = "")]
         [EnumMember(Value = "")]
+        [EnumNames("")]
         None = 0,
         
         [Display(Name = "Bulk")]
         [EnumMember(Value = "Bulk")]
+        [EnumNames("Bulk")]
         Bulk = 1,
         
         [Display(Name = "Ounce")]
         [EnumMember(Value = "Ounce")]
+        [EnumNames("Ounce", "Ounces")]
         Ounce = 2,
-        
+
         [Display(Name = "Teaspoon")]
         [EnumMember(Value = "Teaspoon")]
+        [EnumNames("Teaspoon", "Teaspoons")]
         Teaspoon = 3,
         
         [Display(Name = "Tablespoon")]
         [EnumMember(Value = "Tablespoon")]
+        [EnumNames("Tablespoon", "Tablespoons")]
         Tablespoon = 4,
         
         [Display(Name = "Pound")]
         [EnumMember(Value = "Pound")]
+        [EnumNames("Pound", "Pounds")]
         Pound = 5,
         
         [Display(Name = "Cup")]
         [EnumMember(Value = "Cup")]
+        [EnumNames("Cup", "Cups")]
         Cup = 6,
-        
-        [Display(Name = "Cloves")]
-        [EnumMember(Value = "Cloves")]
-        Cloves = 7,
+
+        [Display(Name = "Clove")]
+        [EnumMember(Value = "Clove")]
+        [EnumNames("Clove", "Cloves")]
+        Clove = 7,
         
         [Display(Name = "Can")]
         [EnumMember(Value = "Can")]
+        [EnumNames("Can", "Cans")]
         Can = 8,
-        
+
         [Display(Name = "Whole")]
         [EnumMember(Value = "Whole")]
+        [EnumNames("Whole")]
         Whole = 9,
         
         [Display(Name = "Package")]
         [EnumMember(Value = "Package")]
+        [EnumNames("Package", "Packages")]
         Package = 10,
         
         [Display(Name = "Bar")]
         [EnumMember(Value = "Bar")]
+        [EnumNames("Bar", "Bars")]
         Bar = 11,
-        
+
         [Display(Name = "Bun")]
         [EnumMember(Value = "Bun")]
+        [EnumNames("Bun", "Buns")]
         Bun = 12,
-        
+
         [Display(Name = "Bottle")]
         [EnumMember(Value = "Bottle")]
+        [EnumNames("Bottle", "Bottles")]
         Bottle = 13,
         
         [Display(Name = "Slice")]
         [EnumMember(Value = "Slice")]
+        [EnumNames("Slice", "Slices")]
         Slice = 14,
         
         [Display(Name = "Box")]
         [EnumMember(Value = "Box")]
+        [EnumNames("Box", "Boxes")]
         Box = 15,
-        
+
         [Display(Name = "Bag")]
         [EnumMember(Value = "Bag")]
+        [EnumNames("Bag", "Bags")]
         Bag = 16,
-        
+
         [Display(Name = "Gallon")]
         [EnumMember(Value = "Gallon")]
+        [EnumNames("Gallon", "Gallons")]
         Gallon = 17,
         
         [Display(Name = "Gram")]
         [EnumMember(Value = "Gram")]
+        [EnumNames("Gram", "Grams")]
         Gram = 18,
-        
-        [Display(Name = "Milliliters")]
-        [EnumMember(Value = "Milliliters")]
+
+        [Display(Name = "Milliliter")]
+        [EnumMember(Value = "Milliliter")]
+        [EnumNames("Milliliter", "Milliliters")]
         Milliliters = 19,
         
-        [Display(Name = "Leaves")]
-        [EnumMember(Value = "Leaves")]
+        [Display(Name = "Leaf")]
+        [EnumMember(Value = "Leaf")]
+        [EnumNames("Leaf", "Leaves")]
         Leaves = 20,
         
         [Display(Name = "Handful")]
         [EnumMember(Value = "Handful")]
+        [EnumNames("Handful", "Handfuls")]
         Handful = 21,
         
         [Display(Name = "Packet")]
         [EnumMember(Value = "Packet")]
+        [EnumNames("Packet", "Packets")]
         Packet = 22,
         
         [Display(Name = "Count")]
         [EnumMember(Value = "Count")]
+        [EnumNames("Count")]
         Count = 23,
         
         [Display(Name = "Pint")]
         [EnumMember(Value = "Pint")]
+        [EnumNames("Pint", "Pints")]
         Pint = 24,
     }
 
-    public static class UnitTypeExtensionMethods
+    public static class KitchenUnitTypeExtensionMethods
     {
-        public static UnitType UnitTypeFromString(this string unitTypeStr)
+        public static KitchenUnitType UnitTypeFromString(this string unitTypeStr)
         {
             switch (unitTypeStr.ToLower())
             {
                 case "":
                 case "none":
-                    return UnitType.None;
+                    return KitchenUnitType.None;
                 case "bulk":
-                    return UnitType.Bulk;
+                    return KitchenUnitType.Bulk;
                 case "ounce":
                 case "ounces":
-                    return UnitType.Ounce;
+                    return KitchenUnitType.Ounce;
                 case "teaspoon":
                 case "teaspoons":
-                    return UnitType.Teaspoon;
+                    return KitchenUnitType.Teaspoon;
                 case "tablespoon":
                 case "tablespoons":
-                    return UnitType.Tablespoon;
+                    return KitchenUnitType.Tablespoon;
                 case "pound":
                 case "pounds":
-                    return UnitType.Pound;
+                    return KitchenUnitType.Pound;
                 case "cup":
                 case "cups":
-                    return UnitType.Cup;
+                    return KitchenUnitType.Cup;
                 case "clove":
                 case "cloves":
-                    return UnitType.Cloves;
+                    return KitchenUnitType.Clove;
                 case "can":
                 case "cans":
-                    return UnitType.Can;
+                    return KitchenUnitType.Can;
                 case "whole":
                 case "wholes":
-                    return UnitType.Whole;
+                    return KitchenUnitType.Whole;
                 case "package":
                 case "packages":
-                    return UnitType.Package;
+                    return KitchenUnitType.Package;
                 case "bar":
                 case "bars":
-                    return UnitType.Bar;
+                    return KitchenUnitType.Bar;
                 case "bun":
                 case "buns":
-                    return UnitType.Bun;
+                    return KitchenUnitType.Bun;
                 case "bottle":
                 case "bottles":
-                    return UnitType.Bottle;
+                    return KitchenUnitType.Bottle;
                 case "slice":
                 case "slices":
-                    return UnitType.Slice;
+                    return KitchenUnitType.Slice;
                 case "box":
                 case "boxes":
-                    return UnitType.Box;
+                    return KitchenUnitType.Box;
                 case "bag":
                 case "bags":
-                    return UnitType.Bag;
+                    return KitchenUnitType.Bag;
                 case "gallon":
                 case "gallons":
-                    return UnitType.Gallon;
+                    return KitchenUnitType.Gallon;
                 case "gram":
                 case "grams":
-                    return UnitType.Gram;
+                    return KitchenUnitType.Gram;
                 case "milliliter":
                 case "milliliters":
-                    return UnitType.Milliliters;
+                    return KitchenUnitType.Milliliters;
                 case "leaf":
                 case "leaves":
-                    return UnitType.Leaves;
+                    return KitchenUnitType.Leaves;
                 case "handful":
                 case "handfuls":
-                    return UnitType.Handful;
+                    return KitchenUnitType.Handful;
                 case "packet":
                 case "packets":
-                    return UnitType.Packet;
+                    return KitchenUnitType.Packet;
                 case "count":
                 case "counts":
-                    return UnitType.Count;
+                    return KitchenUnitType.Count;
                 case "pint":
                 case "pints":
-                    return UnitType.Pint;
+                    return KitchenUnitType.Pint;
                 default:
-                    return UnitType.None;
+                    return KitchenUnitType.None;
             }
+        }
+
+        public static TAttribute GetAttribute<TAttribute>(this System.Enum value) where TAttribute : Attribute
+        {
+            var enumType = value.GetType();
+            var name = System.Enum.GetName(enumType, value);
+            return enumType.GetField(name).GetCustomAttributes(false).OfType<TAttribute>().SingleOrDefault();
+        }
+    }
+
+    public class KitchenUnitTypeStringEnumConverter : StringEnumConverter
+    {
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
+        {
+            try
+            {
+                if (reader.TokenType == JsonToken.String)
+                {
+                    string? enumText = reader.Value?.ToString();
+                    if (enumText == null)
+                    {
+                        return KitchenUnitType.None;
+                    }
+                    return enumText.UnitTypeFromString();
+                }
+
+                if (reader.TokenType == JsonToken.Integer)
+                {
+                    return (KitchenUnitType)reader.Value;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new JsonSerializationException(string.Format("Error converting value {0} to type '{1}'.", reader.Value, objectType));
+            }
+
+            // we don't actually expect to get here.
+            throw new JsonSerializationException("Unexpected token {0} when parsing enum.");
+        }
+    }
+
+    public class StringEnumKitchenUnitTypeGenerationProvider : StringEnumGenerationProvider
+    {
+        public override JSchema GetSchema(JSchemaTypeGenerationContext context)
+        {
+            if (context.ObjectType != typeof(KitchenUnitType))
+            {
+                return base.GetSchema(context);
+            }
+            JSchema schema = new JSchema
+            {
+                Title = context.SchemaTitle,
+                Description = context.SchemaDescription,
+                Type = JSchemaType.String
+            };
+
+
+            //object? defaultValue = context.MemberProperty?.DefaultValue;
+            //if (defaultValue != null)
+            //{
+            //    schema.Default = defaultValue;
+            //}
+
+            var defaultEnumValues = System.Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().ToList();
+
+            foreach(var enumValue in defaultEnumValues)
+            {
+                var enumNamesAttribute = enumValue.GetAttribute<EnumNames>();
+                if (enumNamesAttribute != null)
+                {
+                    foreach (var name in enumNamesAttribute.Names)
+                    {
+                        if (schema.Enum.FirstOrDefault(e => e.Value<string>().ToLower() == name.ToLower()) == null)
+                        {
+                            schema.Enum.Add(JValue.CreateString(name));
+                        }
+                    }
+                }
+                else
+                {
+                    if (schema.Enum.FirstOrDefault(e => e.Value<string>().ToLower() == enumValue.ToString()) == null)
+                    {
+                        schema.Enum.Add(JValue.CreateString(enumValue.ToString()));
+                    }
+                }
+            }
+
+            return schema;
         }
     }
 }

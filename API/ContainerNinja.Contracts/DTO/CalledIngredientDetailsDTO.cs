@@ -6,12 +6,12 @@ namespace ContainerNinja.Contracts.DTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public ProductStockDTO ProductStock { get; set; }
-        public float? Units { get; set; }
-        public int UnitType { get; set; }
-        public int ProductStockId { get; set; }
-        //public UnitType UnitType { get; set; }
+        public KitchenProductDTO KitchenProduct { get; set; }
+        public float? Amount { get; set; }
+        public int KitchenUnitType { get; set; }
+        public int KitchenProductId { get; set; }
+        //public KitchenUnitType KitchenUnitType { get; set; }
 
-        public IList<ProductStockDTO> ProductStockSearchItems { get; set; } = new List<ProductStockDTO>();
+        public IList<KitchenProductDTO> KitchenProductSearchItems { get; set; } = new List<KitchenProductDTO>();
     }
 }

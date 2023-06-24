@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "edit_recipe_name" })]
+    [ChatCommandModel(new[] { "edit_recipe_name_and_servings" })]
     public class ConsumeChatCommandEditRecipeName : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeName>
     {
         public ChatAICommandDTOEditRecipeName Command { get; set; }
@@ -43,21 +43,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
 
             recipeEntity.Name = model.Command.NewName;
+            recipeEntity.Serves = model.Command.Servings;
             _repository.Recipes.Update(recipeEntity);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
             var recipeObject = new JObject();
             recipeObject["RecipeId"] = recipeEntity.Id;
             recipeObject["RecipeName"] = recipeEntity.Name;
-            var recipeIngredientsArray = new JArray();
-            foreach (var ingredient in recipeEntity.CalledIngredients)
-            {
-                var ingredientObject = new JObject();
-                ingredientObject["IngredientId"] = ingredient.Id;
-                ingredientObject["IngredientName"] = ingredient.Name;
-                recipeIngredientsArray.Add(ingredientObject);
-            }
-            recipeObject["Ingredients"] = recipeIngredientsArray;
+            recipeObject["RecipeServings"] = recipeEntity.Serves;
+            //var recipeIngredientsArray = new JArray();
+            //foreach (var ingredient in recipeEntity.CalledIngredients)
+            //{
+            //    var ingredientObject = new JObject();
+            //    ingredientObject["IngredientId"] = ingredient.Id;
+            //    ingredientObject["IngredientName"] = ingredient.Name;
+            //    recipeIngredientsArray.Add(ingredientObject);
+            //}
+            //recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
             model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(recipeObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });

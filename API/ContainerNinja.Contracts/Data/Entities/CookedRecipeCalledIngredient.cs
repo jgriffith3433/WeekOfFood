@@ -6,9 +6,9 @@ namespace ContainerNinja.Contracts.Data.Entities
     {
         public virtual CookedRecipe CookedRecipe { get; set; }
         public virtual CalledIngredient? CalledIngredient { get; set; }
-        public virtual ProductStock? ProductStock { get; set; }
+        public virtual KitchenProduct? KitchenProduct { get; set; }
         public string Name { get; set; }
-        public UnitType UnitType { get; set; }
-        public float? Units { get; set; }
+        public KitchenUnitType KitchenUnitType { get; set; }
+        public float? Amount { get; set; }
     }
 }

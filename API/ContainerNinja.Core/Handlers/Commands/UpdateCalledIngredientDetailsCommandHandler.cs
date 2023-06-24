@@ -16,13 +16,13 @@ namespace ContainerNinja.Core.Handlers.Commands
     {
         public int Id { get; init; }
 
-        public UnitType UnitType { get; init; }
+        public KitchenUnitType KitchenUnitType { get; init; }
 
-        public int? ProductStockId { get; init; }
+        public int? KitchenProductId { get; init; }
 
         public string? Name { get; init; }
 
-        public float? Units { get; init; }
+        public float? Amount { get; init; }
     }
 
     public class UpdateCalledIngredientDetailsCommandHandler : IRequestHandler<UpdateCalledIngredientDetailsCommand, CalledIngredientDetailsDTO>
@@ -50,12 +50,12 @@ namespace ContainerNinja.Core.Handlers.Commands
             }
 
             calledIngredientEntity.Name = request.Name;
-            calledIngredientEntity.Units = request.Units;
-            calledIngredientEntity.UnitType = request.UnitType;
+            calledIngredientEntity.Amount = request.Amount;
+            calledIngredientEntity.KitchenUnitType = request.KitchenUnitType;
 
-            if (request.ProductStockId.HasValue)
+            if (request.KitchenProductId.HasValue)
             {
-                calledIngredientEntity.ProductStock = _repository.ProductStocks.Get(request.ProductStockId.Value);
+                calledIngredientEntity.KitchenProduct = _repository.KitchenProducts.Get(request.KitchenProductId.Value);
             }
 
             _repository.CalledIngredients.Update(calledIngredientEntity);

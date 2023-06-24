@@ -31,7 +31,7 @@ namespace ContainerNinja.Contracts.Walmart
         public bool bundle { get; set; }
         public bool clearance { get; set; }
         public bool preOrder { get; set; }
-        public string productStock { get; set; }
+        public string kitchenProduct { get; set; }
         public bool availableOnline { get; set; }
         public string shortDescription { get; set; }
         public string longDescription { get; set; }

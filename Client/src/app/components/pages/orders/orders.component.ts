@@ -14,7 +14,7 @@ import { OrdersService } from '../../../providers/orders.service';
 export class OrdersComponent implements OnInit {
   debug = false;
   orders: OrderDTO[];
-  unitTypes: UnitTypeDTO[];
+  kitchenUnitTypes: UnitTypeDTO[];
   selectedOrder: OrderDTO | undefined;
   newOrderEditor: any = {};
   OrderOptionsEditor: any = {};

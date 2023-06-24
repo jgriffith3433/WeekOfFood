@@ -1,10 +1,10 @@
-import { ProductStockDTO } from "./ProductStockDTO";
+import { KitchenProductDTO } from "./KitchenProductDTO";
 
 export class CalledIngredientDTO {
   id?: number = undefined;
   name?: string = undefined;
-  productStock?: ProductStockDTO = undefined;
-  units?: number | undefined = undefined;
-  unitType?: number = undefined;
-  productStockId?: number = undefined;
+  kitchenProduct?: KitchenProductDTO = undefined;
+  amount?: number | undefined = undefined;
+  kitchenUnitType?: number = undefined;
+  kitchenProductId?: number = undefined;
 }

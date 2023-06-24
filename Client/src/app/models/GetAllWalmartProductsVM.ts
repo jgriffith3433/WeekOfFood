@@ -3,5 +3,5 @@ import { UnitTypeDTO } from "./UnitTypeDTO";
 
 export class GetAllWalmartProductsVM {
   walmartProducts?: WalmartProductDTO[] = undefined;
-  unitTypes?: UnitTypeDTO[] = undefined;
+  kitchenUnitTypes?: UnitTypeDTO[] = undefined;
 }

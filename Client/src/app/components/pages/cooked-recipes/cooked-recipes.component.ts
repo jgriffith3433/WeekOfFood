@@ -23,7 +23,7 @@ export class CookedRecipesComponent implements OnInit {
   debug = false;
   recipesOptions: RecipesOptionDTO[] | undefined;
   cookedRecipes: CookedRecipeDTO[] | undefined;
-  unitTypes: UnitTypeDTO[] | undefined;
+  kitchenUnitTypes: UnitTypeDTO[] | undefined;
   selectedCookedRecipe: CookedRecipeDTO | undefined;
   selectedCookedRecipeCalledIngredient: CookedRecipeCalledIngredientDetailsDTO | undefined;
   selectedCookedRecipeCalledIngredientDetails: CookedRecipeCalledIngredientDetailsDTO | undefined;
@@ -50,7 +50,7 @@ export class CookedRecipesComponent implements OnInit {
     this.cookedRecipesService.getAllCookedRecipes().subscribe(
       result => {
         this.cookedRecipes = result.cookedRecipes;
-        this.unitTypes = result.unitTypes;
+        this.kitchenUnitTypes = result.kitchenUnitTypes;
         this.recipesOptions = result.recipesOptions;
         if (this.cookedRecipes?.length) {
           this.selectedCookedRecipe = this.cookedRecipes[0];
@@ -142,10 +142,10 @@ export class CookedRecipesComponent implements OnInit {
   }
 
   searchIngredientName(): void {
-    this.cookedRecipesService.searchProductStockName(this.cookedRecipeCalledIngredientDetailsEditor.id, this.cookedRecipeCalledIngredientDetailsEditor.search).subscribe(
+    this.cookedRecipesService.searchKitchenProductName(this.cookedRecipeCalledIngredientDetailsEditor.id, this.cookedRecipeCalledIngredientDetailsEditor.search).subscribe(
       result => {
-        this.cookedRecipeCalledIngredientDetailsEditor.productStockSearchItems = result.productStockSearchItems;
-        this.cookedRecipeCalledIngredientDetailsEditor.productStockSearchItems.unshift({name: '', value: -1})
+        this.cookedRecipeCalledIngredientDetailsEditor.kitchenProductSearchItems = result.kitchenProductSearchItems;
+        this.cookedRecipeCalledIngredientDetailsEditor.kitchenProductSearchItems.unshift({name: '', value: -1})
       },
       error => {
         this.cookedRecipeCalledIngredientDetailsEditor.errorResponse = JSON.parse(error.response);
@@ -174,12 +174,12 @@ export class CookedRecipesComponent implements OnInit {
   }
 
   addCookedRecipeCalledIngredient() {
-    if (this.unitTypes && this.selectedCookedRecipe && this.selectedCookedRecipe.cookedRecipeCalledIngredients) {
+    if (this.kitchenUnitTypes && this.selectedCookedRecipe && this.selectedCookedRecipe.cookedRecipeCalledIngredients) {
       const cookedRecipeCalledIngredient = {
         id: 0,
         name: '',
-        unitType: this.unitTypes[0].value,
-        units: 0,
+        kitchenUnitType: this.kitchenUnitTypes[0].value,
+        amount: 0,
         cookedRecipeId: this.selectedCookedRecipe.id,
       } as CookedRecipeCalledIngredientDetailsDTO;
 

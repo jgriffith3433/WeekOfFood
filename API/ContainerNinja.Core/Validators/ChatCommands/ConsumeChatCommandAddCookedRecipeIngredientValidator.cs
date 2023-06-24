@@ -1,4 +1,5 @@
-﻿using ContainerNinja.Core.Handlers.ChatCommands;
+﻿using ContainerNinja.Contracts.Enum;
+using ContainerNinja.Core.Handlers.ChatCommands;
 using FluentValidation;
 
 namespace ContainerNinja.Core.Validators.ChatCommands
@@ -14,8 +15,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleForEach(v => v.Command.Ingredients).ChildRules(i =>
             {
                 i.RuleFor(x => x.IngredientName).NotEmpty().WithMessage("IngredientName field is required");
-                i.RuleFor(x => x.Units).NotEmpty().WithMessage("Units field is required");
-                i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage("KitchenUnitType field is required");
+                i.RuleFor(x => x.Quantity).NotEmpty().WithMessage("Amount field is required");
+                i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage($"KitchenUnitType field is required. The available values are: {string.Join(", ", Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()))}");
             });
         }
     }

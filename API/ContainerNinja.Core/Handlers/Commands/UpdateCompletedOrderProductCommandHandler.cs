@@ -68,15 +68,15 @@ namespace ContainerNinja.Core.Handlers.Commands
                         completedOrderProductEntity.WalmartItemResponse = serializedItemResponse;
                         completedOrderProductEntity.Name = itemResponse.name;
 
-                        //TODO: needs to be look at after changing product-productstocks relationship
+                        //TODO: needs to be look at after changing product-kitchenproducts relationship
                         //var productEntity = _repository.Products.Set.FirstOrDefault(p => p.WalmartId == itemResponse.itemId);
 
                         //if (productEntity != null)
                         //{
-                        //    foreach (var productStockEntity in productEntity.ProductStocks)
+                        //    foreach (var kitchenProductEntity in productEntity.KitchenProducts)
                         //    {
-                        //        productStockEntity.Units += 1;
-                        //        _repository.ProductStocks.Update(productStockEntity);
+                        //        kitchenProductEntity.Amount += 1;
+                        //        _repository.KitchenProducts.Update(kitchenProductEntity);
                         //    }
                         //}
                         //else
@@ -87,14 +87,14 @@ namespace ContainerNinja.Core.Handlers.Commands
                         //        productEntity.WalmartId = itemResponse.itemId;
                         //    };
 
-                        //    //always ensure a product stock record exists for each product
-                        //    productEntity.ProductStocks = _repository.ProductStocks.CreateProxy();
+                        //    //always ensure a kitchen product record exists for each product
+                        //    productEntity.KitchenProducts = _repository.KitchenProducts.CreateProxy();
                         //    {
-                        //        productEntity.ProductStocks.Name = itemResponse.name;
-                        //        productEntity.ProductStocks.Units = 1;
-                        //        productEntity.ProductStocks.WalmartProduct = productEntity;
+                        //        productEntity.KitchenProducts.Name = itemResponse.name;
+                        //        productEntity.KitchenProducts.Amount = 1;
+                        //        productEntity.KitchenProducts.WalmartProduct = productEntity;
                         //    };
-                        //    _repository.ProductStocks.Add(productEntity.ProductStocks);
+                        //    _repository.KitchenProducts.Add(productEntity.KitchenProducts);
                         //    _repository.Products.Add(productEntity);
                         //}
 
@@ -103,8 +103,8 @@ namespace ContainerNinja.Core.Handlers.Commands
                         //_cache.SetItem($"product_{productEntity.Id}", walmartProductDTO);
                         //_cache.RemoveItem("products");
 
-                        //var productStockDTO = _mapper.Map<ProductStockDTO>(productEntity.ProductStocks);
-                        //_cache.SetItem($"product_stock_{productEntity.ProductStocks.Id}", productStockDTO);
+                        //var kitchenProductDTO = _mapper.Map<KitchenProductDTO>(productEntity.KitchenProducts);
+                        //_cache.SetItem($"product_stock_{productEntity.KitchenProducts.Id}", kitchenProductDTO);
                         //_cache.RemoveItem("product_stocks");
 
                         ////always update values from walmart to keep synced

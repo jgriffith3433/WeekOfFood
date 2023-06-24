@@ -78,10 +78,10 @@ namespace ContainerNinja.Controllers.V1
 
 
         [MapToApiVersion("1.0")]
-        [HttpPut("UpdateUnitType/{id}")]
+        [HttpPut("UpdateKitchenUnitType/{id}")]
         [ProducesResponseType(typeof(WalmartProductDTO), (int)HttpStatusCode.OK)]
         [ProducesErrorResponseType(typeof(BaseResponseDTO))]
-        public async Task<ActionResult<WalmartProductDTO>> UpdateUnitType(int id, UpdateProductUnitTypeCommand command)
+        public async Task<ActionResult<WalmartProductDTO>> UpdateKitchenUnitType(int id, UpdateProductKitchenUnitTypeCommand command)
         {
             if (command == null || id != command.Id)
             {

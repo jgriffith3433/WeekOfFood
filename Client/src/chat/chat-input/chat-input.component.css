@@ -5,11 +5,11 @@
 }
 
 .chat-input-text {
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   margin: 14px 0 0 14px;
-  height: 90%;
+  height: 100%;
   width: 95.5%;
   border: 0;
   resize: none;
@@ -42,6 +42,7 @@
   left: 0;
   z-index: 8;
   width: 100%;
+  height: 50px;
 }
 
 #recordingFrequenciesVisualizer {
@@ -50,6 +51,7 @@
   left: 0;
   z-index: 8;
   width: 100%;
+  height: 50px;
 }
 
 #speechToTextVisualizer {
@@ -58,6 +60,7 @@
   left: 0;
   z-index: 8;
   width: 100%;
+  height: 50px;
 }
 
 .chat-input-submit {
