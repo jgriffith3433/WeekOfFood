@@ -31,7 +31,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         public async Task<string> Handle(ConsumeChatCommandGetKitchenProductId model, CancellationToken cancellationToken)
         {
             var predicate = PredicateBuilder.New<KitchenProduct>();
-            var searchTerms = string.Join(' ', model.Command.ProductName.ToLower().Split('-')).Split(' ');
+            var searchTerms = string.Join(' ', model.Command.KitchenProductName.ToLower().Split('-')).Split(' ');
             foreach (var searchTerm in searchTerms)
             {
                 predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
@@ -46,12 +46,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             KitchenProduct kitchenProduct;
             if (query.Count == 0)
             {
-                var systemResponse = "Could not find kitchen product by name: " + model.Command.ProductName;
+                var systemResponse = "Could not find kitchen product by name: " + model.Command.KitchenProductName;
                 throw new ChatAIException(systemResponse);
             }
             else if (query.Count == 1)
             {
-                if (query[0].Name.ToLower() == model.Command.ProductName.ToLower())
+                if (query[0].Name.ToLower() == model.Command.KitchenProductName.ToLower())
                 {
                     //exact match
                     kitchenProduct = query[0];
@@ -59,19 +59,19 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //unsure, ask user
-                    var systemResponse = "Could not find kitchen product by name '" + model.Command.ProductName + "'. Did you mean: '" + query[0].Name + "' with ID: " + query[0].Id + "?";
+                    var systemResponse = "Could not find kitchen product by name '" + model.Command.KitchenProductName + "'. Did you mean: '" + query[0].Name + "' with ID: " + query[0].Id + "?";
                     throw new ChatAIException(systemResponse);
                 }
             }
             else
             {
-                var exactMatch = query.FirstOrDefault(ps => ps.Name.ToLower() == model.Command.ProductName.ToLower());
+                var exactMatch = query.FirstOrDefault(ps => ps.Name.ToLower() == model.Command.KitchenProductName.ToLower());
 
                 if (exactMatch != null)
                 {
                     //check if there are no "too similar" matches
                     //for instance: "trail mix" could be "raisin free trail mix" or "trail mix snack"
-                    var tooSimilarMatch = query.FirstOrDefault(ps => ps != exactMatch && ps.Name.ToLower().Contains(model.Command.ProductName.ToLower()));
+                    var tooSimilarMatch = query.FirstOrDefault(ps => ps != exactMatch && ps.Name.ToLower().Contains(model.Command.KitchenProductName.ToLower()));
                     if (tooSimilarMatch != null)
                     {
                         exactMatch = null;
@@ -92,12 +92,12 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             if (kitchenProduct == null)
             {
-                var systemResponse = "Could not find kitchen product by name '" + model.Command.ProductName + "'.";
+                var systemResponse = "Could not find kitchen product by name '" + model.Command.KitchenProductName + "'.";
                 throw new ChatAIException(systemResponse);
             }
             var kitchenProductObject = new JObject();
             kitchenProductObject["KitchenProductId"] = kitchenProduct.Id;
-            kitchenProductObject["ProductName"] = kitchenProduct.Name;
+            kitchenProductObject["KitchenProductName"] = kitchenProduct.Name;
             model.Response.ForceFunctionCall = "auto";
             model.Response.NavigateToPage = "kitchen-products";
             return JsonConvert.SerializeObject(kitchenProductObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });

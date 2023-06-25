@@ -8,6 +8,6 @@ namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 [ChatCommandSpecification("create_new_recipe", "Create a new recipe and returns the RecipeId")]
 public record ChatAICommandDTOCreateNewRecipe : ChatAICommandArgumentsDTO
 {
-    //[Description("When did they create the new recipe")]
-    //public DateTime? When { get; set; }
+    [Description("Recipe Name")]
+    public string RecipeName { get; set; }
 }

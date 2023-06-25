@@ -7,7 +7,7 @@ using ContainerNinja.Core.Common;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "edit_logged_recipe_date" })]
+    [ChatCommandModel(new[] { "edit_consumed_recipe_date" })]
     public class ConsumeChatCommandEditCookedRecipeDate : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditCookedRecipeDate>
     {
         public ChatAICommandDTOEditCookedRecipeDate Command { get; set; }
@@ -29,8 +29,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by ID: " + model.Command.LoggedRecipeId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_logged_recipe_id"" }");
+                var systemResponse = "Could not find consumed recipe by ID: " + model.Command.LoggedRecipeId;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_consumed_recipe_id"" }");
             }
 
             //TODO:Add in date

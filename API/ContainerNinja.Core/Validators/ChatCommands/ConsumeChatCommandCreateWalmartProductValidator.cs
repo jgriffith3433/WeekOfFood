@@ -8,7 +8,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         public ConsumeChatCommandCreateWalmartProductValidator()
         {
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
-            RuleFor(v => v.Command.ProductName).NotEmpty().WithMessage("ProductName field is required");
+            RuleFor(v => v.Command.WalmartProductName).NotEmpty().WithMessage("WalmartProductName field is required");
         }
     }
 }

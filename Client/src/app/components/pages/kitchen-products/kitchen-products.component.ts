@@ -7,6 +7,7 @@ import { KitchenProductDTO } from '../../../models/KitchenProductDTO';
 import { UnitTypeDTO } from '../../../models/UnitTypeDTO';
 import { UpdateKitchenProductCommand } from '../../../models/UpdateKitchenProductCommand';
 import { UpdateKitchenProductDetailsCommand } from '../../../models/UpdateKitchenProductDetailsCommand';
+import { WalmartProductDTO } from '../../../models/WalmartProductDTO';
 import { KitchenProductsService } from '../../../providers/kitchen-products.service';
 //KitchenProductClient,
 //KitchenProductDTO,
@@ -73,6 +74,15 @@ export class KitchenProductsComponent implements OnInit {
       }
     }
     return "Unknown";
+  }
+
+  getWalmartLinkFromProduct(walmartProduct: WalmartProductDTO | undefined): string {
+    if (walmartProduct) {
+      return "https://www.walmart.com/ip/" + walmartProduct.name + "/" + walmartProduct.walmartId;
+    }
+    else {
+      return "https://www.walmart.com";
+    }
   }
 
   addKitchenProduct(): void {

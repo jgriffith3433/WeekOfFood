@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 _repository.WalmartProducts.Update(walmartProduct);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            model.Response.NavigateToPage = "products";
+            model.Response.NavigateToPage = "walmart-products";
             return "Success";
         }
     }

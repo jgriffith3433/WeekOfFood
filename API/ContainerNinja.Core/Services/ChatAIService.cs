@@ -14,6 +14,8 @@ using System.Dynamic;
 using Microsoft.IdentityModel.Tokens;
 using ContainerNinja.Contracts.Enum;
 using ContainerNinja.Contracts.DTO;
+using ContainerNinja.Contracts.Data.Entities;
+using System.Collections.Generic;
 
 namespace ContainerNinja.Core.Services
 {
@@ -64,9 +66,9 @@ namespace ContainerNinja.Core.Services
             }
         }
 
-        public async Task<ChatMessageVM> GetChatResponse(List<ChatMessageVM> chatMessages, string forceFunctionCall)
+        public async Task<ChatMessageVM> GetChatResponse(List<ChatMessageVM> chatMessages, string forceFunctionCall, List<ChatRecipeVM> allRecipes, List<ChatKitchenProductVM> allKitchenProducts, List<ChatWalmartProductVM> allWalmartProducts)
         {
-            var chatCompletionCreateRequest = CreateChatCompletionCreateRequest();
+            var chatCompletionCreateRequest = CreateChatCompletionCreateRequest(allRecipes, allKitchenProducts, allWalmartProducts);
             if (!string.IsNullOrEmpty(forceFunctionCall) && forceFunctionCall.Contains("{"))
             {
                 chatCompletionCreateRequest.FunctionCall = JsonConvert.DeserializeObject<ExpandoObject>(forceFunctionCall);
@@ -182,11 +184,11 @@ namespace ContainerNinja.Core.Services
             });
         }
 
-        private ChatCompletionCreateRequest CreateChatCompletionCreateRequest()
+        private ChatCompletionCreateRequest CreateChatCompletionCreateRequest(List<ChatRecipeVM> allRecipes, List<ChatKitchenProductVM> allKitchenProducts, List<ChatWalmartProductVM> allWalmartProducts)
         {
             var chatCompletionCreateRequest = new ChatCompletionCreateRequest
             {
-                Messages = GetChatPrompt(),
+                Messages = GetChatPrompt(allRecipes, allKitchenProducts, allWalmartProducts),
                 Model = "gpt-3.5-turbo-16k-0613",//Models.ChatGpt3_5Turbo0613,
                 Functions = _functionSpecifications,
                 FunctionCall = "auto",
@@ -217,14 +219,17 @@ namespace ContainerNinja.Core.Services
         {
             return new string[]
             {
-"home",
-"todo",
-"kitchen products",
-"products",
-"completed orders",
-"recipes",
-"logged recipes",
-"called ingredients"
+                "home",
+                "todo",
+                "portfolio",
+                "kitchen products",
+                "walmart products",
+                "orders",
+                "completed orders",
+                "recipes",
+                "consumed recipes",
+                "called ingredients",
+                "api",
             };
         }
         /*
@@ -292,591 +297,39 @@ You are not allowed to make up arguments when calling functions.
 You must verify with the user about the arguments in a function before calling them.
 You must NEVER say you called a function without doing so prior*/
 
-        private List<ChatMessage> GetChatPrompt()
+        private List<ChatMessage> GetChatPrompt(List<ChatRecipeVM> allRecipes, List<ChatKitchenProductVM> allKitchenProducts, List<ChatWalmartProductVM> allWalmartProducts)
         {
             var chatPromptList = new List<ChatMessage>
 {//You help the user log meals, create/modify/delete logged meals, recipes, and ingredients. You help the user in using the website.
                 ChatMessage.FromSystem($@"
-Your name is Kitchy and you are a helpful kitchen assistant. You update the system with user information. This is a real system that affects the world.
-KitchenUnitType Values List:
-{string.Join(", ", Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()))}
+Your name is Kitchy and you are a helpful kitchen assistant. You update the system with user information.
+This is not a demonstration.
+This is not a simulation and this affects real-world systems and databases through the functions provided.
+
+Here is a list of available unit types:
+{JsonConvert.SerializeObject(Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()), Formatting.Indented) }
+Here is a list of available recipes:
+{JsonConvert.SerializeObject(allRecipes, Formatting.Indented) }
+Here is a list of available kitchen products:
+{JsonConvert.SerializeObject(allKitchenProducts, Formatting.Indented) }
+Here is a list of available walmart products:
+{JsonConvert.SerializeObject(allWalmartProducts, Formatting.Indented) }
+Here is a list of available pages:
+{JsonConvert.SerializeObject(GetPages(), Formatting.Indented) }
+
+Here's how the flow of creating a recipe goes:
+[User names recipe]
+[Assistant asks what ingredient's go in it]
+[User tells ingredients]
+[Assistant updates recipe]
+
+
+If a user says ""x y of z"" then the quantity is x, the unit type is y and the name is z
 "
 , StaticValues.ChatMessageRoles.System),
-                ChatMessage.FromUser(@"
-Before you call any functions that update the system can you ask me for permission?
-"
-, StaticValues.ChatMessageRoles.User),
-                ChatMessage.FromAssistant(@"
-Okay, I will ask you for permission before calling any functions.
-"
-, StaticValues.ChatMessageRoles.Assistant),
-/*
- 
-User: ""I'm going to tell you what kitchen products I have in my kitchen and how much I have of each one. Before you update the system, can you verify with my first?""
-Assistant: ""Of course! Please go ahead and tell me the kitchen products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names and then verify with you before updating the system.""
-User: [Provides the kitchen products and quantities without specifying KitchenProductIds]
-Assistant: [Calls the function to search for the kitchen products based on the provided names and retrieves the corresponding KitchenProductIds]
-Assistant: ""Got it! I have found the KitchenProductIds for the kitchen products you mentioned. Now, Can I update your inventory with the specified quantities?""
-User: [Indicates to go ahead and update the system]
-[Assistant calls the function to update the inventory for each kitchen product using the retrieved KitchenProductIds and using the units and unit types that the user specified]
-Assistant: ""Great! I have updated your inventory with the specified quantities of each kitchen product. Is there anything else you would like to add or update?""
-User: [Provides additional kitchen products or quantities without specifying KitchenProductIds]
-Assistant: [Calls the function to search for the additional kitchen products based on the provided names and retrieves the corresponding KitchenProductIds]
-Assistant: ""Perfect! I have found the KitchenProductIds for the additional kitchen products you mentioned. Can I update your inventory with the specified quantities?""
-[Assistant calls the function to update the inventory for each additional kitchen product using the retrieved KitchenProductIds and using the units and unit types that the user specified]
-Assistant: ""Great! I have updated your inventory with the specified quantities of each additional kitchen product. Is there anything else you would like to add or update?""
-User: [Indicates no further updates]
-Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
-End of updateing kitchen inventory flow.
- */
-        /*
-         This is the flow of updating the kitchen inventory. In general, if you are unsure of a value, you should stop and ask the user for clarification.
-        User: ""I'm going to tell you what kitchen products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
-        Assistant: ""Of course! Please go ahead and tell me the kitchen products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names.""
-        User: [Provides the kitchen products and quantities without specifying KitchenProductIds]
-        Assistant: [Calls the function to search for the kitchen products based on the provided names and retrieves the corresponding KitchenProductIds]
-        Assistant: ""Got it! I have found the KitchenProductIds for the kitchen products you mentioned. Now, I will update your inventory with the specified quantities.""
-        Assistant: [Calls the function to update the inventory for each kitchen product using the retrieved KitchenProductIds but using the units and unit types that the user specified]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each kitchen product. Is there anything else you would like to add or update?""
-        User: [Provides additional kitchen products or quantities without specifying KitchenProductIds]
-        Assistant: [Calls the function to search for the additional kitchen products based on the provided names and retrieves the corresponding KitchenProductIds]
-        Assistant: ""Perfect! I have found the KitchenProductIds for the additional kitchen products you mentioned. Now, I will update your inventory with the specified quantities.""
-        Assistant: [Calls the function to update the inventory for each additional kitchen product using the retrieved KitchenProductIds]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each additional kitchen product. Is there anything else you would like to add or update?""
-        User: [Indicates no further updates]
-        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
-        */
-
-
-
-        /*
-        This is the flow of updating the kitchen inventory. In general, if you are unsure of a value, you should stop and ask the user for clarification.
-        User: ""I'm going to tell you what kitchen products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
-        Assistant: ""Of course! Please go ahead and tell me the kitchen products you have in your kitchen and how much of each one you have. I will search for them in the system based on the provided names.""
-        User: [Provides the kitchen products and quantities without specifying KitchenProductIds]
-        Assistant: [Calls the function to search for the kitchen products based on the provided names and retrieves the corresponding KitchenProductIds]
-        Assistant: ""Got it! I have found the KitchenProductIds for the kitchen products you mentioned. Now, I will update your inventory with the specified quantities.""
-        Assistant: [Calls the function to update the inventory for each kitchen product using the retrieved KitchenProductIds but using the units and unit types that the user specified]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each kitchen product. Is there anything else you would like to add or update?""
-        User: [Provides additional kitchen products or quantities without specifying KitchenProductIds]
-        Assistant: [Calls the function to search for the additional kitchen products based on the provided names and retrieves the corresponding KitchenProductIds]
-        Assistant: ""Perfect! I have found the KitchenProductIds for the additional kitchen products you mentioned. Now, I will update your inventory with the specified quantities.""
-        Assistant: [Calls the function to update the inventory for each additional kitchen product using the retrieved KitchenProductIds]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each additional kitchen product. Is there anything else you would like to add or update?""
-        User: [Indicates no further updates]
-        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
-        */
-
-        /*
-        User: ""I'm going to tell you what kitchen products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
-        Assistant: ""Of course! Please go ahead and tell me the kitchen products you have in your kitchen and how much of each one you have. If there is any information that I need to clarify, I will ask for more details.""
-        User: [Provides the kitchen products and quantities]
-        Assistant: [Calls the function to update the inventory for each kitchen product in a loop]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each kitchen product. Is there anything else you would like to add or update?""
-        User: [Provides additional kitchen products or quantities]
-        Assistant: [Calls the function to update the inventory for each additional kitchen product in a loop]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each additional kitchen product. Is there anything else you would like to add or update?""
-        User: [Indicates no further updates]
-        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!
-
-
-        */
-        /*
-        The flow for taking inventory:
-        User: ""I'm going to tell you what kitchen products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
-        Assistant: ""Of course! Please go ahead and tell me the kitchen products you have in your kitchen and how much of each one you have. If there is any information that I need to clarify, I will ask for more details.""
-        User: [Provides the kitchen products and quantities]
-        Assistant: [Call the function to update the inventory for each kitchen product]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each kitchen product. Is there anything else you would like to add or update?""
-        User: [Provides additional kitchen products or quantities]
-        Assistant: [Call the function to update the inventory for each kitchen product]
-        Assistant: ""Great! I have updated your inventory with the specified quantities of each kitchen product. Is there anything else you would like to add or update?""
-        User: [Indicates no further updates]
-        Assistant: ""Alright, your inventory has been successfully updated. If you need any further assistance, feel free to let me know!""
-
-        */
-
-        //ChatMessage.FromUser(@"I have a jar of peanut butter.", StaticValues.ChatMessageRoles.User),
-        //new ChatMessage("function", "[{\"KitchenProductId\":4,\"ProductName\":\"peanut butter\"}]", "search_kitchen_products"),
-        //new ChatMessage("function", "[{\"KitchenProductId\":4,\"ProductName\":\"peanut butter\"}]", "add_kitchen_products"),
-        //ChatMessage.FromAssistant(@"Okay I have added a jar of peanut butter to your inventory?", StaticValues.ChatMessageRoles.Assistant),
-
-        /*
-
-        The flow for taking inventory:
-        User: ""I'm going to tell you what kitchen products I have in my kitchen and how much I have of each one. Can you update my inventory in the system?""
-        Assistant: ""Of course! Please go ahead and tell me the kitchen products you have in your kitchen and how much of each one you have. If there is any information that I need to clarify, I will ask for more details.""
-        User: [Provides the kitchen products and quantities]
-        Assistant: [Call the appropriate function]
-        Function: [Gives results about the function that was called]
-        Then confirm with the user the information that was changed based on the response from the function.
-
-
-
-        The flow goes like this:
-        1) The user tells you something.
-        2) You gather information.
-        3) If the function has an Id parameter you must search for it by calling other functions.
-        4) Once you successfully call the function consolidate the information from the the function and tell the user what action that was performed.
-        5) Standby and get ready to receive more requests and repeat this conversation flow.
-
-        Additional information:
-        When placing an order, you are trying to add kitchen products to the order.
-        Recipes have ingredients that are linked to kitchen products so you use the kitchen products to order everything a user needs to make a recipe.
-
-        When taking stock, the user is telling you what they have in their kitchen and you need to update the kitchen products in the system to reflect that.
-        You need to call add_kitchen_products or update_kitchen_products everytime a user tells you what they have in their kithen based on whether or not a record exists for that kitchen product.
-        */
-
-        /*
-        ChatMessage.FromUser(@"I ate a sandwich for lunch.", StaticValues.ChatMessageRoles.User),
-        ChatMessage.FromFunction(_searchRecipesJsonArray, "search_recipes"),
-        ChatMessage.FromAssistant(@"Okay did you have a ham, turkey, or salami sandwich?", StaticValues.ChatMessageRoles.Assistant),
-        ChatMessage.FromUser(@"It was a salami sandwich.", StaticValues.ChatMessageRoles.User),
-        ChatMessage.FromFunction(_salamiSandwichJsonObject, "get_recipe_ingredients"),
-        ChatMessage.FromAssistant(@"Okay did anything vary from the recipe?", StaticValues.ChatMessageRoles.Assistant),
-        ChatMessage.FromUser(@"I didn't use mustard, I used mayo instead.", StaticValues.ChatMessageRoles.User),
-        ChatMessage.FromAssistant(@"Okay, the recipe called for 1 teaspoon of mustard, did you use about 1 teaspoon of mayo", StaticValues.ChatMessageRoles.Assistant),
-        ChatMessage.FromUser(@"Yeah about", StaticValues.ChatMessageRoles.User),
-        ChatMessage.FromAssistant(@"Okay, would you like me to log that you ate a salami sandwich with mayo for lunch?", StaticValues.ChatMessageRoles.Assistant),
-        ChatMessage.FromUser(@"Yes", StaticValues.ChatMessageRoles.User),
-        ChatMessage.FromFunction(_salamiSandwichWithMayoJsonObject, "log_recipe"),
-        ChatMessage.FromAssistant(@"Okay, I have logged that you had a salami sandwich for lunch and that you substituted mustard for mayo. Is there anything else I can help you with?", StaticValues.ChatMessageRoles.Assistant),
-        */
     };
             return chatPromptList;
         }
-
-        //        private List<ChatMessage> GetChatPromptForCurrentUrl(string currentUrl)
-        //        {
-        //            var chatPromptList = new List<ChatMessage>
-        //                {
-        //                    ChatMessage.FromSystem(
-        //                        "You are a kitchen assistant. You must respond only with JSON and no extra text. The cmd and response fields are required. " +
-        //                        "The user is on the home page. The available commands you can return are: " + GetAllCommands() + ".",
-        //                        StaticValues.ChatMessageRoles.System
-        //                        ),
-        //                    ChatMessage.FromUser("Hello", StaticValues.ChatMessageRoles.User),
-        //                    ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Hello, how can I help you manage your kitchen?"",
-        //}",
-        //                        StaticValues.ChatMessageRoles.Assistant
-        //                        ),
-        //                        ChatMessage.FromUser("Go to the forum", StaticValues.ChatMessageRoles.User),
-        //                        ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""go_to_page"",
-        //    ""page"": ""forum"",
-        //}",
-        //                        StaticValues.ChatMessageRoles.Assistant),
-        //                        ChatMessage.FromSystem("Unknown page forum. The available pages are:" + string.Join(", ", GetPages()), StaticValues.ChatMessageRoles.User),
-        //                        ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""I'm sorry, I cannot navigate to the forum page. The available pages are: " + string.Join(", ", GetPages()) + @"."",
-        //}",
-        //                        StaticValues.ChatMessageRoles.Assistant),
-        //                };
-        //            if (currentUrl != "home")
-        //            {
-        //                chatPromptList.AddRange(new List<ChatMessage>
-        //                        {
-        //                        ChatMessage.FromUser("Go to " + currentUrl, StaticValues.ChatMessageRoles.User),
-        //                        ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""go_to_page"",
-        //    ""response"": ""Okay, navigating to " + currentUrl + @""",
-        //    ""page"": """ + currentUrl + @""",
-        //}",
-        //                        StaticValues.ChatMessageRoles.Assistant
-        //                        ),
-        //                        ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-        //                        ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Okay, navigating to " + currentUrl + @""",
-        //}",
-        //                        StaticValues.ChatMessageRoles.Assistant
-        //                        ),
-        //                    });
-        //            }
-        //            switch (currentUrl)
-        //            {
-        //                case "recipes":
-        //                    chatPromptList.AddRange(new List<ChatMessage>
-        //                        {
-        //                            ChatMessage.FromUser("Change the bienenstich recipe to bienenstich 1", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""edit_recipe_name"",
-        //    ""original"": ""bienenstich"",
-        //    ""new"": ""yummy""
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Multiple records found: bienenstich_1, bienenstich_2", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Do you want to change bienenstich_1 or bienenstich_2?"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("bienenstich_1", StaticValues.ChatMessageRoles.User),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""edit_recipe_name"",
-        //    ""original"": ""bienenstich_1"",
-        //    ""new"": ""bienenstich 1""
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Okay, I have changed bienenstich_1 to bienenstich."",
-        //}",
-        //                                StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Can you substitute the bread for gluten-free bread in the ham sandwich recipe?", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""edit_recipe_ingredient"",
-        //    ""recipe"": ""ham sandwich"",
-        //    ""original"": ""bread"",
-        //    ""new"": ""gluten-free bread""
-        //}",
-        //                                StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Okay, I have substituted the bread ingredient for Gluten-free bread."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Give me a barbeque chicken recipe.", StaticValues.ChatMessageRoles.User),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Sure. Do you want it sweet or savory?"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Both.", StaticValues.ChatMessageRoles.User),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""create_recipe"",
-        //    ""name"": ""Honey Barbeque Chicken Thighs"",
-        //    ""serves"": 2,
-        //    ""ingredients"": [
-        //        {
-        //            ""name"": ""Boneless chicken thighs"",
-        //            ""units"": 3,
-        //            ""KitchenUnitType"": ""pounds""
-        //        },
-        //        {
-        //            ""name"": ""BBQ sauce"",
-        //            ""units"": 1,
-        //            ""KitchenUnitType"": ""bottle""
-        //        },
-        //        {
-        //            ""name"": ""Honey"",
-        //            ""units"": 2,
-        //            ""KitchenUnitType"": ""tablespoons""
-        //        },
-        //        {
-        //            ""name"": ""Soy sauce"",
-        //            ""units"": 2,
-        //            ""KitchenUnitType"": ""tablespoons""
-        //        },
-        //    ]
-        //}",
-        //                                StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Created."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("I don't really like honey bbq.", StaticValues.ChatMessageRoles.User),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Would you like to use brown sugar instead?."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Sure.", StaticValues.ChatMessageRoles.User),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""edit_recipe_ingredient"",
-        //    ""recipe"": ""Honey Barbeque Chicken Thighs"",
-        //    ""original"": ""Honey"",
-        //    ""new"": ""Brown sugar"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""edit_recipe_name"",
-        //    ""original"": ""Honey Barbeque Chicken Thighs"",
-        //    ""new"": ""Brown Sugar BBQ Chicken Thighs""
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Okay, I substituted honey for brown sugar and renamed the recipe to Brown Sugar BBQ Chicken Thighs."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Remove the spaghetti with meat sauce recipe", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""delete_recipe"",
-        //    ""recipe"": ""spaghetti with meat sauce"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Removed."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""edit_recipe_ingredient_KitchenUnitType"",
-        //    ""recipe"": ""eggs and spinach"",
-        //    ""ingredient"": ""butter"",
-        //    ""KitchenUnitType"": ""tablespoons"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-
-        //                            ChatMessage.FromSystem("Success: Unit type changed from cups to tablespoons.", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Okay I changed it from cupts to tablespoons."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromUser("Add two teaspoons of pepper to the spicy chili recipe", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""add_recipe_ingredient"",
-        //    ""recipe"": ""spicy chili"",
-        //    ""ingredient"": ""pepper"",
-        //    ""KitchenUnitType"": ""teaspoons"",
-        //    ""units"": 2
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Added."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-
-        //                            ChatMessage.FromUser("Remove the onions from the spicy chili recipe", StaticValues.ChatMessageRoles.User),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""remove_recipe_ingredient"",
-        //    ""recipe"": ""spicy chili"",
-        //    ""ingredient"": ""onions"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("No ingredient 'onions' found on recipe 'spicy chili'. The ingredients are: ground beef, white onion, garlic, bell pepper, diced tomatoes, kidney beans, black beans, tomato paste, chili powder, cumin, paprika, cayenne pepper, salt, pepper", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""remove_recipe_ingredient"",
-        //    ""recipe"": ""spicy chili"",
-        //    ""ingredient"": ""white onion"",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-
-        //                            ChatMessage.FromSystem("Success", StaticValues.ChatMessageRoles.System),
-
-        //                            ChatMessage.FromAssistant(
-        //@"{
-        //    ""cmd"": ""none"",
-        //    ""response"": ""Removed."",
-        //}",
-        //                            StaticValues.ChatMessageRoles.Assistant),
-        //                        });
-        //                    break;
-        //                case "cooked_recipes":
-        //                    chatPromptList.AddRange(new List<ChatMessage>
-        //                            {
-        //                                ChatMessage.FromUser("I added two teaspoons of salt to the bienenstich recipe.", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""add_cooked_recipe_ingredient"",
-        //          ""response"": ""Okay, I have added salt to the cooked recipe."",
-        //          ""recipe"": ""bienenstich"",
-        //          ""name"": ""salt"",
-        //          ""units"": 2,
-        //          ""KitchenUnitType"": ""teaspoon""
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                            ),
-        //                                ChatMessage.FromUser("Add syrup to oatmeal", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""add_cooked_recipe_ingredient"",
-        //          ""response"": ""Okay, I have added syrup to the oatmeal recipe."",
-        //          ""recipe"": ""oatmeal"",
-        //          ""name"": ""syrup"",
-        //          ""units"": 1,
-        //          ""KitchenUnitType"": ""tablespoon""
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                            ),
-        //                                ChatMessage.FromUser("I made tacos tonight.", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //                                @"{
-        //          ""cmd"": ""create_cooked_recipe"",
-        //          ""response"": ""Created."",
-        //          ""recipe"": ""tacos"",
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                                ),
-        //                                ChatMessage.FromUser("Substitute chicken broth for vegetable broth in the chicken and dumplings recipe", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""substitute_cooked_recipe_ingredient"",
-        //          ""response"": ""Substituted."",
-        //          ""recipe"": ""chicken and dumplings"",
-        //          ""original"": ""chicken broth"",
-        //          ""new"": ""vegetable broth"",
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                                ),
-        //                                ChatMessage.FromUser("Change the butter unit type to tablespoons in the eggs and spinach recipe", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""edit_cooked_recipe_ingredient_KitchenUnitType"",
-        //          ""response"": ""Changed the butter unit type to tablespoons."",
-        //          ""recipe"": ""eggs and spinach"",
-        //          ""ingredient"": ""butter"",
-        //          ""KitchenUnitType"": ""tablespoons"",
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                                ),
-        //                                ChatMessage.FromUser("Remove the onions from the spicy chili recipe", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""remove_cooked_recipe_ingredient"",
-        //          ""response"": ""Removed."",
-        //          ""recipe"": ""spicy chili"",
-        //          ""ingredient"": ""onions"",
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                            ),
-        //                                ChatMessage.FromUser("Remove the chili recipe", StaticValues.ChatMessageRoles.User),
-        //                                ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""delete_cooked_recipe"",
-        //          ""response"": ""Removed."",
-        //          ""recipe"": ""chili""
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                            )
-
-        //                        });
-        //                    break;
-        //                case "completed_orders":
-        //                    chatPromptList.AddRange(new List<ChatMessage>
-        //                        {
-        //                            ChatMessage.FromUser("Order two cans of black eyed peas", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""order"",
-        //          ""response"": ""Sure, I have added two cans of Black_eyed Peas to your cart."",
-        //          ""items"": [
-        //            {
-        //              ""name"": ""Black_eyed Peas"",
-        //              ""quantity"": 2
-        //            }
-        //          ]
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                                )
-        //                        });
-        //                    break;
-        //                case "products":
-        //                    chatPromptList.AddRange(new List<ChatMessage>
-        //                        {
-        //                            ChatMessage.FromUser("Change the unit type on olive oil to ounces", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""edit_product_unit_type"",
-        //          ""response"": ""Okay, the unit type has been changed to ounces for olive oil."",
-        //          ""product"": ""olive oil"",
-        //          ""KitchenUnitType"": ""ounces"",
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                            ),
-        //                            ChatMessage.FromUser("Add X", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""create_product"",
-        //          ""response"": ""Created."",
-        //          ""product"": ""X"",
-        //        }"
-        //                            ),
-        //                            ChatMessage.FromUser("Delete X", StaticValues.ChatMessageRoles.User),
-        //                            ChatMessage.FromAssistant(
-        //        @"{
-        //          ""cmd"": ""delete_product"",
-        //          ""response"": ""Deleted."",
-        //          ""product"": ""X"",
-        //        }",
-        //                                StaticValues.ChatMessageRoles.Assistant
-        //                            ),
-        //                        });
-        //                    break;
-        //                case "home":
-        //                default:
-        //                    return chatPromptList;
-        //            }
-        //            return chatPromptList;
-        //        }
 
         private List<ChatMessage> GetNormalChatPrompt()
         {

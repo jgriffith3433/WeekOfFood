@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("update_recipe", "Update an existing recipe using a RecipeId and a list of KitchenProducts")]
+[ChatCommandSpecification("create_new_recipe_ingredients", "Create new ingredients for a recipe")]
 public record ChatAICommandDTOUpdateRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
@@ -26,10 +26,6 @@ public record ChatAICommandDTOUpdateRecipe_KitchenProduct
     [Required]
     [Description("How many units does the recipe call for as a number")]
     public float? Quantity { get; set; }
-    [Required]
-    [Description("How many units does the recipe call for as a string")]
-    public string? AmountAsAString { get; set; }
-    [Required]
     [Description("Kitchen unit type for the kitchen product")]
-    public KitchenUnitType KitchenUnitType { get; set; }
+    public KitchenUnitType? UnitType { get; set; }
 }

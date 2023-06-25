@@ -12,7 +12,7 @@ using LinqKit;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "add_kitchen_products_to_inventory" })]
+    //[ChatCommandModel(new[] { "add_kitchen_products_to_inventory" })]
     public class ConsumeChatCommandCreateKitchenProducts : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOCreateKitchenProducts>
     {
         public ChatAICommandDTOCreateKitchenProducts Command { get; set; }
@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             foreach (var item in model.Command.KitchenProducts)
             {
                 var predicate = PredicateBuilder.New<KitchenProduct>();
-                var searchTerms = string.Join(' ', item.ProductName.ToLower().Split('-')).Split(' ');
+                var searchTerms = string.Join(' ', item.KitchenProductName.ToLower().Split('-')).Split(' ');
                 foreach (var searchTerm in searchTerms)
                 {
                     predicate = predicate.Or(p => p.Name.ToLower().Contains(searchTerm));
@@ -54,7 +54,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     var newKitchenProductEntity = _repository.KitchenProducts.CreateProxy();
                     {
-                        newKitchenProductEntity.Name = item.ProductName;
+                        newKitchenProductEntity.Name = item.KitchenProductName;
                         newKitchenProductEntity.Amount = item.Quantity;
                         newKitchenProductEntity.KitchenUnitType = item.KitchenUnitType;
                     }
@@ -62,7 +62,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
                 else if (existingKitchenProductEntities.Count == 1)
                 {
-                    if (existingKitchenProductEntities[0].Name.ToLower() == item.ProductName.ToLower())
+                    if (existingKitchenProductEntities[0].Name.ToLower() == item.KitchenProductName.ToLower())
                     {
                         existingKitchenProductEntities[0].Amount = item.Quantity;
                         existingKitchenProductEntities[0].KitchenUnitType = item.KitchenUnitType;
@@ -70,11 +70,11 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     }
                     else
                     {
-                        var systemMessage = $"Record '{existingKitchenProductEntities[0].Name}' found for '{item.ProductName}'. Is that the record you want to update?\n";
+                        var systemMessage = $"Record '{existingKitchenProductEntities[0].Name}' found for '{item.KitchenProductName}'. Is that the record you want to update or do you want to create a new one?\n";
 
                         var kitchenProductObject = new JObject();
                         kitchenProductObject["KitchenProductId"] = existingKitchenProductEntities[0].Id;
-                        kitchenProductObject["ProductName"] = existingKitchenProductEntities[0].Name;
+                        kitchenProductObject["KitchenProductName"] = existingKitchenProductEntities[0].Name;
 
                         systemMessage += JsonConvert.SerializeObject(kitchenProductObject);
                         throw new ChatAIException(systemMessage, "none");
@@ -83,13 +83,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //TODO: Probably a way to one line this first block into a query
-                    var exactMatch = existingKitchenProductEntities.FirstOrDefault(ps => ps.Name.ToLower() == item.ProductName.ToLower());
+                    var exactMatch = existingKitchenProductEntities.FirstOrDefault(ps => ps.Name.ToLower() == item.KitchenProductName.ToLower());
 
                     if (exactMatch != null)
                     {
                         //check if there are no "too similar" matches
                         //for instance: "trail mix" could be "raisin free trail mix" or "trail mix snack"
-                        var tooSimilarMatch = existingKitchenProductEntities.FirstOrDefault(ps => ps != exactMatch && ps.Name.ToLower().Contains(item.ProductName.ToLower()));
+                        var tooSimilarMatch = existingKitchenProductEntities.FirstOrDefault(ps => ps != exactMatch && ps.Name.ToLower().Contains(item.KitchenProductName.ToLower()));
                         if (tooSimilarMatch != null)
                         {
                             exactMatch = null;
@@ -104,13 +104,13 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     }
                     else
                     {
-                        var systemMessage = $"Multiple records found for '{item.ProductName}'. Did you mean to update any of these?\n";
+                        var systemMessage = $"Multiple records found for '{item.KitchenProductName}'. Did you mean to update any of these or create a new one?\n";
                         var multipleRecordsArray = new JArray();
                         foreach (var existingKitchenProductEntity in existingKitchenProductEntities)
                         {
                             var kitchenProductObject = new JObject();
                             kitchenProductObject["KitchenProductId"] = existingKitchenProductEntity.Id;
-                            kitchenProductObject["ProductName"] = existingKitchenProductEntity.Name;
+                            kitchenProductObject["KitchenProductName"] = existingKitchenProductEntity.Name;
                             multipleRecordsArray.Add(kitchenProductObject);
                         }
 
@@ -143,8 +143,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     var kitchenProductObject = new JObject();
                     kitchenProductObject["KitchenProductId"] = newKitchenProduct.Id;
-                    kitchenProductObject["ProductName"] = newKitchenProduct.Name;
-                    kitchenProductObject["Amount"] = newKitchenProduct.Amount;
+                    kitchenProductObject["KitchenProductName"] = newKitchenProduct.Name;
+                    kitchenProductObject["Quantity"] = newKitchenProduct.Amount;
                     kitchenProductObject["KitchenUnitType"] = newKitchenProduct.KitchenUnitType.ToString();
                     addedArray.Add(kitchenProductObject);
                 }
@@ -163,8 +163,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     _repository.KitchenProducts.Update(existingKitchenProduct);
                     var kitchenProductObject = new JObject();
                     kitchenProductObject["KitchenProductId"] = existingKitchenProduct.Id;
-                    kitchenProductObject["ProductName"] = existingKitchenProduct.Name;
-                    kitchenProductObject["Amount"] = existingKitchenProduct.Amount;
+                    kitchenProductObject["KitchenProductName"] = existingKitchenProduct.Name;
+                    kitchenProductObject["Quantity"] = existingKitchenProduct.Amount;
                     kitchenProductObject["KitchenUnitType"] = existingKitchenProduct.KitchenUnitType.ToString();
                     updatedArray.Add(kitchenProductObject);
                 }

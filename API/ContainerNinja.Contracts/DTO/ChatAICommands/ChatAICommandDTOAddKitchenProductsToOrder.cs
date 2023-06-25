@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("add_kitchen_products_to_order", "Add kitchen products to order")]
+//[ChatCommandSpecification("add_kitchen_products_to_order", "Add kitchen products to order")]
 public record ChatAICommandDTOAddKitchenProductsToOrder : ChatAICommandArgumentsDTO
 {
     [Required]
@@ -22,5 +22,5 @@ public record ChatAICommandDTOAddKitchenProductsToOrder_KitchenProduct
     public int KitchenProductId { get; set; }
     [Required]
     [Description("How many should be ordered. Convert from the kitchen product unit type to the walmart size to get this number.")]
-    public int OrderQuantity { get; set; }
+    public float Quantity { get; set; }
 }

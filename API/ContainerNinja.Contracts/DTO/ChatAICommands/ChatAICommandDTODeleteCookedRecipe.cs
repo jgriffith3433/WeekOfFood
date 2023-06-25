@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("delete_logged_recipe", "Deletes a logged recipe")]
+//[ChatCommandSpecification("delete_consumed_recipe", "Deletes a consumed recipe")]
 public record ChatAICommandDTODeleteCookedRecipe : ChatAICommandArgumentsDTO
 {
     [Required]

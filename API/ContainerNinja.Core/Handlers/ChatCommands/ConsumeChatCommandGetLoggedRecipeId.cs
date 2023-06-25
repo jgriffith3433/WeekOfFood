@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "get_logged_recipe_id" })]
+    [ChatCommandModel(new[] { "get_consumed_recipe_id" })]
     public class ConsumeChatCommandGetLoggedRecipeId : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOGetLoggedRecipeId>
     {
         public ChatAICommandDTOGetLoggedRecipeId Command { get; set; }
@@ -41,7 +41,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             CookedRecipe cookedRecipe;
             if (query.Count == 0)
             {
-                var systemResponse = "Could not find logged recipe by name: " + model.Command.LoggedRecipeName;
+                var systemResponse = "Could not find consumed recipe by name: " + model.Command.LoggedRecipeName;
                 throw new ChatAIException(systemResponse);
             }
             else if (query.Count == 1)
@@ -54,7 +54,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 else
                 {
                     //unsure, ask user
-                    var systemResponse = "Could not find logged recipe by name '" + model.Command.LoggedRecipeName + "'. Did you mean: '" + query[0].Recipe.Name + "' with ID: " + query[0].Id + "?";
+                    var systemResponse = "Could not find consumed recipe by name '" + model.Command.LoggedRecipeName + "'. Did you mean: '" + query[0].Recipe.Name + "' with ID: " + query[0].Id + "?";
                     throw new ChatAIException(systemResponse);
                 }
             }
@@ -75,7 +75,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by name '" + model.Command.LoggedRecipeName + "'.";
+                var systemResponse = "Could not find consumed recipe by name '" + model.Command.LoggedRecipeName + "'.";
                 throw new ChatAIException(systemResponse);
             }
             var loggedRecipeObject = new JObject();

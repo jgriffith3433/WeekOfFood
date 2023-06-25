@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("edit_recipe_ingredient", "Remove an ingredient and add another in a recipe")]
+//[ChatCommandSpecification("edit_recipe_ingredient", "Remove an ingredient and add another in a recipe")]
 public record ChatAICommandDTOEditRecipeIngredient : ChatAICommandArgumentsDTO
 {
     [Required]

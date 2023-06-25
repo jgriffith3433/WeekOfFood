@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("get_kitchen_products_from_ingredients", "Gets kitchen products from a list of ingredients")]
+[ChatCommandSpecification("get_kitchen_products_from_ingredients", "Gets kitchen products from a list of IngredientsId")]
 public record ChatAICommandDTOGetKitchenProductsFromIngredients : ChatAICommandArgumentsDTO
 {
     [Required]

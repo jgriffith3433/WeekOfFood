@@ -29,7 +29,21 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateNewRecipe model, CancellationToken cancellationToken)
         {
+            if (!string.IsNullOrEmpty(model.Command.RecipeName))
+            {
+                var existingRecipeWithName = _repository.Recipes.Set.FirstOrDefault(r => r.Name.ToLower() == model.Command.RecipeName.ToLower());
+                if (existingRecipeWithName != null)
+                {
+                    var systemResponse = $"Recipe {model.Command.RecipeName} already exists with RecipId {existingRecipeWithName.Id}";
+                    throw new ChatAIException(systemResponse);
+                }
+            }
+
+
             var recipeEntity = _repository.Recipes.CreateProxy();
+            {
+                recipeEntity.Name = model.Command.RecipeName;
+            }
             _repository.Recipes.Add(recipeEntity);
 
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
@@ -37,8 +51,9 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             var recipeObject = new JObject();
             recipeObject["RecipeId"] = recipeEntity.Id;
+            recipeObject["RecipeName"] = recipeEntity.Name;
             model.Response.NavigateToPage = "recipes";
-            model.Response.ForceFunctionCall = "none";
+            //model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(recipeObject, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }

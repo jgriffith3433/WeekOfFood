@@ -12,7 +12,7 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleFor(v => v.Command.KitchenProducts).NotEmpty().WithMessage("KitchenProducts field is required");
             RuleForEach(v => v.Command.KitchenProducts).ChildRules(i =>
             {
-                i.RuleFor(x => x.ProductName).NotEmpty().WithMessage("ProductName field is required");
+                i.RuleFor(x => x.KitchenProductName).NotEmpty().WithMessage("KitchenProductName field is required");
                 i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage("KitchenUnitType field is required");
             });
         }

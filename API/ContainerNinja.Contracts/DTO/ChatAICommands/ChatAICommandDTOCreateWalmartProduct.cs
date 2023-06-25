@@ -9,5 +9,5 @@ public record ChatAICommandDTOCreateWalmartProduct : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Name of the product")]
-    public string ProductName { get; set; }
+    public string WalmartProductName { get; set; }
 }

@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "search_logged_recipes", "get_logged_recipe"})]
+    [ChatCommandModel(new[] { "search_consumed_recipes", "get_consumed_recipe"})]
     public class ConsumeChatCommandSearchCookedRecipes : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOSearchCookedRecipes>
     {
         public ChatAICommandDTOSearchCookedRecipes Command { get; set; }

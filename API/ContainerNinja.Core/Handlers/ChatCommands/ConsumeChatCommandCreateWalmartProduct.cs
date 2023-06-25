@@ -26,22 +26,23 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
         public async Task<string> Handle(ConsumeChatCommandCreateWalmartProduct model, CancellationToken cancellationToken)
         {
-            var existingProductWithName = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Name.ToLower() == model.Command.ProductName.ToLower());
+            var existingProductWithName = _repository.WalmartProducts.Set.FirstOrDefault(p => p.Name.ToLower() == model.Command.WalmartProductName.ToLower());
 
             if (existingProductWithName != null)
             {
-                var systemResponse = "Product already exists: " + model.Command.ProductName;
+                var systemResponse = "Product already exists: " + model.Command.WalmartProductName;
                 throw new ChatAIException(systemResponse);
             }
 
             var productEntity = _repository.WalmartProducts.CreateProxy();
             {
-                productEntity.Name = model.Command.ProductName;
+                productEntity.Name = model.Command.WalmartProductName;
             };
             _repository.WalmartProducts.Add(productEntity);
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();
-            model.Response.NavigateToPage = "products";
-            return $"Successfully created product {model.Command.ProductName}";
+            await _repository.CommitAsync();
+            model.Response.NavigateToPage = "walmart-products";
+            return $"Successfully created product {model.Command.WalmartProductName} ({productEntity.Id})";
         }
     }
 }

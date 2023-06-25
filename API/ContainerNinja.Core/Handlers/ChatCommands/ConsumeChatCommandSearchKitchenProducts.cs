@@ -44,15 +44,20 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 }
                 else
                 {
-                    var searchTerms = string.Join(' ', name.ToLower().Split('-')).Split(' ');
-                    foreach (var searchTerm in searchTerms)
+                    predicate = predicate.Or(r => r.Name.ToLower() == name.ToLower());
+                    if (name[name.Length - 1] == 's')
                     {
-                        predicate = predicate.Or(r => r.Name.ToLower().Contains(searchTerm));
-                        if (searchTerm[searchTerm.Length - 1] == 's')
-                        {
-                            predicate = predicate.Or(r => r.Name.ToLower().Contains(searchTerm.Substring(0, searchTerm.Length - 1)));
-                        }
+                        predicate = predicate.Or(r => r.Name.ToLower() == name.Substring(0, name.Length - 1));
                     }
+                    //var searchTerms = string.Join(' ', name.ToLower().Split('-')).Split(' ');
+                    //foreach (var searchTerm in searchTerms)
+                    //{
+                    //    predicate = predicate.Or(r => r.Name.ToLower().Contains(searchTerm));
+                    //    if (searchTerm[searchTerm.Length - 1] == 's')
+                    //    {
+                    //        predicate = predicate.Or(r => r.Name.ToLower().Contains(searchTerm.Substring(0, searchTerm.Length - 1)));
+                    //    }
+                    //}
                 }
                 listOfResults.Add(_repository.KitchenProducts.Set.AsExpandable().Where(predicate).ToList());
             }
@@ -71,7 +76,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     {
                         var foundObject = new JObject();
                         foundObject["KitchenProductId"] = kitchenProduct.Id;
-                        foundObject["ProductName"] = kitchenProduct.Name;
+                        foundObject["KitchenProductName"] = kitchenProduct.Name;
+                        foundObject["Quantity"] = kitchenProduct.Amount;
                         foundArray.Add(foundObject);
                     }
                     searchResultsObject.Add("Results", foundArray);

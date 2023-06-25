@@ -33,7 +33,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
         {
             var kitchenProductsToFindWalmartProducts = new List<KitchenProduct>();
             var kitchenProductWalmartProducts = new JArray();
-            foreach(var id in model.Command.KitchenProductIds)
+            foreach (var id in model.Command.KitchenProductIds)
             {
                 var kitchenProductEntity = _repository.KitchenProducts.Set.FirstOrDefault(p => p.Id == id);
                 if (kitchenProductEntity == null)
@@ -41,26 +41,51 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                     var systemResponse = "Could not find kitchen product by ID: " + id;
                     throw new ChatAIException(systemResponse, @"{ ""name"": ""search_kitchen_products"" }");
                 }
+                kitchenProductsToFindWalmartProducts.Add(kitchenProductEntity);
+            }
+
+            foreach (var kitchenProductToFindWalmartProduct in kitchenProductsToFindWalmartProducts)
+            {
                 var walmartProductsArray = new JArray();
-                var walmartSearchResults = await _walmartService.Search(kitchenProductEntity.Name);
+                var walmartSearchResults = await _walmartService.Search(kitchenProductToFindWalmartProduct.Name);
                 if (walmartSearchResults != null && walmartSearchResults.items != null)
                 {
                     foreach (var walmartItem in walmartSearchResults.items)
                     {
+                        var walmartProductEntity = _repository.WalmartProducts.Set.FirstOrDefault(wp => wp.WalmartId == walmartItem.itemId);
+                        if (walmartProductEntity == null)
+                        {
+                            walmartProductEntity = _repository.WalmartProducts.CreateProxy();
+                            {
+                                _repository.WalmartProducts.Add(walmartProductEntity);
+                            }
+                        }
+                        else
+                        {
+                            _repository.WalmartProducts.Update(walmartProductEntity);
+                        }
+                        //always update values from walmart to keep synced
+                        walmartProductEntity.Name = walmartItem.name;
+                        walmartProductEntity.WalmartId = walmartItem.itemId;
+                        walmartProductEntity.WalmartItemResponse = JsonConvert.SerializeObject(walmartItem);
+                        walmartProductEntity.Name = walmartItem.name;
+                        walmartProductEntity.Price = walmartItem.salePrice;
+                        walmartProductEntity.WalmartSize = walmartItem.size;
+                        walmartProductEntity.WalmartLink = string.Format("https://walmart.com/ip/{0}/{1}", walmartItem.name, walmartItem.itemId);
                         var walmartProductObject = new JObject();
-                        walmartProductObject["WalmartId"] = walmartItem.itemId;
-                        walmartProductObject["WalmartProductName"] = walmartItem.name;
-                        walmartProductObject["WalmartProductSize"] = walmartItem.size;
+                        walmartProductObject["WalmartProductId"] = walmartProductEntity.Id;
+                        walmartProductObject["WalmartProductName"] = walmartProductEntity.Name;
+                        //walmartProductObject["WalmartProductSize"] = walmartProductEntity.size;
                         walmartProductsArray.Add(walmartProductObject);
                     }
                 }
                 var kitchenProductWalmartProductsObject = new JObject();
-                kitchenProductWalmartProductsObject["KitchenProductId"] = kitchenProductEntity.Id;
+                kitchenProductWalmartProductsObject["KitchenProductId"] = kitchenProductToFindWalmartProduct.Id;
                 kitchenProductWalmartProductsObject["WalmartSearchResults"] = walmartProductsArray;
                 kitchenProductWalmartProducts.Add(kitchenProductWalmartProductsObject);
             }
             model.Response.ForceFunctionCall = "none";
-            model.Response.NavigateToPage = "products";
+            model.Response.NavigateToPage = "walmart-products";
             return JsonConvert.SerializeObject(kitchenProductWalmartProducts, new JsonSerializerSettings()
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore

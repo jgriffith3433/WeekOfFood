@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("create_new_logged_recipe", "Create a new log for a recipe that was used")]
+//[ChatCommandSpecification("create_new_consumed_recipe", "Create a new record a consumed recipe")]
 public record ChatAICommandDTOCreateLoggedRecipe : ChatAICommandArgumentsDTO
 {
     [Required]

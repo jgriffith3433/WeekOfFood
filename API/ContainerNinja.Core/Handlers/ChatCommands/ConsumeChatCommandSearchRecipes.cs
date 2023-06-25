@@ -56,7 +56,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 return $"No Recipes matching the search term: {model.Command.Search}";
             }
             model.Response.NavigateToPage = "recipes";
-            model.Response.ForceFunctionCall = "none";
+            //model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(results, new JsonSerializerSettings() { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }

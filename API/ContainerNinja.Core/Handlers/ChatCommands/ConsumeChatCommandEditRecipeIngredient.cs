@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "edit_recipe_ingredient" })]
+    //[ChatCommandModel(new [] { "edit_recipe_ingredient" })]
     public class ConsumeChatCommandEditRecipeIngredient : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOEditRecipeIngredient>
     {
         public ChatAICommandDTOEditRecipeIngredient Command { get; set; }

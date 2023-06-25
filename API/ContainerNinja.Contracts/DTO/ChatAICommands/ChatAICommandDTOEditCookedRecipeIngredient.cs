@@ -4,11 +4,11 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("edit_logged_recipe_ingredient", "Delete one ingredient and add another")]
+//[ChatCommandSpecification("edit_consumed_recipe_ingredient", "Delete one ingredient and add another")]
 public record ChatAICommandDTOEditCookedRecipeIngredient : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Name of the logged recipe")]
+    [Description("Name of the consumed recipe")]
     public int LoggedRecipeId { get; set; }
     [Required]
     [Description("Id of the logged ingredient to delete")]

@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "update_logged_recipe" })]
+    [ChatCommandModel(new[] { "update_consumed_recipe" })]
     public class ConsumeChatCommandUpdateLoggedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateLoggedRecipe>
     {
         public ChatAICommandDTOUpdateLoggedRecipe Command { get; set; }
@@ -32,8 +32,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             var cookedRecipe = _repository.CookedRecipes.Set.OrderByDescending(cr => cr.Created).FirstOrDefault(r => r.Recipe.Id == model.Command.LoggedRecipeId);
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by ID: " + model.Command.LoggedRecipeId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_logged_recipe_id"" }");
+                var systemResponse = "Could not find consumed recipe by ID: " + model.Command.LoggedRecipeId;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_consumed_recipe_id"" }");
             }
 
             foreach(var updateLoggedRecipeIngredient in model.Command.Ingredients)

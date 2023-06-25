@@ -9,5 +9,5 @@ public record ChatAICommandDTOGetKitchenProductId : ChatAICommandArgumentsDTO
 {
     [Required]
     [Description("Name of the kitchen product to get an ID for")]
-    public string ProductName { get; set; }
+    public string KitchenProductName { get; set; }
 }

@@ -11,7 +11,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new [] { "delete_logged_recipe" })]
+    [ChatCommandModel(new [] { "delete_consumed_recipe" })]
     public class ConsumeChatCommandDeleteCookedRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTODeleteCookedRecipe>
     {
         public ChatAICommandDTODeleteCookedRecipe Command { get; set; }
@@ -33,8 +33,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
 
             if (cookedRecipe == null)
             {
-                var systemResponse = "Could not find logged recipe by ID: " + model.Command.LoggedRecipeId;
-                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_logged_recipe_id"" }");
+                var systemResponse = "Could not find consumed recipe by ID: " + model.Command.LoggedRecipeId;
+                throw new ChatAIException(systemResponse, @"{ ""name"": ""get_consumed_recipe_id"" }");
             }
             foreach (var cookedRecipeCalledIngredient in cookedRecipe.CookedRecipeCalledIngredients)
             {

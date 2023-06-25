@@ -39,7 +39,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 var kitchenProductLinkObject = new JObject();
                 kitchenProductLinkObject["IngredientId"] = ingredientEntity.Id;
                 kitchenProductLinkObject["KitchenProductId"] = ingredientEntity.KitchenProduct?.Id;
-                kitchenProductLinkObject["Amount"] = ingredientEntity.KitchenProduct?.Amount;
+                kitchenProductLinkObject["Quantity"] = ingredientEntity.KitchenProduct?.Amount;
                 kitchenProductLinkObject["KitchenUnitType"] = ingredientEntity.KitchenUnitType.ToString();
                 kitchenProductsArray.Add(kitchenProductLinkObject);
             }

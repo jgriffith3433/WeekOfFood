@@ -4,11 +4,11 @@ using System.ComponentModel;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("edit_logged_recipe_date", "Changes the date for the logged recipe")]
+//[ChatCommandSpecification("edit_consumed_recipe_date", "Changes the date for the consumed recipe")]
 public record ChatAICommandDTOEditCookedRecipeDate : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Id of the logged recipe")]
+    [Description("Id of the consumed recipe")]
     public int LoggedRecipeId { get; set; }
     [Required]
     [Description("When the recipe was used")]

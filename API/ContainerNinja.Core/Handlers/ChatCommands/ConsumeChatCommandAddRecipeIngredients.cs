@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "update_recipe" })]
+    [ChatCommandModel(new[] { "create_new_recipe_ingredients" })]
     public class ConsumeChatCommandUpdateRecipe : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateRecipe>
     {
         public ChatAICommandDTOUpdateRecipe Command { get; set; }
@@ -51,7 +51,14 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     calledIngredientEntity.Name = kitchenProductEntity.Name;
                     calledIngredientEntity.Amount = addRecipeIngredient.Quantity;
-                    calledIngredientEntity.KitchenUnitType = addRecipeIngredient.KitchenUnitType;
+                    if (addRecipeIngredient.UnitType.HasValue)
+                    {
+                        calledIngredientEntity.KitchenUnitType = addRecipeIngredient.UnitType.Value;
+                    }
+                    else
+                    {
+                        calledIngredientEntity.KitchenUnitType = KitchenUnitType.Count;
+                    }
                     calledIngredientEntity.KitchenProduct = kitchenProductEntity;
                 };
                 recipeEntity.CalledIngredients.Add(calledIngredientEntity);
@@ -80,6 +87,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             }
             recipeObject["Ingredients"] = recipeIngredientsArray;
             model.Response.NavigateToPage = "recipes";
+            model.Response.ForceFunctionCall = "none";
             return JsonConvert.SerializeObject(recipeObject);
         }
     }

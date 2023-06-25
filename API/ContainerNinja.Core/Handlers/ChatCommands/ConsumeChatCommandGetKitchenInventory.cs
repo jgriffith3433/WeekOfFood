@@ -32,9 +32,8 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
             {
                 var foundObject = new JObject();
                 foundObject["KitchenProductId"] = kitchenProduct.Id;
-                foundObject["ProductName"] = kitchenProduct.Name;
+                foundObject["KitchenProductName"] = kitchenProduct.Name;
                 foundObject["Quantity"] = kitchenProduct.Amount;
-                foundObject["KitchenUnitType"] = kitchenProduct.KitchenUnitType.ToString();
                 allInventoryArray.Add(foundObject);
             }
             model.Response.Dirty = _repository.ChangeTracker.HasChanges();

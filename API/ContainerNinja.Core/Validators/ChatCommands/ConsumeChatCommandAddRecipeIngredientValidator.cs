@@ -15,8 +15,8 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleForEach(v => v.Command.KitchenProducts).ChildRules(i =>
             {
                 i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_kitchen_products" }));
-                i.RuleFor(x => x.Quantity.HasValue || !string.IsNullOrEmpty(x.AmountAsAString)).NotEmpty().WithMessage("Must provide either Quantity or AmountAsAString");
-                i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage($"KitchenUnitType field is required. The available values are: {string.Join(", ", Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()))}");
+                i.RuleFor(x => x.Quantity).NotEmpty().WithMessage("Must provide Quantity field");
+                //i.RuleFor(x => x.UnitType).NotEmpty().WithMessage($"UnitType field is required. The available values are: {string.Join(", ", Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()))}");
             });
         }
     }

@@ -140,6 +140,16 @@ namespace ContainerNinja.Contracts.Enum
         [EnumMember(Value = "Pint")]
         [EnumNames("Pint", "Pints")]
         Pint = 24,
+        
+        [Display(Name = "Pinch")]
+        [EnumMember(Value = "Pinch")]
+        [EnumNames("Pinch", "Pinches")]
+        Pinch = 25,
+        
+        [Display(Name = "Breast")]
+        [EnumMember(Value = "Breast")]
+        [EnumNames("Breast", "Breasts")]
+        Breast = 26,
     }
 
     public static class KitchenUnitTypeExtensionMethods
@@ -222,6 +232,12 @@ namespace ContainerNinja.Contracts.Enum
                 case "pint":
                 case "pints":
                     return KitchenUnitType.Pint;
+                case "pinch":
+                case "pinches":
+                    return KitchenUnitType.Pinch;
+                case "breast":
+                case "breasts":
+                    return KitchenUnitType.Breast;
                 default:
                     return KitchenUnitType.None;
             }
@@ -268,9 +284,15 @@ namespace ContainerNinja.Contracts.Enum
 
     public class StringEnumKitchenUnitTypeGenerationProvider : StringEnumGenerationProvider
     {
+        public static bool IsNullableEnum(Type t)
+        {
+            return t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>) && t.GetGenericArguments()[0].IsEnum;
+        }
         public override JSchema GetSchema(JSchemaTypeGenerationContext context)
         {
-            if (context.ObjectType != typeof(KitchenUnitType))
+            var isNullable = IsNullableEnum(context.ObjectType);
+            var t = isNullable ? Nullable.GetUnderlyingType(context.ObjectType) : context.ObjectType;
+            if (t != typeof(KitchenUnitType))
             {
                 return base.GetSchema(context);
             }

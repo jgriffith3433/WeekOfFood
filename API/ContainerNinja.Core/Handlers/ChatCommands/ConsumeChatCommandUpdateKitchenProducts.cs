@@ -69,8 +69,8 @@
 //                {
 //                    var kitchenProductObject = new JObject();
 //                    kitchenProductObject["KitchenProductId"] = existingKitchenProduct.Id;
-//                    kitchenProductObject["ProductName"] = existingKitchenProduct.Name;
-//                    kitchenProductObject["Amount"] = existingKitchenProduct.Amount;
+//                    kitchenProductObject["KitchenProductName"] = existingKitchenProduct.Name;
+//                    kitchenProductObject["Quantity"] = existingKitchenProduct.Amount;
 //                    kitchenProductObject["KitchenUnitType"] = existingKitchenProduct.KitchenUnitType.ToString();
 //                    updatedArray.Add(kitchenProductObject);
 //                }

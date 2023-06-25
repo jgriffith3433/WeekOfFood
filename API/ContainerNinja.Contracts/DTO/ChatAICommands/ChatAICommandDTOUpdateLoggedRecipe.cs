@@ -5,11 +5,11 @@ using ContainerNinja.Contracts.Enum;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("update_logged_recipe", "Update logged recipe")]
+//[ChatCommandSpecification("update_consumed_recipe", "Update consumed recipe")]
 public record ChatAICommandDTOUpdateLoggedRecipe : ChatAICommandArgumentsDTO
 {
     [Required]
-    [Description("Id of the logged recipe")]
+    [Description("Id of the consumed recipe")]
     public int LoggedRecipeId { get; set; }
 
     [Required]
@@ -17,7 +17,7 @@ public record ChatAICommandDTOUpdateLoggedRecipe : ChatAICommandArgumentsDTO
     public DateTime? When { get; set; }
 
     [Required]
-    [Description("List of ingredients in the logged recipe")]
+    [Description("List of ingredients in the consumed recipe")]
     public List<ChatAICommandDTOUpdateLoggedRecipe_Ingredient> Ingredients { get; set; }
 }
 

@@ -12,7 +12,7 @@ using LinqKit;
 
 namespace ContainerNinja.Core.Handlers.ChatCommands
 {
-    [ChatCommandModel(new[] { "update_kitchen_inventory" })]
+    [ChatCommandModel(new[] { "update_kitchen_product_quantities" })]
     public class ConsumeChatCommandUpdateKitchenInventory : IRequest<string>, IChatCommandConsumer<ChatAICommandDTOUpdateKitchenInventory>
     {
         public ChatAICommandDTOUpdateKitchenInventory Command { get; set; }
@@ -42,7 +42,6 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                         throw new ChatAIException($"Could not find kitchen product by ID: {item.KitchenProductId}", @"{ ""name"": ""search_kitchen_products"" }");
                     }
                     existingKitchenProductEntity.Amount = item.Quantity;
-                    existingKitchenProductEntity.KitchenUnitType = item.KitchenUnitType;
                     kitchenProductsToUpdate.Add(existingKitchenProductEntity);
                 }
             }
@@ -54,10 +53,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 _repository.KitchenProducts.Update(existingKitchenProduct);
             }
 
-            var updatedObject = new JObject
-            {
-                { "Flow", "User is updating their kitchen inventory" }
-            };
+            var updatedObject = new JObject();
             if (kitchenProductsToUpdate.Count > 0)
             {
                 var updatedRecordsObject = new JObject
@@ -69,7 +65,7 @@ namespace ContainerNinja.Core.Handlers.ChatCommands
                 {
                     var kitchenProductObject = new JObject();
                     kitchenProductObject["KitchenProductId"] = existingKitchenProduct.Id;
-                    kitchenProductObject["ProductName"] = existingKitchenProduct.Name;
+                    kitchenProductObject["KitchenProductName"] = existingKitchenProduct.Name;
                     kitchenProductObject["Quantity"] = existingKitchenProduct.Amount;
                     kitchenProductObject["KitchenUnitType"] = existingKitchenProduct.KitchenUnitType.ToString();
                     updatedArray.Add(kitchenProductObject);

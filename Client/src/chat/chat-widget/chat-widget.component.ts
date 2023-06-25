@@ -722,6 +722,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewInit {
   //}
 
   public userToggleChat() {
+    this.normalConversation = (window as any).normalConversation;
     this.toggleChat();
   }
 

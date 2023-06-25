@@ -34,7 +34,7 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'products'/*, canActivate: [AuthGuard]*/, children: [
+    path: 'walmart-products'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: ProductsComponent },
     ]
   },
@@ -64,7 +64,7 @@ const routes: Routes = [
     ]
   },
   {
-    path: 'logged-recipes'/*, canActivate: [AuthGuard]*/, children: [
+    path: 'consumed-recipes'/*, canActivate: [AuthGuard]*/, children: [
       { path: '', component: CookedRecipesComponent },
     ]
   },

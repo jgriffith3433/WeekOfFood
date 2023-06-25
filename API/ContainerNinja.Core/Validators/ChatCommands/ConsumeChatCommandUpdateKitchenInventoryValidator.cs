@@ -14,7 +14,6 @@ namespace ContainerNinja.Core.Validators.ChatCommands
             RuleForEach(v => v.Command.KitchenProducts).ChildRules(i =>
             {
                 i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage("KitchenProductId field is required");
-                i.RuleFor(x => x.KitchenUnitType).NotEmpty().WithMessage($"KitchenUnitType field is required. The available values are: {string.Join(", ", Enum.GetValues(typeof(KitchenUnitType)).Cast<KitchenUnitType>().Select(p => p.ToString()))}");
             });
         }
     }

@@ -10,12 +10,15 @@ namespace ContainerNinja.Core.Validators.ChatCommands
         {
             "home",
             "todo",
+            "portfolio",
             "kitchen products",
-            "products",
+            "walmart products",
+            "orders",
             "completed orders",
             "recipes",
-            "logged recipes",
-            "called ingredients"
+            "consumed recipes",
+            "called ingredients",
+            "api",
         };
 
         public ConsumeChatCommandGoToPageValidator()

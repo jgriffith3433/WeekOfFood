@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ContainerNinja.Contracts.DTO.ChatAICommands;
 
-[ChatCommandSpecification("add_kitchen_products_to_inventory", "Add kitchen products to inventory")]
+//[ChatCommandSpecification("add_kitchen_products_to_inventory", "Add kitchen products to inventory")]
 public record ChatAICommandDTOCreateKitchenProducts : ChatAICommandArgumentsDTO
 {
     //[Required]
@@ -22,7 +22,7 @@ public record ChatAICommandDTOCreateKitchenProducts_KitchenProduct
 {
     [Required]
     [Description("Name of the kitchen product")]
-    public string ProductName { get; set; }
+    public string KitchenProductName { get; set; }
     [Description("The number of kitchen units they have. Example: 3 packages")]
     public float Quantity { get; set; }
     public float Amount { get => Quantity; set => Quantity = value; }

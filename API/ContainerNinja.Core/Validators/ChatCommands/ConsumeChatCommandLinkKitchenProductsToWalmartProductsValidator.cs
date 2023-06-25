@@ -8,15 +8,13 @@ namespace ContainerNinja.Core.Validators.ChatCommands
     {
         public ConsumeChatCommandLinkKitchenProductsToWalmartProductsValidator()
         {
-            var forceFunctionCallObject = new { name = "search_walmart_products_for_kitchen_product" };
-            var invalidWalmartProductIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(forceFunctionCallObject);
+            var invalidWalmartIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_walmart_products_for_kitchen_product" });
             //RuleFor(v => v.Command.UserGavePermission).Equal(true).WithMessage("ForceFunctionCall=none");
 
-            RuleFor(v => v.Command.Links).NotEmpty().WithMessage("Links field is required");
+            RuleFor(v => v.Command.Links).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_kitchen_products" }));
             RuleForEach(v => v.Command.Links).ChildRules(i =>
             {
-                i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage("KitchenProductId field is required");
-                var invalidWalmartIdMessage = @"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_walmart_products_for_kitchen_product" });
+                i.RuleFor(x => x.KitchenProductId).NotEmpty().WithMessage(@"ForceFunctionCall=" + JsonConvert.SerializeObject(new { name = "search_kitchen_products" }));
                 i.RuleFor(x => x.WalmartProductId).NotEmpty().WithMessage("WalmartProductId field is required");
                 i.RuleFor(x => x.WalmartProductId).NotEqual(1).WithMessage(invalidWalmartIdMessage);
                 i.RuleFor(x => x.WalmartProductId).NotEqual(12).WithMessage(invalidWalmartIdMessage);

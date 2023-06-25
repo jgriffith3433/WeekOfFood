@@ -33,12 +33,21 @@ namespace ContainerNinja.Migrations.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<float?>("Amount")
+                        .HasColumnType("real");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("KitchenProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("KitchenUnitType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
@@ -50,17 +59,8 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("KitchenProductId")
-                        .HasColumnType("int");
-
                     b.Property<int>("RecipeId")
                         .HasColumnType("int");
-
-                    b.Property<int>("KitchenUnitType")
-                        .HasColumnType("int");
-
-                    b.Property<float?>("Amount")
-                        .HasColumnType("real");
 
                     b.Property<bool>("Verified")
                         .HasColumnType("bit");
@@ -284,6 +284,9 @@ namespace ContainerNinja.Migrations.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<float?>("Amount")
+                        .HasColumnType("real");
+
                     b.Property<int?>("CalledIngredientId")
                         .HasColumnType("int");
 
@@ -297,6 +300,12 @@ namespace ContainerNinja.Migrations.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("KitchenProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("KitchenUnitType")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
 
@@ -306,15 +315,6 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("KitchenProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("KitchenUnitType")
-                        .HasColumnType("int");
-
-                    b.Property<float?>("Amount")
-                        .HasColumnType("real");
 
                     b.HasKey("Id");
 
@@ -367,6 +367,47 @@ namespace ContainerNinja.Migrations.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.KitchenProduct", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<float>("Amount")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("KitchenUnitType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastModified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("WalmartProductId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WalmartProductId");
+
+                    b.ToTable("KitchenProducts");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Order", b =>
@@ -423,63 +464,22 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<int?>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("int");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
                     b.Property<long?>("WalmartId")
                         .HasColumnType("bigint");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("OrderItems");
-                });
-
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.KitchenProduct", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("LastModified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("KitchenUnitType")
-                        .HasColumnType("int");
-
-                    b.Property<float>("Amount")
-                        .HasColumnType("real");
-
                     b.Property<int?>("WalmartProductId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrderId");
+
                     b.HasIndex("WalmartProductId");
 
-                    b.ToTable("KitchenProducts");
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.Recipe", b =>
@@ -645,6 +645,9 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Property<string>("Error")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("KitchenUnitType")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LastModified")
                         .HasColumnType("datetime2");
 
@@ -660,9 +663,6 @@ namespace ContainerNinja.Migrations.Migrations
 
                     b.Property<float>("Size")
                         .HasColumnType("real");
-
-                    b.Property<int>("KitchenUnitType")
-                        .HasColumnType("int");
 
                     b.Property<bool>("Verified")
                         .HasColumnType("bit");
@@ -764,23 +764,23 @@ namespace ContainerNinja.Migrations.Migrations
                     b.Navigation("KitchenProduct");
                 });
 
+            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.KitchenProduct", b =>
+                {
+                    b.HasOne("ContainerNinja.Contracts.Data.Entities.WalmartProduct", "WalmartProduct")
+                        .WithMany("KitchenProducts")
+                        .HasForeignKey("WalmartProductId");
+
+                    b.Navigation("WalmartProduct");
+                });
+
             modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.OrderItem", b =>
                 {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.Order", null)
                         .WithMany("OrderItems")
                         .HasForeignKey("OrderId");
 
-                    b.HasOne("ContainerNinja.Contracts.Data.Entities.WalmartProduct", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId");
-
-                    b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("ContainerNinja.Contracts.Data.Entities.KitchenProduct", b =>
-                {
                     b.HasOne("ContainerNinja.Contracts.Data.Entities.WalmartProduct", "WalmartProduct")
-                        .WithMany("KitchenProducts")
+                        .WithMany()
                         .HasForeignKey("WalmartProductId");
 
                     b.Navigation("WalmartProduct");
